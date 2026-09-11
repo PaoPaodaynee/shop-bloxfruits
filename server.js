@@ -20,13 +20,13 @@ const GTF_PARTNER_ID = process.env.GTF_PARTNER_ID || "3314076622";
 const GTF_PARTNER_KEY = process.env.GTF_PARTNER_KEY || "";
 
 // ==========================================
-// 1. TẤT CẢ SCHEMAS & MODELS ĐẶT TRÊN ĐẦU
+// 1. SCHEMAS & MODELS (HỆ THỐNG ROLE MỚI)
 // ==========================================
 const User = mongoose.model('User', new mongoose.Schema({
     username: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     balance: { type: Number, default: 0 },
-    role: { type: String, default: "user" }
+    role: { type: String, default: "user" } // "user", "ctv", "admin"
 }));
 
 const Category = mongoose.model('Category', new mongoose.Schema({
@@ -90,6 +90,7 @@ const BoostService = mongoose.model('BoostService', new mongoose.Schema({
     active: { type: Boolean, default: true }
 }));
 
+// ĐƠN CÀY THUÊ (CÓ THÊM NGƯỜI NHẬN CÀY assignedTo)
 const BoostOrder = mongoose.model('BoostOrder', new mongoose.Schema({
     id: { type: Number, required: true },
     username: String,
@@ -98,14 +99,14 @@ const BoostOrder = mongoose.model('BoostOrder', new mongoose.Schema({
     robloxUser: String,
     robloxPass: String,
     note: String,
-    status: { type: String, default: "pending" },
+    assignedTo: { type: String, default: "" }, // Tên CTV thợ cày nhận đơn
+    status: { type: String, default: "pending" }, // pending, processing, completed, cancelled
     createdAt: { type: Date, default: Date.now }
 }));
 
-// SCHEMA SẢN PHẨM GAMEPASS & TRÁI RƯƠNG (MỚI)
 const ItemProduct = mongoose.model('ItemProduct', new mongoose.Schema({
     id: { type: Number, required: true },
-    type: { type: String, required: true }, // "gamepass" hoặc "fruit"
+    type: { type: String, required: true },
     name: { type: String, required: true },
     price: { type: Number, required: true },
     description: String,
@@ -113,70 +114,27 @@ const ItemProduct = mongoose.model('ItemProduct', new mongoose.Schema({
     active: { type: Boolean, default: true }
 }));
 
-// SCHEMA ĐƠN ĐẶT MUA GAMEPASS & TRÁI RƯƠNG CỦA KHÁCH (MỚI)
 const ItemOrder = mongoose.model('ItemOrder', new mongoose.Schema({
     id: { type: Number, required: true },
     username: String,
-    productType: String, // "gamepass" hoặc "fruit"
+    productType: String,
     productName: String,
     price: Number,
-    robloxUsername: String, // Tên nhân vật Roblox của khách để giao đồ
+    robloxUsername: String,
     note: String,
-    status: { type: String, default: "pending" }, // pending (chờ giao), completed (đã giao), cancelled (đã hủy)
+    status: { type: String, default: "pending" },
     createdAt: { type: Date, default: Date.now }
 }));
 
 // ==========================================
-// 2. KẾT NỐI DATABASE & TẠO SẢN PHẨM MẪU
+// 2. KẾT NỐI DATABASE
 // ==========================================
 mongoose.connect(MONGO_URI)
-    .then(async () => {
-        console.log(">>> [DATABASE]: KẾT NỐI THÀNH CÔNG!");
-        try {
-            // Danh mục acc mẫu
-            const catCount = await Category.countDocuments();
-            if (catCount === 0) {
-                await Category.create([
-                    { id: 1, name: "Acc Blox Fruits Giá Rẻ (Học Sinh)", description: "Các tài khoản giá mềm từ 20k - 50k", image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80" },
-                    { id: 2, name: "Acc Max Level + Godhuman", description: "Tài khoản max cấp độ 2550 kèm full võ vip", image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=600&q=80" },
-                    { id: 3, name: "Acc VIP Kitsune / Mochi V2", description: "Tài khoản sở hữu các trái ác quỷ hot nhất", image: "https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=600&q=80" }
-                ]);
-            }
-
-            // Gói cày mẫu
-            const boostCount = await BoostService.countDocuments();
-            if (boostCount === 0) {
-                await BoostService.create([
-                    { id: 1, name: "Cày Level 1 -> Max Level (2550)", price: 50000, description: "Cày siêu tốc 24h, bảo đảm an toàn 100%", image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80" },
-                    { id: 2, name: "Lấy Melee Godhuman (Full nguyên liệu)", price: 70000, description: "Yêu cầu đủ 5M Beli & 5K Fragments", image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=600&q=80" },
-                    { id: 3, name: "Lấy Song Kiếm Oden (CDK)", price: 60000, description: "Yêu cầu có Yama và Tushita 350 mastery", image: "https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=600&q=80" },
-                    { id: 4, name: "Săn 2.5 Triệu Bounty (Bật PvP)", price: 40000, description: "Hoàn thành trong ngày, không tụt rank", image: "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=600&q=80" }
-                ]);
-            }
-
-            // Gamepass & Trái Rương mẫu nếu chưa có
-            const itemCount = await ItemProduct.countDocuments();
-            if (itemCount === 0) {
-                await ItemProduct.create([
-                    // Gamepass
-                    { id: 1, type: "gamepass", name: "Dark Blade (Kiếm Yoru)", price: 200000, description: "Gift trực tiếp qua game siêu tốc", image: "https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=600&q=80" },
-                    { id: 2, type: "gamepass", name: "2x Mastery (x2 Thông Thạo)", price: 80000, description: "Tăng gấp đôi tốc độ cày cấp vũ khí", image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80" },
-                    { id: 3, type: "gamepass", name: "2x Money (x2 Tiền Beli)", price: 80000, description: "Gấp đôi tiền beli rơi ra từ quái và rương", image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=600&q=80" },
-                    { id: 4, type: "gamepass", name: "Thuyền Nhanh (Fast Boats)", price: 40000, description: "Sở hữu dàn thuyền bay lượn trên biển", image: "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=600&q=80" },
-                    // Trái Rương
-                    { id: 5, type: "fruit", name: "Trái Kitsune (Physical/Rương)", price: 150000, description: "Trade rương trực tiếp trong Sea 2 hoặc Sea 3", image: "https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=600&q=80" },
-                    { id: 6, type: "fruit", name: "Trái Rồng Dragon (Physical/Rương)", price: 120000, description: "Trade rương trực tiếp trong game", image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80" },
-                    { id: 7, type: "fruit", name: "Trái Leopard (Physical/Rương)", price: 90000, description: "Trade rương trực tiếp trong game", image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=600&q=80" },
-                    { id: 8, type: "fruit", name: "Trái Mochi / Dough (Physical/Rương)", price: 70000, description: "Trade rương trực tiếp trong game", image: "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=600&q=80" },
-                    { id: 9, type: "fruit", name: "Trái Buddha Phật Tổ (Physical/Rương)", price: 40000, description: "Trade rương trực tiếp trong game", image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80" }
-                ]);
-            }
-        } catch (seedErr) {}
-    })
+    .then(() => console.log(">>> [DATABASE]: BẢO MẬT & KẾT NỐI THÀNH CÔNG!"))
     .catch(err => console.error(">>> [DATABASE LỖI]:", err.message));
 
 // ==========================================
-// 3. API ĐĂNG KÝ / ĐĂNG NHẬP / SỐ DƯ
+// 3. API ĐĂNG KÝ / ĐĂNG NHẬP / ROLE
 // ==========================================
 app.post('/api/register', async (req, res) => {
     try {
@@ -193,8 +151,8 @@ app.post('/api/register', async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        const newUser = await User.create({ username, password: hashedPassword, balance: 0 });
-        res.json({ success: true, message: "Đăng ký tài khoản thành công!", user: { username: newUser.username, balance: newUser.balance } });
+        const newUser = await User.create({ username, password: hashedPassword, balance: 0, role: "user" });
+        res.json({ success: true, message: "Đăng ký thành công!", user: { username: newUser.username, balance: newUser.balance, role: newUser.role } });
     } catch (e) {
         res.status(500).json({ success: false, message: "Lỗi: " + e.message });
     }
@@ -206,6 +164,7 @@ app.post('/api/login', async (req, res) => {
         const cleanUser = (username || "").trim().toLowerCase();
         const cleanPass = (password || "").trim();
 
+        // Đăng nhập Admin
         if (cleanUser === "admin" && (cleanPass === (ADMIN_PASS || "").trim() || cleanPass === "otopi123")) {
             return res.json({
                 success: true,
@@ -228,7 +187,12 @@ app.post('/api/login', async (req, res) => {
 
         if (!isMatch) return res.status(400).json({ success: false, message: "Sai tài khoản hoặc mật khẩu!" });
 
-        res.json({ success: true, isAdmin: false, message: "Đăng nhập thành công!", user: { username: user.username, balance: user.balance } });
+        res.json({
+            success: true,
+            isAdmin: false,
+            message: "Đăng nhập thành công!",
+            user: { username: user.username, balance: user.balance, role: user.role }
+        });
     } catch (e) {
         res.status(500).json({ success: false, message: "Lỗi: " + e.message });
     }
@@ -237,11 +201,11 @@ app.post('/api/login', async (req, res) => {
 app.get('/api/user-balance', async (req, res) => {
     try {
         const { username } = req.query;
-        if (!username) return res.json({ balance: 0 });
+        if (!username) return res.json({ balance: 0, role: "user" });
         const user = await User.findOne({ username: new RegExp('^' + username + '$', 'i') });
-        res.json({ balance: user ? user.balance : 0 });
+        res.json({ balance: user ? user.balance : 0, role: user ? user.role : "user" });
     } catch (e) {
-        res.json({ balance: 0 });
+        res.json({ balance: 0, role: "user" });
     }
 });
 
@@ -270,7 +234,7 @@ app.get('/api/top-deposits', async (req, res) => {
 });
 
 // ==========================================
-// 4. API DANH MỤC & MUA BÁN ACC
+// 4. DANH MỤC & MUA ACC
 // ==========================================
 app.get('/api/categories', async (req, res) => {
     try {
@@ -285,10 +249,7 @@ app.get('/api/accounts', async (req, res) => {
     try {
         const { category } = req.query;
         let query = { sold: false };
-        if (category && category !== 'all') {
-            query.category = category;
-        }
-
+        if (category && category !== 'all') query.category = category;
         const accounts = await Account.find(query).select('id category title level fruit melee price image');
         res.json(accounts);
     } catch (e) {
@@ -343,7 +304,7 @@ app.get('/api/my-orders', async (req, res) => {
 });
 
 // ==========================================
-// 5. API CÀY THUÊ
+// 5. CÀY THUÊ (CHO KHÁCH HÀNG)
 // ==========================================
 app.get('/api/boost-services', async (req, res) => {
     try {
@@ -409,15 +370,93 @@ app.get('/api/my-boost-orders', async (req, res) => {
 });
 
 // ==========================================
-// 6. API MUA GAMEPASS & TRÁI RƯƠNG (MỚI)
+// ⚡ 6. CỔNG API DÀNH RIÊNG CHO CTV THỢ CÀY (MỚI)
 // ==========================================
-// Lấy danh sách Gamepass hoặc Trái rương cho khách xem
+
+// Kiểm tra quyền CTV
+async function checkCtvAuth(req, res, next) {
+    try {
+        const username = req.headers['x-ctv-user'] || req.query.ctvUser || req.body.ctvUser;
+        if (!username) return res.status(401).json({ success: false, message: "Chưa đăng nhập tài khoản CTV!" });
+
+        const user = await User.findOne({ username: new RegExp('^' + username + '$', 'i') });
+        if (!user || (user.role !== 'ctv' && user.role !== 'admin')) {
+            return res.status(403).json({ success: false, message: "Tài khoản của bạn chưa được cấp quyền CTV Thợ Cày!" });
+        }
+
+        req.ctvUser = user;
+        next();
+    } catch (e) {
+        res.status(500).json({ success: false, message: "Lỗi xác thực CTV!" });
+    }
+}
+
+// CTV xem danh sách đơn cày (chờ cày & đơn của mình nhận)
+app.get('/api/ctv/orders', checkCtvAuth, async (req, res) => {
+    try {
+        // Lấy các đơn đang chờ nhận (pending) HOẶC đơn chính CTV này đang cày (processing)
+        const orders = await BoostOrder.find({
+            $or: [
+                { status: 'pending' },
+                { assignedTo: req.ctvUser.username }
+            ]
+        }).sort({ createdAt: -1 });
+
+        res.json({ success: true, ctvName: req.ctvUser.username, orders });
+    } catch (e) {
+        res.status(500).json({ success: false, message: "Lỗi tải đơn cày!" });
+    }
+});
+
+// CTV bấm nhận đơn cày
+app.post('/api/ctv/claim', checkCtvAuth, async (req, res) => {
+    try {
+        const { orderId } = req.body;
+        const order = await BoostOrder.findOne({ id: Number(orderId) });
+        if (!order) return res.status(404).json({ success: false, message: "Không tìm thấy đơn cày!" });
+
+        if (order.status !== 'pending') {
+            return res.status(400).json({ success: false, message: `Đơn này đã được nhận bởi ${order.assignedTo || 'thợ khác'} rồi!` });
+        }
+
+        order.status = 'processing';
+        order.assignedTo = req.ctvUser.username;
+        await order.save();
+
+        res.json({ success: true, message: `Bạn đã nhận cày thành công đơn #${orderId}! Hãy bắt đầu vào acc cày cho khách.` });
+    } catch (e) {
+        res.status(500).json({ success: false, message: "Lỗi nhận đơn!" });
+    }
+});
+
+// CTV bấm hoàn thành đơn cày
+app.post('/api/ctv/complete', checkCtvAuth, async (req, res) => {
+    try {
+        const { orderId } = req.body;
+        const order = await BoostOrder.findOne({ id: Number(orderId) });
+        if (!order) return res.status(404).json({ success: false, message: "Không tìm thấy đơn cày!" });
+
+        if (order.assignedTo !== req.ctvUser.username && req.ctvUser.role !== 'admin') {
+            return res.status(403).json({ success: false, message: "Bạn không phải người nhận đơn này!" });
+        }
+
+        order.status = 'completed';
+        await order.save();
+
+        res.json({ success: true, message: `Chúc mừng bạn đã hoàn thành đơn cày #${orderId}!` });
+    } catch (e) {
+        res.status(500).json({ success: false, message: "Lỗi cập nhật!" });
+    }
+});
+
+// ==========================================
+// 7. GAMEPASS & TRÁI RƯƠNG
+// ==========================================
 app.get('/api/items', async (req, res) => {
     try {
-        const { type } = req.query; // "gamepass" hoặc "fruit"
+        const { type } = req.query;
         let query = { active: true };
         if (type) query.type = type;
-
         const items = await ItemProduct.find(query).sort({ price: 1 });
         res.json(items);
     } catch (e) {
@@ -425,7 +464,6 @@ app.get('/api/items', async (req, res) => {
     }
 });
 
-// Khách đặt mua Gamepass hoặc Trái rương
 app.post('/api/item-order', async (req, res) => {
     try {
         const { username, itemId, robloxUsername, note } = req.body;
@@ -433,15 +471,11 @@ app.post('/api/item-order', async (req, res) => {
         if (!user) return res.status(401).json({ success: false, message: "Vui lòng đăng nhập trước khi mua!" });
 
         const item = await ItemProduct.findOne({ id: Number(itemId), active: true });
-        if (!item) return res.status(400).json({ success: false, message: "Vật phẩm không tồn tại hoặc đã tạm dừng bán!" });
+        if (!item) return res.status(400).json({ success: false, message: "Vật phẩm không tồn tại hoặc đã dừng bán!" });
 
-        if (!robloxUsername) {
-            return res.status(400).json({ success: false, message: "Vui lòng nhập tên nhân vật Roblox để shop vào game giao hàng!" });
-        }
+        if (!robloxUsername) return res.status(400).json({ success: false, message: "Vui lòng nhập tên nhân vật Roblox nhận đồ!" });
 
-        if (user.balance < item.price) {
-            return res.status(400).json({ success: false, message: "Số dư không đủ! Vui lòng nạp thêm tiền." });
-        }
+        if (user.balance < item.price) return res.status(400).json({ success: false, message: "Số dư không đủ!" });
 
         user.balance -= item.price;
         await user.save();
@@ -460,7 +494,7 @@ app.post('/api/item-order', async (req, res) => {
 
         res.json({
             success: true,
-            message: `Mua "${item.name}" thành công! Shop sẽ vào game gửi đồ cho nhân vật "${robloxUsername}" sớm nhất.`,
+            message: `Mua "${item.name}" thành công! Shop sẽ giao đồ cho "${robloxUsername}" sớm nhất.`,
             newBalance: user.balance,
             order: newOrder
         });
@@ -469,7 +503,6 @@ app.post('/api/item-order', async (req, res) => {
     }
 });
 
-// Khách xem đơn mua Gamepass / Trái rương của mình
 app.get('/api/my-item-orders', async (req, res) => {
     try {
         const { username } = req.query;
@@ -482,13 +515,13 @@ app.get('/api/my-item-orders', async (req, res) => {
 });
 
 // ==========================================
-// 7. NẠP THẺ & WEBHOOKS
+// 8. NẠP THẺ & WEBHOOKS
 // ==========================================
 app.post('/api/topup-card', async (req, res) => {
     try {
         const { username, telco, amount, code, serial } = req.body;
         if (!username || !telco || !amount || !code || !serial) {
-            return res.status(400).json({ success: false, message: "Vui lòng nhập đầy đủ thông tin!" });
+            return res.status(400).json({ success: false, message: "Vui lòng nhập đủ thông tin!" });
         }
 
         const cleanCode = code.trim();
@@ -529,10 +562,7 @@ app.post('/api/topup-card', async (req, res) => {
             });
         } catch (apiErr) {}
 
-        res.json({
-            success: true,
-            message: "Thẻ đã được gửi lên hệ thống! Vui lòng chờ 5-30 giây để tự động cộng tiền."
-        });
+        res.json({ success: true, message: "Thẻ đã gửi lên hệ thống! Đang tự động xử lý." });
     } catch (e) {
         res.status(500).json({ success: false, message: "Lỗi gửi thẻ: " + e.message });
     }
@@ -546,29 +576,18 @@ app.all('/api/webhook/gachthefast', async (req, res) => {
         const realAmount = Number(data.amount) || Number(data.value) || 0;
 
         let card = await Card.findOne({ requestId });
-        if (!card && data.code && data.serial) {
-            card = await Card.findOne({ code: data.code, serial: data.serial });
-        }
+        if (!card && data.code && data.serial) card = await Card.findOne({ code: data.code, serial: data.serial });
 
-        if (!card || card.status === 'success') {
-            return res.status(200).send("OK");
-        }
+        if (!card || card.status === 'success') return res.status(200).send("OK");
 
         if (status === 1 || status === 3) {
             const user = await User.findOne({ username: new RegExp('^' + card.username + '$', 'i') });
             const amountToAdd = realAmount > 0 ? realAmount : Math.round(card.declaredAmount * 0.8);
-
             if (user) {
                 user.balance += amountToAdd;
                 await user.save();
-
-                await Deposit.create({
-                    username: user.username,
-                    amount: amountToAdd,
-                    method: "card"
-                });
+                await Deposit.create({ username: user.username, amount: amountToAdd, method: "card" });
             }
-
             card.status = 'success';
             card.realAmount = amountToAdd;
             card.message = "Nạp thẻ thành công!";
@@ -578,7 +597,6 @@ app.all('/api/webhook/gachthefast', async (req, res) => {
             card.message = data.message || "Thẻ sai!";
             await card.save();
         }
-
         return res.status(200).send("OK");
     } catch (e) {
         res.status(500).send("Error");
@@ -595,17 +613,10 @@ app.post('/api/webhook/sepay', async (req, res) => {
         if (match && match[1] && amount > 0) {
             const targetUsername = match[1].trim();
             const user = await User.findOne({ username: new RegExp('^' + targetUsername + '$', 'i') });
-
             if (user) {
                 user.balance += amount;
                 await user.save();
-
-                await Deposit.create({
-                    username: user.username,
-                    amount: amount,
-                    method: "bank"
-                });
-
+                await Deposit.create({ username: user.username, amount: amount, method: "bank" });
                 return res.json({ success: true });
             }
         }
@@ -616,7 +627,7 @@ app.post('/api/webhook/sepay', async (req, res) => {
 });
 
 // ==========================================
-// 8. ADMIN ROUTES
+// 9. ADMIN ROUTES
 // ==========================================
 function checkAdminAuth(req, res, next) {
     const token = req.headers['authorization'];
@@ -624,7 +635,24 @@ function checkAdminAuth(req, res, next) {
     return res.status(403).json({ success: false, message: "Không có quyền Admin!" });
 }
 
-// QUẢN LÝ DANH MỤC
+// ADMIN PHONG CHỨC ROLE (USER <-> CTV)
+app.post('/api/admin/set-role', checkAdminAuth, async (req, res) => {
+    try {
+        const { username, role } = req.body;
+        if (!['user', 'ctv'].includes(role)) return res.status(400).json({ success: false, message: "Quyền không hợp lệ!" });
+
+        const user = await User.findOne({ username: new RegExp('^' + username + '$', 'i') });
+        if (!user) return res.status(404).json({ success: false, message: "Không tìm thấy người dùng!" });
+
+        user.role = role;
+        await user.save();
+
+        res.json({ success: true, message: `Đã đổi quyền của ${username} thành "${role === 'ctv' ? 'Cộng Tác Viên (Thợ Cày)' : 'Thành Viên Thường'}"!` });
+    } catch (e) {
+        res.status(500).json({ success: false, message: "Lỗi đổi quyền!" });
+    }
+});
+
 app.get('/api/admin/categories', checkAdminAuth, async (req, res) => {
     try {
         const cats = await Category.find().sort({ id: 1 });
@@ -638,7 +666,6 @@ app.post('/api/admin/category/add', checkAdminAuth, async (req, res) => {
     try {
         const { name, description, image } = req.body;
         if (!name) return res.status(400).json({ success: false, message: "Tên mục không được để trống!" });
-
         const count = await Category.countDocuments();
         await Category.create({
             id: count + 1,
@@ -648,7 +675,7 @@ app.post('/api/admin/category/add', checkAdminAuth, async (req, res) => {
         });
         res.json({ success: true, message: "Đã tạo mục mới thành công!" });
     } catch (e) {
-        res.status(500).json({ success: false, message: "Lỗi tạo mục: " + e.message });
+        res.status(500).json({ success: false, message: "Lỗi: " + e.message });
     }
 });
 
@@ -661,7 +688,6 @@ app.delete('/api/admin/category/:id', checkAdminAuth, async (req, res) => {
     }
 });
 
-// QUẢN LÝ SẢN PHẨM GAMEPASS & TRÁI RƯƠNG (ADMIN)
 app.get('/api/admin/items', checkAdminAuth, async (req, res) => {
     try {
         const items = await ItemProduct.find().sort({ type: 1, id: 1 });
@@ -674,21 +700,20 @@ app.get('/api/admin/items', checkAdminAuth, async (req, res) => {
 app.post('/api/admin/item/add', checkAdminAuth, async (req, res) => {
     try {
         const { type, name, price, description, image } = req.body;
-        if (!name || !price || !type) return res.status(400).json({ success: false, message: "Thiếu thông tin sản phẩm!" });
-
+        if (!name || !price || !type) return res.status(400).json({ success: false, message: "Thiếu thông tin!" });
         const count = await ItemProduct.countDocuments();
         await ItemProduct.create({
             id: count + 1,
-            type, // "gamepass" hoặc "fruit"
+            type,
             name: name.trim(),
             price: Number(price),
             description: description || "",
             image: image || "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80",
             active: true
         });
-        res.json({ success: true, message: `Đã thêm ${type === 'gamepass' ? 'Gamepass' : 'Trái Rương'} mới thành công!` });
+        res.json({ success: true, message: "Đã thêm sản phẩm thành công!" });
     } catch (e) {
-        res.status(500).json({ success: false, message: "Lỗi thêm sản phẩm!" });
+        res.status(500).json({ success: false, message: "Lỗi: " + e.message });
     }
 });
 
@@ -697,11 +722,10 @@ app.delete('/api/admin/item/:id', checkAdminAuth, async (req, res) => {
         await ItemProduct.findOneAndDelete({ id: Number(req.params.id) });
         res.json({ success: true, message: "Đã xóa sản phẩm!" });
     } catch (e) {
-        res.status(500).json({ success: false, message: "Lỗi xóa sản phẩm!" });
+        res.status(500).json({ success: false, message: "Lỗi xóa!" });
     }
 });
 
-// QUẢN LÝ ĐƠN GAMEPASS & TRÁI RƯƠNG (ADMIN)
 app.get('/api/admin/item-orders', checkAdminAuth, async (req, res) => {
     try {
         const orders = await ItemOrder.find().sort({ createdAt: -1 });
@@ -715,9 +739,8 @@ app.post('/api/admin/item-order/status', checkAdminAuth, async (req, res) => {
     try {
         const { orderId, status } = req.body;
         const order = await ItemOrder.findOne({ id: Number(orderId) });
-        if (!order) return res.status(404).json({ success: false, message: "Không tìm thấy đơn hàng!" });
+        if (!order) return res.status(404).json({ success: false, message: "Không tìm thấy đơn!" });
 
-        // Nếu HỦY đơn -> hoàn tiền lại cho khách
         if (status === 'cancelled' && order.status !== 'cancelled') {
             const user = await User.findOne({ username: order.username });
             if (user) {
@@ -728,14 +751,12 @@ app.post('/api/admin/item-order/status', checkAdminAuth, async (req, res) => {
 
         order.status = status;
         await order.save();
-
-        res.json({ success: true, message: `Đã cập nhật đơn #${orderId} sang "${status}"!` });
+        res.json({ success: true, message: `Đã cập nhật đơn #${orderId}!` });
     } catch (e) {
-        res.status(500).json({ success: false, message: "Lỗi cập nhật đơn hàng!" });
+        res.status(500).json({ success: false, message: "Lỗi: " + e.message });
     }
 });
 
-// QUẢN LÝ KHO ACC
 app.get('/api/admin/accounts', checkAdminAuth, async (req, res) => {
     try {
         const accounts = await Account.find().sort({ id: -1 });
@@ -810,7 +831,6 @@ app.delete('/api/admin/account/:id', checkAdminAuth, async (req, res) => {
     }
 });
 
-// CÀY THUÊ ADMIN
 app.get('/api/admin/boost-services', checkAdminAuth, async (req, res) => {
     try {
         const services = await BoostService.find().sort({ id: 1 });
@@ -872,10 +892,9 @@ app.post('/api/admin/boost-order/status', checkAdminAuth, async (req, res) => {
 
         order.status = status;
         await order.save();
-
         res.json({ success: true, message: `Đã cập nhật trạng thái đơn cày sang "${status}"!` });
     } catch (e) {
-        res.status(500).json({ success: false, message: "Lỗi cập nhật đơn cày!" });
+        res.status(500).json({ success: false, message: "Lỗi cập nhật!" });
     }
 });
 
@@ -908,12 +927,7 @@ app.post('/api/admin/card-action', checkAdminAuth, async (req, res) => {
             if (user) {
                 user.balance += card.realAmount;
                 await user.save();
-
-                await Deposit.create({
-                    username: user.username,
-                    amount: card.realAmount,
-                    method: "card_manual"
-                });
+                await Deposit.create({ username: user.username, amount: card.realAmount, method: "card_manual" });
             }
             card.status = 'success';
             await card.save();
@@ -928,9 +942,10 @@ app.post('/api/admin/card-action', checkAdminAuth, async (req, res) => {
     }
 });
 
+// LẤY DANH SÁCH USER (KÈM ROLE)
 app.get('/api/admin/users', checkAdminAuth, async (req, res) => {
     try {
-        const users = await User.find().select('username balance');
+        const users = await User.find().select('username balance role');
         res.json(users);
     } catch (e) {
         res.status(500).json([]);
@@ -948,31 +963,16 @@ app.post('/api/admin/adjust-balance', checkAdminAuth, async (req, res) => {
 
         if (type === 'subtract') {
             if (user.balance < numAmount) {
-                return res.status(400).json({
-                    success: false,
-                    message: `Số dư của khách chỉ có ${user.balance.toLocaleString('vi-VN')} đ, không đủ để trừ ${numAmount.toLocaleString('vi-VN')} đ!`
-                });
+                return res.status(400).json({ success: false, message: `Số dư khách chỉ có ${user.balance.toLocaleString('vi-VN')} đ!` });
             }
             user.balance -= numAmount;
             await user.save();
-            return res.json({
-                success: true,
-                message: `Đã TRỪ ${numAmount.toLocaleString('vi-VN')} đ của ${username}! Số dư còn lại: ${user.balance.toLocaleString('vi-VN')} đ`
-            });
+            return res.json({ success: true, message: `Đã TRỪ ${numAmount.toLocaleString('vi-VN')} đ của ${username}!` });
         } else {
             user.balance += numAmount;
             await user.save();
-
-            await Deposit.create({
-                username: user.username,
-                amount: numAmount,
-                method: "admin"
-            });
-
-            return res.json({
-                success: true,
-                message: `Đã CỘNG ${numAmount.toLocaleString('vi-VN')} đ cho ${username}! Số dư mới: ${user.balance.toLocaleString('vi-VN')} đ`
-            });
+            await Deposit.create({ username: user.username, amount: numAmount, method: "admin" });
+            return res.json({ success: true, message: `Đã CỘNG ${numAmount.toLocaleString('vi-VN')} đ cho ${username}!` });
         }
     } catch (e) {
         res.status(500).json({ success: false, message: "Lỗi: " + e.message });
