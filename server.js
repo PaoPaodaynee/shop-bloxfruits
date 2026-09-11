@@ -90,6 +90,18 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
+// API LẤY SỐ DƯ TỰ ĐỘNG
+app.get('/api/user-balance', async (req, res) => {
+    try {
+        const { username } = req.query;
+        if (!username) return res.json({ balance: 0 });
+        const user = await User.findOne({ username: new RegExp('^' + username + '$', 'i') });
+        res.json({ balance: user ? user.balance : 0 });
+    } catch (e) {
+        res.json({ balance: 0 });
+    }
+});
+
 // 3. LẤY ACC
 app.get('/api/accounts', async (req, res) => {
     try {
@@ -132,7 +144,7 @@ app.post('/api/buy', async (req, res) => {
             newBalance: user.balance
         });
     } catch (e) {
-        res.status(500).json({ success: false, message: "Lỗi: " + e.message });
+        res.status(500).json({ success: false, message: "Lỗi mua acc: " + e.message });
     }
 });
 
@@ -147,41 +159,30 @@ app.get('/api/my-orders', async (req, res) => {
     }
 });
 
-// ==========================================
-// ⚡ 5. CỔNG WEBHOOK SEPAY NẠP TIỀN TỰ ĐỘNG 100%
-// ==========================================
+// WEBHOOK SEPAY
 app.post('/api/webhook/sepay', async (req, res) => {
     try {
         const data = req.body;
-        console.log(">>> [SEPAY WEBHOOK]: Nhận được tín hiệu chuyển khoản:", data);
-
-        // Lấy nội dung chuyển khoản và số tiền khách gửi
+        console.log(">>> [SEPAY WEBHOOK]: Nhận tín hiệu:", data);
         const content = data.content || data.description || "";
         const amount = Number(data.transferAmount) || 0;
 
-        // Tìm cú pháp: OTOPI [Tên_Khách] trong nội dung chuyển khoản
         const match = content.match(/OTOPI\s*([A-Za-z0-9_]+)/i);
 
         if (match && match[1] && amount > 0) {
             const targetUsername = match[1].trim();
-
-            // Tìm tài khoản khách trong Database
             const user = await User.findOne({ username: new RegExp('^' + targetUsername + '$', 'i') });
 
             if (user) {
                 user.balance += amount;
                 await user.save();
-                console.log(`>>> [TỰ ĐỘNG]: Đã cộng tự động ${amount} đ cho tài khoản ${user.username}!`);
-                return res.json({ success: true, message: `Đã cộng ${amount} đ cho ${user.username}` });
-            } else {
-                console.log(`>>> [CẢNH BÁO]: Không tìm thấy khách có tên: ${targetUsername}`);
+                console.log(`>>> [TỰ ĐỘNG]: Đã cộng ${amount} đ cho ${user.username}!`);
+                return res.json({ success: true, message: "Thành công" });
             }
         }
-
-        res.json({ success: false, message: "Không khớp cú pháp nạp tiền hoặc số tiền bằng 0" });
+        res.json({ success: false });
     } catch (e) {
-        console.error("Lỗi Webhook:", e);
-        res.status(500).json({ success: false, message: "Lỗi Webhook" });
+        res.status(500).json({ success: false });
     }
 });
 
@@ -258,7 +259,7 @@ app.post('/api/admin/add-bulk', checkAdminAuth, async (req, res) => {
 app.delete('/api/admin/account/:id', checkAdminAuth, async (req, res) => {
     try {
         await Account.findOneAndDelete({ id: Number(req.params.id) });
-        res.json({ success: true, message: "Đã xóa acc khỏi shop!" });
+        res.json({ success: true, message: "Đã xóa acc!" });
     } catch (e) {
         res.status(500).json({ success: false, message: "Lỗi xóa!" });
     }
