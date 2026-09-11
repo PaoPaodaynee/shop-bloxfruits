@@ -90,7 +90,7 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-// 3. LẤY DANH SÁCH ACC
+// 3. LẤY ACC
 app.get('/api/accounts', async (req, res) => {
     try {
         const accounts = await Account.find({ sold: false }).select('id title level fruit melee price image');
@@ -147,7 +147,45 @@ app.get('/api/my-orders', async (req, res) => {
     }
 });
 
-// BẢO MẬT ADMIN
+// ==========================================
+// ⚡ 5. CỔNG WEBHOOK SEPAY NẠP TIỀN TỰ ĐỘNG 100%
+// ==========================================
+app.post('/api/webhook/sepay', async (req, res) => {
+    try {
+        const data = req.body;
+        console.log(">>> [SEPAY WEBHOOK]: Nhận được tín hiệu chuyển khoản:", data);
+
+        // Lấy nội dung chuyển khoản và số tiền khách gửi
+        const content = data.content || data.description || "";
+        const amount = Number(data.transferAmount) || 0;
+
+        // Tìm cú pháp: OTOPI [Tên_Khách] trong nội dung chuyển khoản
+        const match = content.match(/OTOPI\s*([A-Za-z0-9_]+)/i);
+
+        if (match && match[1] && amount > 0) {
+            const targetUsername = match[1].trim();
+
+            // Tìm tài khoản khách trong Database
+            const user = await User.findOne({ username: new RegExp('^' + targetUsername + '$', 'i') });
+
+            if (user) {
+                user.balance += amount;
+                await user.save();
+                console.log(`>>> [TỰ ĐỘNG]: Đã cộng tự động ${amount} đ cho tài khoản ${user.username}!`);
+                return res.json({ success: true, message: `Đã cộng ${amount} đ cho ${user.username}` });
+            } else {
+                console.log(`>>> [CẢNH BÁO]: Không tìm thấy khách có tên: ${targetUsername}`);
+            }
+        }
+
+        res.json({ success: false, message: "Không khớp cú pháp nạp tiền hoặc số tiền bằng 0" });
+    } catch (e) {
+        console.error("Lỗi Webhook:", e);
+        res.status(500).json({ success: false, message: "Lỗi Webhook" });
+    }
+});
+
+// ADMIN
 function checkAdminAuth(req, res, next) {
     const token = req.headers['authorization'];
     if (token === ADMIN_SECRET_KEY) return next();
@@ -163,7 +201,6 @@ app.get('/api/admin/accounts', checkAdminAuth, async (req, res) => {
     }
 });
 
-// 5. THÊM ACC LẺ
 app.post('/api/admin/add', checkAdminAuth, async (req, res) => {
     try {
         const { title, level, fruit, melee, price, image, robloxUser, robloxPass } = req.body;
@@ -182,24 +219,19 @@ app.post('/api/admin/add', checkAdminAuth, async (req, res) => {
     }
 });
 
-// 6. THÊM ACC HÀNG LOẠT (BULK IMPORT MỚI)
 app.post('/api/admin/add-bulk', checkAdminAuth, async (req, res) => {
     try {
         const { bulkText, title, price, level, fruit, melee, image } = req.body;
-        if (!bulkText) return res.status(400).json({ success: false, message: "Chưa nhập danh sách acc!" });
+        if (!bulkText) return res.status(400).json({ success: false, message: "Chưa nhập danh sách!" });
 
         const lines = bulkText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-        if (lines.length === 0) return res.status(400).json({ success: false, message: "Danh sách trống!" });
-
         let count = await Account.countDocuments();
         const newAccounts = [];
 
         for (let line of lines) {
-            // Tách theo dấu gạch đứng | hoặc dấu hai chấm :
             const parts = line.includes('|') ? line.split('|') : line.split(':');
             const u = parts[0]?.trim();
             const p = parts[1]?.trim();
-
             if (u && p) {
                 count++;
                 newAccounts.push({
@@ -216,29 +248,22 @@ app.post('/api/admin/add-bulk', checkAdminAuth, async (req, res) => {
                 });
             }
         }
-
-        if (newAccounts.length === 0) {
-            return res.status(400).json({ success: false, message: "Không tìm thấy định dạng hợp lệ (yêu cầu: user|pass hoặc user:pass mỗi dòng)!" });
-        }
-
         await Account.insertMany(newAccounts);
-        res.json({ success: true, message: `Thành công! Đã thêm ${newAccounts.length} acc vào shop cùng lúc!` });
+        res.json({ success: true, message: `Thành công! Đã thêm ${newAccounts.length} acc vào shop!` });
     } catch (e) {
         res.status(500).json({ success: false, message: "Lỗi: " + e.message });
     }
 });
 
-// 7. XÓA ACC TRONG KHO
 app.delete('/api/admin/account/:id', checkAdminAuth, async (req, res) => {
     try {
         await Account.findOneAndDelete({ id: Number(req.params.id) });
         res.json({ success: true, message: "Đã xóa acc khỏi shop!" });
     } catch (e) {
-        res.status(500).json({ success: false, message: "Lỗi xóa acc!" });
+        res.status(500).json({ success: false, message: "Lỗi xóa!" });
     }
 });
 
-// 8. QUẢN LÝ NGƯỜI DÙNG & CỘNG TIỀN
 app.get('/api/admin/users', checkAdminAuth, async (req, res) => {
     try {
         const users = await User.find().select('username balance');
