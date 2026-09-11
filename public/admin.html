@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Trang Đăng Acc & Quản Trị Shop</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen p-4 md:p-8">
+
+    <!-- KHÓA BẢO VỆ (CHỈ HIỆN KHI CHƯA ĐĂNG NHẬP ADMIN) -->
+    <div id="login-screen" class="max-w-md mx-auto mt-16 bg-gray-800 p-8 rounded-2xl border border-red-500/50 shadow-2xl">
+        <div class="text-center mb-6">
+            <span class="text-5xl">🔒</span>
+            <h1 class="text-2xl font-black text-red-500 mt-2">KHU VỰC QUẢN TRỊ</h1>
+            <p class="text-gray-400 text-xs mt-1">Trang này chỉ dành cho chủ shop!</p>
+        </div>
+        <div class="text-center">
+            <a href="/" class="inline-block bg-blue-600 hover:bg-blue-700 px-6 py-2.5 rounded-lg font-bold text-sm">
+                ⬅️ Về Trang Chủ Đăng Nhập
+            </a>
+        </div>
+    </div>
+
+    <!-- BẢNG ĐĂNG ACC ADMIN -->
+    <div id="dashboard-screen" class="max-w-6xl mx-auto hidden">
+        <div class="flex flex-wrap justify-between items-center bg-gray-800 p-5 rounded-xl border border-gray-700 mb-8 gap-4">
+            <div>
+                <h1 class="text-2xl font-black text-yellow-400">⚙️ HỆ THỐNG ĐĂNG BÁN ACC</h1>
+                <p class="text-gray-400 text-xs">Xin chào Sếp! Thêm thông tin acc để đăng lên shop ngay.</p>
+            </div>
+            <div class="flex gap-3">
+                <a href="/" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-bold text-sm">
+                    🌐 Về Xem Trang Chủ Shop
+                </a>
+                <button onclick="adminLogout()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg font-bold text-sm">
+                    🚪 Đăng Xuất
+                </button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- FORM ĐĂNG BÁN ACC -->
+            <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 h-fit">
+                <h2 class="text-lg font-bold mb-4 text-green-400 border-b border-gray-700 pb-2">➕ ĐĂNG BÁN ACC MỚI</h2>
+                <form id="add-acc-form" class="space-y-4">
+                    <div>
+                        <label class="text-xs text-gray-400 font-bold uppercase">Tiêu đề quảng cáo:</label>
+                        <input type="text" id="acc-title" required placeholder="VD: Acc Max Lv có Mochi V2" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm text-white outline-none">
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="text-xs text-gray-400 font-bold uppercase">Level:</label>
+                            <input type="text" id="acc-level" required placeholder="Max (2550)" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm text-white outline-none">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 font-bold uppercase">Giá bán (VNĐ):</label>
+                            <input type="number" id="acc-price" required placeholder="50000" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm text-white outline-none">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="text-xs text-gray-400 font-bold uppercase">Trái Ác Quỷ:</label>
+                            <input type="text" id="acc-fruit" required placeholder="Kitsune, Dough..." class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm text-white outline-none">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 font-bold uppercase">Melee / Võ:</label>
+                            <input type="text" id="acc-melee" required placeholder="Godhuman..." class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm text-white outline-none">
+                        </div>
+                    </div>
+                    <div class="border-t border-gray-700 pt-3">
+                        <p class="text-xs text-yellow-400 font-bold mb-2">🔑 TÀI KHOẢN MẬT KHẨU ROBLOX:</p>
+                        <div class="space-y-2">
+                            <input type="text" id="acc-robloxUser" required placeholder="Tài khoản Roblox" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm text-yellow-300 outline-none">
+                            <input type="text" id="acc-robloxPass" required placeholder="Mật khẩu Roblox" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm text-yellow-300 outline-none">
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 rounded-lg mt-4 transition">
+                        Đăng Lên Shop Ngay
+                    </button>
+                </form>
+            </div>
+
+            <!-- KHO ACC -->
+            <div class="md:col-span-2 bg-gray-800 p-6 rounded-xl border border-gray-700">
+                <h2 class="text-lg font-bold mb-4 text-blue-400 border-b border-gray-700 pb-2">📦 TOÀN BỘ KHO ACC</h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-sm">
+                        <thead>
+                            <tr class="border-b border-gray-700 text-gray-400 text-xs uppercase">
+                                <th class="p-2">ID</th>
+                                <th class="p-2">Tên Acc</th>
+                                <th class="p-2">Giá</th>
+                                <th class="p-2">Tài khoản | Pass</th>
+                                <th class="p-2">Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let adminToken = localStorage.getItem('otopi_admin_token');
+
+        function checkState() {
+            if (adminToken) {
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('dashboard-screen').classList.remove('hidden');
+                loadAllAccounts();
+            } else {
+                document.getElementById('login-screen').classList.remove('hidden');
+                document.getElementById('dashboard-screen').classList.add('hidden');
+            }
+        }
+
+        async function loadAllAccounts() {
+            const res = await fetch('/api/admin/accounts', {
+                headers: { 'Authorization': adminToken }
+            });
+            if (res.status === 403) {
+                adminLogout();
+                return;
+            }
+            const data = await res.json();
+            const tbody = document.getElementById('admin-table-body');
+            tbody.innerHTML = '';
+
+            data.forEach(acc => {
+                const badge = acc.sold 
+                    ? `<span class="bg-red-900 text-red-300 px-2 py-1 rounded text-xs font-bold">Đã Bán</span>`
+                    : `<span class="bg-green-900 text-green-300 px-2 py-1 rounded text-xs font-bold">Đang Bán</span>`;
+
+                tbody.innerHTML += `
+                    <tr class="border-b border-gray-700/50 hover:bg-gray-750">
+                        <td class="p-2 font-bold text-gray-400">#${acc.id}</td>
+                        <td class="p-2 font-semibold text-white">${acc.title}</td>
+                        <td class="p-2 text-yellow-400 font-bold">${acc.price.toLocaleString('vi-VN')} đ</td>
+                        <td class="p-2 font-mono text-xs text-gray-300">
+                            User: <b class="text-white">${acc.robloxUser}</b><br>
+                            Pass: <b class="text-white">${acc.robloxPass}</b>
+                        </td>
+                        <td class="p-2">${badge}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        document.getElementById('add-acc-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const newAcc = {
+                title: document.getElementById('acc-title').value,
+                level: document.getElementById('acc-level').value,
+                price: document.getElementById('acc-price').value,
+                fruit: document.getElementById('acc-fruit').value,
+                melee: document.getElementById('acc-melee').value,
+                robloxUser: document.getElementById('acc-robloxUser').value,
+                robloxPass: document.getElementById('acc-robloxPass').value
+            };
+
+            const res = await fetch('/api/admin/add', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': adminToken 
+                },
+                body: JSON.stringify(newAcc)
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                alert("🎉 " + data.message);
+                document.getElementById('add-acc-form').reset();
+                loadAllAccounts();
+            } else {
+                alert(data.message);
+            }
+        });
+
+        function adminLogout() {
+            localStorage.removeItem('otopi_admin_token');
+            localStorage.removeItem('otopi_user');
+            adminToken = null;
+            window.location.href = '/';
+        }
+
+        checkState();
+    </script>
+</body>
+</html>
