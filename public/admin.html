@@ -20,7 +20,7 @@
         <div class="flex flex-wrap justify-between items-center bg-gray-800 p-5 rounded-xl border border-gray-700 mb-8 gap-4">
             <div>
                 <h1 class="text-2xl font-black text-yellow-400">⚙️ HỆ THỐNG QUẢN TRỊ TỔNG</h1>
-                <p class="text-gray-400 text-xs">Duyệt thẻ cào, cộng/trừ tiền số dư và quản lý kho acc</p>
+                <p class="text-gray-400 text-xs">Đối soát đơn hàng, duyệt thẻ cào, cộng/trừ tiền và quản lý kho acc</p>
             </div>
             <div class="flex gap-3">
                 <a href="/" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-bold text-sm">
@@ -32,7 +32,31 @@
             </div>
         </div>
 
-        <!-- 1. BẢNG DUYỆT THẺ CÀO -->
+        <!-- 1. BẢNG ĐỐI SOÁT ĐƠN HÀNG ĐÃ BÁN (MỚI) -->
+        <div class="bg-gray-800 p-5 rounded-xl border border-blue-500/40 mb-8 shadow-xl">
+            <div class="flex justify-between items-center border-b border-gray-700 pb-2 mb-4">
+                <h2 class="text-base font-bold text-blue-400 flex items-center gap-2">
+                    📦 LỊCH SỬ ĐƠN HÀNG ĐÃ BÁN (ĐỐI SOÁT BẢO HÀNH)
+                </h2>
+                <button onclick="loadAllOrders()" class="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-xs">🔄 Tải Lại Đơn</button>
+            </div>
+            <div class="overflow-x-auto max-h-[350px] overflow-y-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead class="sticky top-0 bg-gray-800">
+                        <tr class="border-b border-gray-700 text-gray-400 uppercase">
+                            <th class="p-2">Thời Gian</th>
+                            <th class="p-2">Người Mua</th>
+                            <th class="p-2">Tên Acc</th>
+                            <th class="p-2">Giá Bán</th>
+                            <th class="p-2">Tài Khoản / Mật Khẩu Đã Giao</th>
+                        </tr>
+                    </thead>
+                    <tbody id="order-table-body"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 2. BẢNG DUYỆT THẺ CÀO -->
         <div class="bg-gray-800 p-5 rounded-xl border border-red-500/40 mb-8 shadow-xl">
             <div class="flex justify-between items-center border-b border-gray-700 pb-2 mb-4">
                 <h2 class="text-base font-bold text-red-400 flex items-center gap-2">
@@ -59,7 +83,7 @@
             </div>
         </div>
 
-        <!-- 2. BẢNG KHÁCH HÀNG & CỘNG / TRỪ TIỀN (CẢI TIẾN) -->
+        <!-- 3. BẢNG KHÁCH HÀNG & CỘNG / TRỪ TIỀN -->
         <div class="bg-gray-800 p-5 rounded-xl border border-yellow-500/40 mb-8 shadow-xl">
             <h2 class="text-base font-bold text-yellow-400 border-b border-gray-700 pb-2 mb-4">
                 👥 DANH SÁCH KHÁCH HÀNG & QUẢN LÝ SỐ DƯ (CỘNG / TRỪ TIỀN)
@@ -79,7 +103,7 @@
             </div>
         </div>
 
-        <!-- 3. KHU VỰC QUẢN LÝ ACC -->
+        <!-- 4. KHU VỰC QUẢN LÝ KHO ACC -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <div class="lg:col-span-5 bg-gray-800 p-6 rounded-xl border border-gray-700 h-fit">
                 <div class="flex border-b border-gray-700 mb-5 gap-2">
@@ -156,13 +180,42 @@
             if (adminToken) {
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('dashboard-screen').classList.remove('hidden');
-                loadAllAccounts();
-                loadAllUsers();
+                loadAllOrders(); // Tải đơn hàng đã bán
                 loadAllCards();
+                loadAllUsers();
+                loadAllAccounts();
             } else {
                 document.getElementById('login-screen').classList.remove('hidden');
                 document.getElementById('dashboard-screen').classList.add('hidden');
             }
+        }
+
+        // TẢI TOÀN BỘ ĐƠN HÀNG ĐÃ BÁN (ĐỐI SOÁT BẢO HÀNH)
+        async function loadAllOrders() {
+            const res = await fetch('/api/admin/orders', { headers: { 'Authorization': adminToken } });
+            const orders = await res.json();
+            const tbody = document.getElementById('order-table-body');
+            tbody.innerHTML = '';
+
+            if (orders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="p-3 text-center text-gray-400">Chưa có đơn hàng nào được bán ra.</td></tr>';
+                return;
+            }
+
+            orders.forEach(o => {
+                const dateStr = new Date(o.boughtAt).toLocaleString('vi-VN');
+                tbody.innerHTML += `
+                    <tr class="border-b border-gray-700/50 hover:bg-gray-750">
+                        <td class="p-2 text-gray-400">${dateStr}</td>
+                        <td class="p-2 font-bold text-yellow-400">👤 ${o.username}</td>
+                        <td class="p-2 font-semibold text-white truncate max-w-[150px]">${o.title} (#${o.accId})</td>
+                        <td class="p-2 font-bold text-green-400">${o.price.toLocaleString('vi-VN')} đ</td>
+                        <td class="p-2 font-mono text-xs text-yellow-300">
+                            U: <b class="text-white">${o.robloxUser}</b> | P: <b class="text-white">${o.robloxPass}</b>
+                        </td>
+                    </tr>
+                `;
+            });
         }
 
         async function loadAllCards() {
@@ -237,7 +290,6 @@
             }
         }
 
-        // TẢI KHÁCH HÀNG & 2 NÚT CỘNG / TRỪ TIỀN
         async function loadAllUsers() {
             const res = await fetch('/api/admin/users', { headers: { 'Authorization': adminToken } });
             const users = await res.json();
@@ -249,7 +301,7 @@
                         <td class="p-2 font-bold text-white">👤 ${u.username}</td>
                         <td class="p-2 font-bold text-yellow-400">${u.balance.toLocaleString('vi-VN')} đ</td>
                         <td class="p-2">
-                            <input type="number" id="amt-${u.username}" placeholder="Nhập số tiền..." class="bg-gray-900 border border-gray-600 rounded px-2 py-1 text-xs text-white w-32 outline-none">
+                            <input type="number" id="amt-${u.username}" placeholder="Số tiền..." class="bg-gray-900 border border-gray-600 rounded px-2 py-1 text-xs text-white w-32 outline-none">
                         </td>
                         <td class="p-2 flex gap-1">
                             <button onclick="adjustBalance('${u.username}', 'add')" class="bg-green-600 hover:bg-green-700 text-white px-2.5 py-1 rounded text-xs font-bold transition">
@@ -264,7 +316,6 @@
             });
         }
 
-        // XỬ LÝ CỘNG HOẶC TRỪ TIỀN
         async function adjustBalance(username, type) {
             const input = document.getElementById('amt-' + username);
             const amount = input.value;
@@ -343,18 +394,20 @@
 
         document.getElementById('bulk-form').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const bulkData = {
+                title: document.getElementById('b-title').value,
+                price: document.getElementById('b-price').value,
+                level: document.getElementById('b-level').value,
+                fruit: document.getElementById('b-fruit').value,
+                melee: document.getElementById('b-melee').value,
+                image: document.getElementById('b-image').value,
+                bulkText: document.getElementById('b-text').value
+            };
+
             const res = await fetch('/api/admin/add-bulk', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': adminToken },
-                body: JSON.stringify({
-                    title: document.getElementById('b-title').value,
-                    price: document.getElementById('b-price').value,
-                    level: document.getElementById('b-level').value,
-                    fruit: document.getElementById('b-fruit').value,
-                    melee: document.getElementById('b-melee').value,
-                    image: document.getElementById('b-image').value,
-                    bulkText: document.getElementById('b-text').value
-                })
+                body: JSON.stringify(bulkData)
             });
             const data = await res.json();
             alert("🚀 " + data.message);
