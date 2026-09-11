@@ -2,12 +2,11 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Trang Quản Trị & Quản Lý Khách Hàng - OTOPI</title>
+    <title>Trang Quản Trị & Đăng Acc - OTOPI</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-900 text-white min-h-screen p-4 md:p-8">
 
-    <!-- BẢNG ĐĂNG NHẬP -->
     <div id="login-screen" class="max-w-md mx-auto mt-16 bg-gray-800 p-8 rounded-2xl border border-red-500 shadow-2xl text-center">
         <span class="text-5xl">🔒</span>
         <h1 class="text-2xl font-black text-red-500 mt-2">KHU VỰC QUẢN TRỊ</h1>
@@ -17,9 +16,7 @@
         </a>
     </div>
 
-    <!-- KHU VỰC QUẢN TRỊ ADMIN -->
     <div id="dashboard-screen" class="max-w-6xl mx-auto hidden">
-        <!-- HEADER -->
         <div class="flex flex-wrap justify-between items-center bg-gray-800 p-5 rounded-xl border border-gray-700 mb-8 gap-4">
             <div>
                 <h1 class="text-2xl font-black text-yellow-400">⚙️ HỆ THỐNG QUẢN TRỊ TỔNG</h1>
@@ -35,37 +32,39 @@
             </div>
         </div>
 
-        <!-- PHẦN 1: QUẢN LÝ NGƯỜI DÙNG & CỘNG TIỀN (MỚI BỔ SUNG) -->
+        <!-- BẢNG KHÁCH HÀNG -->
         <div class="bg-gray-800 p-6 rounded-xl border border-yellow-500/50 mb-8 shadow-xl">
             <h2 class="text-lg font-bold text-yellow-400 border-b border-gray-700 pb-2 mb-4">
-                👥 DANH SÁCH KHÁCH HÀNG & CỘNG TIỀN NẠP
+                👥 DANH SÁCH KHÁCH HÀNG & CỘNG TIỀN
             </h2>
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse text-sm">
                     <thead>
                         <tr class="border-b border-gray-700 text-gray-400 text-xs uppercase">
-                            <th class="p-2">Tên Tài Khoản</th>
-                            <th class="p-2">Số Dư Hiện Tại</th>
-                            <th class="p-2">Cộng / Trừ Tiền</th>
+                            <th class="p-2">Tài Khoản</th>
+                            <th class="p-2">Số Dư</th>
+                            <th class="p-2">Nhập Tiền Muốn Cộng</th>
                             <th class="p-2">Hành Động</th>
                         </tr>
                     </thead>
-                    <tbody id="user-table-body">
-                        <!-- Tự load bằng JS -->
-                    </tbody>
+                    <tbody id="user-table-body"></tbody>
                 </table>
             </div>
         </div>
 
-        <!-- PHẦN 2: QUẢN LÝ KHO ACC -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <!-- FORM ĐĂNG BÁN ACC -->
+            <!-- FORM ĐĂNG BÁN ACC KÈM ẢNH -->
             <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 h-fit">
                 <h2 class="text-lg font-bold mb-4 text-green-400 border-b border-gray-700 pb-2">➕ ĐĂNG BÁN ACC MỚI</h2>
-                <form id="add-acc-form" class="space-y-4">
+                <form id="add-acc-form" class="space-y-3">
                     <div>
                         <label class="text-xs text-gray-400 font-bold uppercase">Tiêu đề:</label>
-                        <input type="text" id="acc-title" required placeholder="VD: Acc Max Lv có Mochi V2" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm outline-none">
+                        <input type="text" id="acc-title" required placeholder="VD: Acc Max Lv Trái Kitsune" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm outline-none">
+                    </div>
+                    <div>
+                        <label class="text-xs text-yellow-400 font-bold uppercase">📸 Link Ảnh Chụp Acc (URL):</label>
+                        <input type="url" id="acc-image" placeholder="Dán link ảnh (hoặc để trống dùng ảnh mặc định)" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm text-yellow-300 outline-none">
+                        <p class="text-[10px] text-gray-400 mt-1">💡 Mẹo: Bạn có thể tải ảnh lên <b>postimages.org</b> hoặc <b>imgur.com</b> rồi copy link ảnh dán vào đây.</p>
                     </div>
                     <div class="grid grid-cols-2 gap-2">
                         <div>
@@ -79,7 +78,7 @@
                     </div>
                     <div class="grid grid-cols-2 gap-2">
                         <div>
-                            <label class="text-xs text-gray-400 font-bold uppercase">Trái:</label>
+                            <label class="text-xs text-gray-400 font-bold uppercase">Trái Ác Quỷ:</label>
                             <input type="text" id="acc-fruit" required placeholder="Kitsune..." class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm outline-none">
                         </div>
                         <div>
@@ -92,7 +91,7 @@
                         <input type="text" id="acc-robloxUser" required placeholder="Tài khoản Roblox" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm text-yellow-300 mb-2 outline-none">
                         <input type="text" id="acc-robloxPass" required placeholder="Mật khẩu Roblox" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-sm text-yellow-300 outline-none">
                     </div>
-                    <button type="submit" class="w-full bg-green-600 hover:bg-green-700 py-2.5 rounded-lg font-bold">Đăng Lên Shop</button>
+                    <button type="submit" class="w-full bg-green-600 hover:bg-green-700 py-2.5 rounded-lg font-bold mt-2">Đăng Lên Shop</button>
                 </form>
             </div>
 
@@ -103,7 +102,7 @@
                     <table class="w-full text-left border-collapse text-sm">
                         <thead>
                             <tr class="border-b border-gray-700 text-gray-400 text-xs uppercase">
-                                <th class="p-2">ID</th>
+                                <th class="p-2">Ảnh</th>
                                 <th class="p-2">Tên Acc</th>
                                 <th class="p-2">Giá</th>
                                 <th class="p-2">Pass Roblox</th>
@@ -132,53 +131,33 @@
             }
         }
 
-        // Tải danh sách người dùng
         async function loadAllUsers() {
-            const res = await fetch('/api/admin/users', {
-                headers: { 'Authorization': adminToken }
-            });
+            const res = await fetch('/api/admin/users', { headers: { 'Authorization': adminToken } });
             const users = await res.json();
             const tbody = document.getElementById('user-table-body');
             tbody.innerHTML = '';
-
             if (users.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="4" class="p-3 text-center text-gray-400">Chưa có khách nào đăng ký.</td></tr>';
                 return;
             }
-
             users.forEach(u => {
                 tbody.innerHTML += `
                     <tr class="border-b border-gray-700/50">
                         <td class="p-2 font-bold text-white">👤 ${u.username}</td>
                         <td class="p-2 font-bold text-yellow-400">${u.balance.toLocaleString('vi-VN')} đ</td>
-                        <td class="p-2">
-                            <input type="number" id="amt-${u.username}" placeholder="Nhập số tiền (VD: 50000)" class="bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm text-white w-48 outline-none">
-                        </td>
-                        <td class="p-2">
-                            <button onclick="adjustBalance('${u.username}')" class="bg-yellow-500 hover:bg-yellow-600 text-black px-3 py-1 rounded text-xs font-bold">
-                                + Nạp Tiền
-                            </button>
-                        </td>
+                        <td class="p-2"><input type="number" id="amt-${u.username}" placeholder="Số tiền..." class="bg-gray-900 border border-gray-600 rounded px-2 py-1 text-xs text-white w-36 outline-none"></td>
+                        <td class="p-2"><button onclick="adjustBalance('${u.username}')" class="bg-yellow-500 hover:bg-yellow-600 text-black px-3 py-1 rounded text-xs font-bold">+ Nạp</button></td>
                     </tr>
                 `;
             });
         }
 
-        // Hàm cộng tiền cho khách
         async function adjustBalance(username) {
-            const input = document.getElementById('amt-' + username);
-            const amount = input.value;
-            if (!amount || amount == 0) {
-                alert("Vui lòng nhập số tiền cần cộng!");
-                return;
-            }
-
+            const amount = document.getElementById('amt-' + username).value;
+            if (!amount) return alert("Vui lòng nhập số tiền!");
             const res = await fetch('/api/admin/adjust-balance', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': adminToken
-                },
+                headers: { 'Content-Type': 'application/json', 'Authorization': adminToken },
                 body: JSON.stringify({ username, amount })
             });
             const data = await res.json();
@@ -186,40 +165,34 @@
             loadAllUsers();
         }
 
-        // Tải danh sách acc
         async function loadAllAccounts() {
-            const res = await fetch('/api/admin/accounts', {
-                headers: { 'Authorization': adminToken }
-            });
+            const res = await fetch('/api/admin/accounts', { headers: { 'Authorization': adminToken } });
             const data = await res.json();
             const tbody = document.getElementById('admin-table-body');
             tbody.innerHTML = '';
 
             data.forEach(acc => {
                 const badge = acc.sold 
-                    ? `<span class="bg-red-900 text-red-300 px-2 py-1 rounded text-xs font-bold">Đã Bán</span>`
-                    : `<span class="bg-green-900 text-green-300 px-2 py-1 rounded text-xs font-bold">Đang Bán</span>`;
+                    ? `<span class="bg-red-900 text-red-300 px-2 py-0.5 rounded text-xs font-bold">Đã Bán</span>`
+                    : `<span class="bg-green-900 text-green-300 px-2 py-0.5 rounded text-xs font-bold">Đang Bán</span>`;
 
                 tbody.innerHTML += `
                     <tr class="border-b border-gray-700/50">
-                        <td class="p-2 font-bold text-gray-400">#${acc.id}</td>
-                        <td class="p-2 font-semibold text-white">${acc.title}</td>
-                        <td class="p-2 text-yellow-400 font-bold">${acc.price.toLocaleString('vi-VN')} đ</td>
-                        <td class="p-2 font-mono text-xs text-gray-300">
-                            User: <b class="text-white">${acc.robloxUser}</b><br>
-                            Pass: <b class="text-white">${acc.robloxPass}</b>
-                        </td>
+                        <td class="p-2"><img src="${acc.image || 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80'}" class="w-12 h-12 object-cover rounded-lg border border-gray-700"></td>
+                        <td class="p-2 font-semibold text-white text-xs">${acc.title}</td>
+                        <td class="p-2 text-yellow-400 font-bold text-xs">${acc.price.toLocaleString('vi-VN')} đ</td>
+                        <td class="p-2 font-mono text-xs text-gray-300">User: <b>${acc.robloxUser}</b><br>Pass: <b>${acc.robloxPass}</b></td>
                         <td class="p-2">${badge}</td>
                     </tr>
                 `;
             });
         }
 
-        // Đăng acc
         document.getElementById('add-acc-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const newAcc = {
                 title: document.getElementById('acc-title').value,
+                image: document.getElementById('acc-image').value,
                 level: document.getElementById('acc-level').value,
                 price: document.getElementById('acc-price').value,
                 fruit: document.getElementById('acc-fruit').value,
@@ -230,10 +203,7 @@
 
             const res = await fetch('/api/admin/add', {
                 method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': adminToken 
-                },
+                headers: { 'Content-Type': 'application/json', 'Authorization': adminToken },
                 body: JSON.stringify(newAcc)
             });
 
