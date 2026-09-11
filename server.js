@@ -25,7 +25,6 @@ const User = mongoose.model('User', new mongoose.Schema({
     role: { type: String, default: "user" }
 }));
 
-// Bổ sung thêm trường image (ảnh acc)
 const Account = mongoose.model('Account', new mongoose.Schema({
     id: { type: Number, required: true },
     title: String,
@@ -49,7 +48,7 @@ const Order = mongoose.model('Order', new mongoose.Schema({
     boughtAt: { type: Date, default: Date.now }
 }));
 
-// ĐĂNG KÝ
+// 1. ĐĂNG KÝ
 app.post('/api/register', async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -65,7 +64,7 @@ app.post('/api/register', async (req, res) => {
     }
 });
 
-// ĐĂNG NHẬP
+// 2. ĐĂNG NHẬP
 app.post('/api/login', async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -91,7 +90,7 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-// LẤY ACC CHO KHÁCH (KÈM ẢNH)
+// 3. LẤY DANH SÁCH ACC
 app.get('/api/accounts', async (req, res) => {
     try {
         const accounts = await Account.find({ sold: false }).select('id title level fruit melee price image');
@@ -101,7 +100,7 @@ app.get('/api/accounts', async (req, res) => {
     }
 });
 
-// MUA ACC
+// 4. MUA ACC
 app.post('/api/buy', async (req, res) => {
     try {
         const { accountId, username } = req.body;
@@ -133,7 +132,7 @@ app.post('/api/buy', async (req, res) => {
             newBalance: user.balance
         });
     } catch (e) {
-        res.status(500).json({ success: false, message: "Lỗi mua acc: " + e.message });
+        res.status(500).json({ success: false, message: "Lỗi: " + e.message });
     }
 });
 
@@ -148,7 +147,7 @@ app.get('/api/my-orders', async (req, res) => {
     }
 });
 
-// ADMIN
+// BẢO MẬT ADMIN
 function checkAdminAuth(req, res, next) {
     const token = req.headers['authorization'];
     if (token === ADMIN_SECRET_KEY) return next();
@@ -164,7 +163,7 @@ app.get('/api/admin/accounts', checkAdminAuth, async (req, res) => {
     }
 });
 
-// ĐĂNG ACC MỚI KÈM ẢNH
+// 5. THÊM ACC LẺ
 app.post('/api/admin/add', checkAdminAuth, async (req, res) => {
     try {
         const { title, level, fruit, melee, price, image, robloxUser, robloxPass } = req.body;
@@ -177,12 +176,69 @@ app.post('/api/admin/add', checkAdminAuth, async (req, res) => {
             sold: false,
             robloxUser, robloxPass
         });
-        res.json({ success: true, message: "Đã đăng acc kèm ảnh thành công!" });
+        res.json({ success: true, message: "Đã đăng acc thành công!" });
     } catch (e) {
         res.status(500).json({ success: false, message: "Lỗi: " + e.message });
     }
 });
 
+// 6. THÊM ACC HÀNG LOẠT (BULK IMPORT MỚI)
+app.post('/api/admin/add-bulk', checkAdminAuth, async (req, res) => {
+    try {
+        const { bulkText, title, price, level, fruit, melee, image } = req.body;
+        if (!bulkText) return res.status(400).json({ success: false, message: "Chưa nhập danh sách acc!" });
+
+        const lines = bulkText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+        if (lines.length === 0) return res.status(400).json({ success: false, message: "Danh sách trống!" });
+
+        let count = await Account.countDocuments();
+        const newAccounts = [];
+
+        for (let line of lines) {
+            // Tách theo dấu gạch đứng | hoặc dấu hai chấm :
+            const parts = line.includes('|') ? line.split('|') : line.split(':');
+            const u = parts[0]?.trim();
+            const p = parts[1]?.trim();
+
+            if (u && p) {
+                count++;
+                newAccounts.push({
+                    id: count,
+                    title: title || `Acc Blox Fruits VIP #${count}`,
+                    price: Number(price) || 50000,
+                    level: level || "Max (2550)",
+                    fruit: fruit || "Ngẫu Nhiên",
+                    melee: melee || "Godhuman",
+                    image: image || "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80",
+                    robloxUser: u,
+                    robloxPass: p,
+                    sold: false
+                });
+            }
+        }
+
+        if (newAccounts.length === 0) {
+            return res.status(400).json({ success: false, message: "Không tìm thấy định dạng hợp lệ (yêu cầu: user|pass hoặc user:pass mỗi dòng)!" });
+        }
+
+        await Account.insertMany(newAccounts);
+        res.json({ success: true, message: `Thành công! Đã thêm ${newAccounts.length} acc vào shop cùng lúc!` });
+    } catch (e) {
+        res.status(500).json({ success: false, message: "Lỗi: " + e.message });
+    }
+});
+
+// 7. XÓA ACC TRONG KHO
+app.delete('/api/admin/account/:id', checkAdminAuth, async (req, res) => {
+    try {
+        await Account.findOneAndDelete({ id: Number(req.params.id) });
+        res.json({ success: true, message: "Đã xóa acc khỏi shop!" });
+    } catch (e) {
+        res.status(500).json({ success: false, message: "Lỗi xóa acc!" });
+    }
+});
+
+// 8. QUẢN LÝ NGƯỜI DÙNG & CỘNG TIỀN
 app.get('/api/admin/users', checkAdminAuth, async (req, res) => {
     try {
         const users = await User.find().select('username balance');
