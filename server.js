@@ -27,7 +27,7 @@ mongoose.connect(MONGO_URI)
 const User = mongoose.model('User', new mongoose.Schema({
     username: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    balance: { type: Number, default: 0 },
+    balance: { type: Number, default: 0 }, // Mặc định số dư là 0đ
     role: { type: String, default: "user" }
 }));
 
@@ -67,15 +67,14 @@ const Card = mongoose.model('Card', new mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
 }));
 
-// SCHEMA LƯU LỊCH SỬ NẠP ĐỂ TÍNH TOP THÁNG
 const Deposit = mongoose.model('Deposit', new mongoose.Schema({
     username: String,
     amount: Number,
-    method: String, // bank, card, admin
+    method: String,
     createdAt: { type: Date, default: Date.now }
 }));
 
-// ĐĂNG KÝ
+// 1. ĐĂNG KÝ (SỐ DƯ BẮT ĐẦU TỪ 0 ĐỒNG)
 app.post('/api/register', async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -91,14 +90,15 @@ app.post('/api/register', async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        const newUser = await User.create({ username, password: hashedPassword, balance: 100000 });
-        res.json({ success: true, message: "Đăng ký thành công! Đã tặng bạn 100.000đ trải nghiệm.", user: { username: newUser.username, balance: newUser.balance } });
+        // Tạo tài khoản với số dư = 0đ (không tặng ảo nữa)
+        const newUser = await User.create({ username, password: hashedPassword, balance: 0 });
+        res.json({ success: true, message: "Đăng ký tài khoản thành công!", user: { username: newUser.username, balance: newUser.balance } });
     } catch (e) {
         res.status(500).json({ success: false, message: "Lỗi: " + e.message });
     }
 });
 
-// ĐĂNG NHẬP
+// 2. ĐĂNG NHẬP
 app.post('/api/login', async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -144,13 +144,11 @@ app.get('/api/user-balance', async (req, res) => {
     }
 });
 
-// ==========================================
-// 🏆 API LẤY BẢNG XẾP HẠNG TOP NẠP TRONG THÁNG NÀY
-// ==========================================
+// BẢNG VÀNG ĐUA TOP NẠP THÁNG
 app.get('/api/top-deposits', async (req, res) => {
     try {
         const now = new Date();
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1); // Tính từ ngày 1 của tháng này
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
         const top = await Deposit.aggregate([
             { $match: { createdAt: { $gte: startOfMonth } } },
@@ -281,7 +279,7 @@ app.post('/api/topup-card', async (req, res) => {
     }
 });
 
-// WEBHOOK GACHTHEFAST (GHI NHẬN TOP NẠP KHI THẺ THÀNH CÔNG)
+// WEBHOOK GACHTHEFAST
 app.all('/api/webhook/gachthefast', async (req, res) => {
     try {
         const data = req.method === 'POST' ? req.body : req.query;
@@ -306,7 +304,6 @@ app.all('/api/webhook/gachthefast', async (req, res) => {
                 user.balance += amountToAdd;
                 await user.save();
 
-                // Ghi nhận vào bảng xếp hạng Đua Top
                 await Deposit.create({
                     username: user.username,
                     amount: amountToAdd,
@@ -330,7 +327,7 @@ app.all('/api/webhook/gachthefast', async (req, res) => {
     }
 });
 
-// WEBHOOK SEPAY (GHI NHẬN TOP NẠP KHI BANK THÀNH CÔNG)
+// WEBHOOK SEPAY
 app.post('/api/webhook/sepay', async (req, res) => {
     try {
         const data = req.body;
@@ -346,7 +343,6 @@ app.post('/api/webhook/sepay', async (req, res) => {
                 user.balance += amount;
                 await user.save();
 
-                // Ghi nhận vào bảng xếp hạng Đua Top
                 await Deposit.create({
                     username: user.username,
                     amount: amount,
@@ -390,7 +386,6 @@ app.post('/api/admin/card-action', checkAdminAuth, async (req, res) => {
                 user.balance += card.realAmount;
                 await user.save();
 
-                // Ghi nhận vào bảng xếp hạng Đua Top
                 await Deposit.create({
                     username: user.username,
                     amount: card.realAmount,
@@ -502,7 +497,6 @@ app.post('/api/admin/adjust-balance', checkAdminAuth, async (req, res) => {
         await user.save();
 
         if (numAmount > 0) {
-            // Ghi nhận vào bảng xếp hạng Đua Top
             await Deposit.create({
                 username: user.username,
                 amount: numAmount,
