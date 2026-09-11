@@ -29,7 +29,6 @@ const User = mongoose.model('User', new mongoose.Schema({
     role: { type: String, default: "user" }
 }));
 
-// SCHEMA DANH MỤC ACC (MỚI)
 const Category = mongoose.model('Category', new mongoose.Schema({
     id: { type: Number, required: true },
     name: { type: String, required: true },
@@ -38,10 +37,9 @@ const Category = mongoose.model('Category', new mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
 }));
 
-// SCHEMA ACC (CÓ THÊM TRƯỜNG CATEGORY)
 const Account = mongoose.model('Account', new mongoose.Schema({
     id: { type: Number, required: true },
-    category: { type: String, default: "Acc Blox Fruits VIP" }, // Tên danh mục của acc
+    category: { type: String, default: "Acc Blox Fruits VIP" },
     title: String,
     level: String,
     fruit: String,
@@ -104,14 +102,38 @@ const BoostOrder = mongoose.model('BoostOrder', new mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
 }));
 
+// SCHEMA SẢN PHẨM GAMEPASS & TRÁI RƯƠNG (MỚI)
+const ItemProduct = mongoose.model('ItemProduct', new mongoose.Schema({
+    id: { type: Number, required: true },
+    type: { type: String, required: true }, // "gamepass" hoặc "fruit"
+    name: { type: String, required: true },
+    price: { type: Number, required: true },
+    description: String,
+    image: { type: String, default: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80" },
+    active: { type: Boolean, default: true }
+}));
+
+// SCHEMA ĐƠN ĐẶT MUA GAMEPASS & TRÁI RƯƠNG CỦA KHÁCH (MỚI)
+const ItemOrder = mongoose.model('ItemOrder', new mongoose.Schema({
+    id: { type: Number, required: true },
+    username: String,
+    productType: String, // "gamepass" hoặc "fruit"
+    productName: String,
+    price: Number,
+    robloxUsername: String, // Tên nhân vật Roblox của khách để giao đồ
+    note: String,
+    status: { type: String, default: "pending" }, // pending (chờ giao), completed (đã giao), cancelled (đã hủy)
+    createdAt: { type: Date, default: Date.now }
+}));
+
 // ==========================================
-// 2. KẾT NỐI DATABASE & TẠO DANH MỤC MẪU
+// 2. KẾT NỐI DATABASE & TẠO SẢN PHẨM MẪU
 // ==========================================
 mongoose.connect(MONGO_URI)
     .then(async () => {
-        console.log(">>> [DATABASE]: BẢO MẬT & KẾT NỐI THÀNH CÔNG!");
+        console.log(">>> [DATABASE]: KẾT NỐI THÀNH CÔNG!");
         try {
-            // Tạo 3 danh mục mẫu nếu chưa có
+            // Danh mục acc mẫu
             const catCount = await Category.countDocuments();
             if (catCount === 0) {
                 await Category.create([
@@ -121,6 +143,7 @@ mongoose.connect(MONGO_URI)
                 ]);
             }
 
+            // Gói cày mẫu
             const boostCount = await BoostService.countDocuments();
             if (boostCount === 0) {
                 await BoostService.create([
@@ -128,6 +151,24 @@ mongoose.connect(MONGO_URI)
                     { id: 2, name: "Lấy Melee Godhuman (Full nguyên liệu)", price: 70000, description: "Yêu cầu đủ 5M Beli & 5K Fragments", image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=600&q=80" },
                     { id: 3, name: "Lấy Song Kiếm Oden (CDK)", price: 60000, description: "Yêu cầu có Yama và Tushita 350 mastery", image: "https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=600&q=80" },
                     { id: 4, name: "Săn 2.5 Triệu Bounty (Bật PvP)", price: 40000, description: "Hoàn thành trong ngày, không tụt rank", image: "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=600&q=80" }
+                ]);
+            }
+
+            // Gamepass & Trái Rương mẫu nếu chưa có
+            const itemCount = await ItemProduct.countDocuments();
+            if (itemCount === 0) {
+                await ItemProduct.create([
+                    // Gamepass
+                    { id: 1, type: "gamepass", name: "Dark Blade (Kiếm Yoru)", price: 200000, description: "Gift trực tiếp qua game siêu tốc", image: "https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=600&q=80" },
+                    { id: 2, type: "gamepass", name: "2x Mastery (x2 Thông Thạo)", price: 80000, description: "Tăng gấp đôi tốc độ cày cấp vũ khí", image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80" },
+                    { id: 3, type: "gamepass", name: "2x Money (x2 Tiền Beli)", price: 80000, description: "Gấp đôi tiền beli rơi ra từ quái và rương", image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=600&q=80" },
+                    { id: 4, type: "gamepass", name: "Thuyền Nhanh (Fast Boats)", price: 40000, description: "Sở hữu dàn thuyền bay lượn trên biển", image: "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=600&q=80" },
+                    // Trái Rương
+                    { id: 5, type: "fruit", name: "Trái Kitsune (Physical/Rương)", price: 150000, description: "Trade rương trực tiếp trong Sea 2 hoặc Sea 3", image: "https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=600&q=80" },
+                    { id: 6, type: "fruit", name: "Trái Rồng Dragon (Physical/Rương)", price: 120000, description: "Trade rương trực tiếp trong game", image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80" },
+                    { id: 7, type: "fruit", name: "Trái Leopard (Physical/Rương)", price: 90000, description: "Trade rương trực tiếp trong game", image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=600&q=80" },
+                    { id: 8, type: "fruit", name: "Trái Mochi / Dough (Physical/Rương)", price: 70000, description: "Trade rương trực tiếp trong game", image: "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=600&q=80" },
+                    { id: 9, type: "fruit", name: "Trái Buddha Phật Tổ (Physical/Rương)", price: 40000, description: "Trade rương trực tiếp trong game", image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80" }
                 ]);
             }
         } catch (seedErr) {}
@@ -231,8 +272,6 @@ app.get('/api/top-deposits', async (req, res) => {
 // ==========================================
 // 4. API DANH MỤC & MUA BÁN ACC
 // ==========================================
-
-// Lấy danh sách danh mục cho khách xem
 app.get('/api/categories', async (req, res) => {
     try {
         const cats = await Category.find().sort({ id: 1 });
@@ -242,7 +281,6 @@ app.get('/api/categories', async (req, res) => {
     }
 });
 
-// Lấy danh sách acc (hỗ trợ lọc theo danh mục)
 app.get('/api/accounts', async (req, res) => {
     try {
         const { category } = req.query;
@@ -305,7 +343,7 @@ app.get('/api/my-orders', async (req, res) => {
 });
 
 // ==========================================
-// 5. API CÀY THUÊ CHO KHÁCH
+// 5. API CÀY THUÊ
 // ==========================================
 app.get('/api/boost-services', async (req, res) => {
     try {
@@ -371,7 +409,80 @@ app.get('/api/my-boost-orders', async (req, res) => {
 });
 
 // ==========================================
-// 6. NẠP THẺ & WEBHOOKS
+// 6. API MUA GAMEPASS & TRÁI RƯƠNG (MỚI)
+// ==========================================
+// Lấy danh sách Gamepass hoặc Trái rương cho khách xem
+app.get('/api/items', async (req, res) => {
+    try {
+        const { type } = req.query; // "gamepass" hoặc "fruit"
+        let query = { active: true };
+        if (type) query.type = type;
+
+        const items = await ItemProduct.find(query).sort({ price: 1 });
+        res.json(items);
+    } catch (e) {
+        res.status(500).json([]);
+    }
+});
+
+// Khách đặt mua Gamepass hoặc Trái rương
+app.post('/api/item-order', async (req, res) => {
+    try {
+        const { username, itemId, robloxUsername, note } = req.body;
+        const user = await User.findOne({ username });
+        if (!user) return res.status(401).json({ success: false, message: "Vui lòng đăng nhập trước khi mua!" });
+
+        const item = await ItemProduct.findOne({ id: Number(itemId), active: true });
+        if (!item) return res.status(400).json({ success: false, message: "Vật phẩm không tồn tại hoặc đã tạm dừng bán!" });
+
+        if (!robloxUsername) {
+            return res.status(400).json({ success: false, message: "Vui lòng nhập tên nhân vật Roblox để shop vào game giao hàng!" });
+        }
+
+        if (user.balance < item.price) {
+            return res.status(400).json({ success: false, message: "Số dư không đủ! Vui lòng nạp thêm tiền." });
+        }
+
+        user.balance -= item.price;
+        await user.save();
+
+        const count = await ItemOrder.countDocuments();
+        const newOrder = await ItemOrder.create({
+            id: count + 1,
+            username: user.username,
+            productType: item.type,
+            productName: item.name,
+            price: item.price,
+            robloxUsername: robloxUsername.trim(),
+            note: note ? note.trim() : "",
+            status: "pending"
+        });
+
+        res.json({
+            success: true,
+            message: `Mua "${item.name}" thành công! Shop sẽ vào game gửi đồ cho nhân vật "${robloxUsername}" sớm nhất.`,
+            newBalance: user.balance,
+            order: newOrder
+        });
+    } catch (e) {
+        res.status(500).json({ success: false, message: "Lỗi mua hàng: " + e.message });
+    }
+});
+
+// Khách xem đơn mua Gamepass / Trái rương của mình
+app.get('/api/my-item-orders', async (req, res) => {
+    try {
+        const { username } = req.query;
+        if (!username) return res.json([]);
+        const orders = await ItemOrder.find({ username }).sort({ createdAt: -1 });
+        res.json(orders);
+    } catch (e) {
+        res.status(500).json([]);
+    }
+});
+
+// ==========================================
+// 7. NẠP THẺ & WEBHOOKS
 // ==========================================
 app.post('/api/topup-card', async (req, res) => {
     try {
@@ -505,7 +616,7 @@ app.post('/api/webhook/sepay', async (req, res) => {
 });
 
 // ==========================================
-// 7. ADMIN ROUTES
+// 8. ADMIN ROUTES
 // ==========================================
 function checkAdminAuth(req, res, next) {
     const token = req.headers['authorization'];
@@ -513,7 +624,7 @@ function checkAdminAuth(req, res, next) {
     return res.status(403).json({ success: false, message: "Không có quyền Admin!" });
 }
 
-// QUẢN LÝ DANH MỤC TRONG ADMIN
+// QUẢN LÝ DANH MỤC
 app.get('/api/admin/categories', checkAdminAuth, async (req, res) => {
     try {
         const cats = await Category.find().sort({ id: 1 });
@@ -550,7 +661,81 @@ app.delete('/api/admin/category/:id', checkAdminAuth, async (req, res) => {
     }
 });
 
-// QUẢN LÝ KHO ACC & BULK ADD
+// QUẢN LÝ SẢN PHẨM GAMEPASS & TRÁI RƯƠNG (ADMIN)
+app.get('/api/admin/items', checkAdminAuth, async (req, res) => {
+    try {
+        const items = await ItemProduct.find().sort({ type: 1, id: 1 });
+        res.json(items);
+    } catch (e) {
+        res.status(500).json([]);
+    }
+});
+
+app.post('/api/admin/item/add', checkAdminAuth, async (req, res) => {
+    try {
+        const { type, name, price, description, image } = req.body;
+        if (!name || !price || !type) return res.status(400).json({ success: false, message: "Thiếu thông tin sản phẩm!" });
+
+        const count = await ItemProduct.countDocuments();
+        await ItemProduct.create({
+            id: count + 1,
+            type, // "gamepass" hoặc "fruit"
+            name: name.trim(),
+            price: Number(price),
+            description: description || "",
+            image: image || "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80",
+            active: true
+        });
+        res.json({ success: true, message: `Đã thêm ${type === 'gamepass' ? 'Gamepass' : 'Trái Rương'} mới thành công!` });
+    } catch (e) {
+        res.status(500).json({ success: false, message: "Lỗi thêm sản phẩm!" });
+    }
+});
+
+app.delete('/api/admin/item/:id', checkAdminAuth, async (req, res) => {
+    try {
+        await ItemProduct.findOneAndDelete({ id: Number(req.params.id) });
+        res.json({ success: true, message: "Đã xóa sản phẩm!" });
+    } catch (e) {
+        res.status(500).json({ success: false, message: "Lỗi xóa sản phẩm!" });
+    }
+});
+
+// QUẢN LÝ ĐƠN GAMEPASS & TRÁI RƯƠNG (ADMIN)
+app.get('/api/admin/item-orders', checkAdminAuth, async (req, res) => {
+    try {
+        const orders = await ItemOrder.find().sort({ createdAt: -1 });
+        res.json(orders);
+    } catch (e) {
+        res.status(500).json([]);
+    }
+});
+
+app.post('/api/admin/item-order/status', checkAdminAuth, async (req, res) => {
+    try {
+        const { orderId, status } = req.body;
+        const order = await ItemOrder.findOne({ id: Number(orderId) });
+        if (!order) return res.status(404).json({ success: false, message: "Không tìm thấy đơn hàng!" });
+
+        // Nếu HỦY đơn -> hoàn tiền lại cho khách
+        if (status === 'cancelled' && order.status !== 'cancelled') {
+            const user = await User.findOne({ username: order.username });
+            if (user) {
+                user.balance += order.price;
+                await user.save();
+            }
+        }
+
+        order.status = status;
+        await order.save();
+
+        res.json({ success: true, message: `Đã cập nhật đơn #${orderId} sang "${status}"!` });
+    } catch (e) {
+        res.status(500).json({ success: false, message: "Lỗi cập nhật đơn hàng!" });
+    }
+});
+
+// QUẢN LÝ KHO ACC
 app.get('/api/admin/accounts', checkAdminAuth, async (req, res) => {
     try {
         const accounts = await Account.find().sort({ id: -1 });
