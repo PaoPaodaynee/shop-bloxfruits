@@ -78,9 +78,7 @@
             </div>
         </section>
 
-        <!-- ========================================== -->
-        <!-- ⚡ NÚT CHUYỂN ĐỔI 4 TAB LỚN TRÊN TRANG CHỦ -->
-        <!-- ========================================== -->
+        <!-- ⚡ NÚT CHUYỂN ĐỔI 4 TAB LỚN -->
         <div class="flex flex-wrap justify-center mb-8 gap-2 md:gap-3">
             <button id="main-tab-accs-btn" onclick="switchMainTab('accs')" class="px-5 py-2.5 rounded-xl font-black text-xs md:text-sm bg-red-600 text-white shadow-xl shadow-red-600/30 transition flex items-center gap-1.5">
                 ⚔️ MUA ACC BLOX FRUITS
@@ -136,7 +134,7 @@
             <div id="boost-services-list" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
         </section>
 
-        <!-- PHẦN 3: BÁN GAMEPASS BLOX FRUITS (MỚI) -->
+        <!-- PHẦN 3: BÁN GAMEPASS BLOX FRUITS -->
         <section id="section-gamepass" class="mb-6 hidden">
             <div class="border-b border-gray-800 pb-4 mb-6">
                 <h3 class="text-xl font-black text-blue-400 flex items-center gap-2">
@@ -148,7 +146,7 @@
             <div id="gamepass-list" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
         </section>
 
-        <!-- PHẦN 4: BÁN TRÁI RƯƠNG BLOX FRUITS (MỚI) -->
+        <!-- PHẦN 4: BÁN TRÁI RƯƠNG BLOX FRUITS -->
         <section id="section-fruit" class="mb-6 hidden">
             <div class="border-b border-gray-800 pb-4 mb-6">
                 <h3 class="text-xl font-black text-yellow-400 flex items-center gap-2">
@@ -176,7 +174,7 @@
         <span class="text-xs font-bold hidden md:inline">Hỗ Trợ Admin</span>
     </a>
 
-    <!-- MODAL ĐẶT MUA GAMEPASS & TRÁI RƯƠNG (MỚI) -->
+    <!-- MODAL ĐẶT MUA GAMEPASS & TRÁI RƯƠNG -->
     <div id="order-item-modal" class="fixed inset-0 bg-black/85 flex items-center justify-center hidden z-50 p-4">
         <div class="bg-gray-800 p-6 rounded-2xl border-2 border-blue-500 max-w-md w-full shadow-2xl">
             <div class="flex justify-between items-center border-b border-gray-700 pb-3 mb-4">
@@ -240,7 +238,7 @@
         </div>
     </div>
 
-    <!-- MODAL TỦ ĐỒ (GỒM 3 SUB-TAB) -->
+    <!-- MODAL TỦ ĐỒ (3 SUB-TAB) -->
     <div id="orders-modal" class="fixed inset-0 bg-black/85 flex items-center justify-center hidden z-50 p-4">
         <div class="bg-gray-800 p-6 rounded-2xl border border-blue-500 max-w-2xl w-full shadow-2xl max-h-[85vh] flex flex-col">
             <div class="flex justify-between items-center border-b border-gray-700 pb-3 mb-4">
@@ -285,7 +283,7 @@
                     </table>
                 </div>
 
-                <!-- ĐƠN GAMEPASS & TRÁI RƯƠNG (MỚI) -->
+                <!-- ĐƠN GAMEPASS & TRÁI RƯƠNG -->
                 <div id="sub-content-items" class="hidden">
                     <table class="w-full text-left border-collapse text-xs">
                         <thead>
@@ -450,13 +448,15 @@
         function updateHeader() {
             const authArea = document.getElementById('auth-area');
             if (currentUser) {
-                let adminBtn = '';
+                let roleBtn = '';
                 if (currentUser.role === 'admin') {
-                    adminBtn = `<a href="/admin.html" class="bg-yellow-500 hover:bg-yellow-600 text-black px-2.5 py-1.5 rounded-lg text-xs font-black">⚙️ QUẢN TRỊ</a>`;
+                    roleBtn = `<a href="/admin.html" class="bg-yellow-500 hover:bg-yellow-600 text-black px-2.5 py-1.5 rounded-lg text-xs font-black">⚙️ QUẢN TRỊ</a>`;
+                } else if (currentUser.role === 'ctv') {
+                    roleBtn = `<a href="/ctv.html" class="bg-purple-600 hover:bg-purple-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-black">🛠️ CỔNG CTV</a>`;
                 }
 
                 authArea.innerHTML = `
-                    ${adminBtn}
+                    ${roleBtn}
                     <button onclick="openOrdersModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1">
                         📦 Tủ Đồ
                     </button>
@@ -482,9 +482,6 @@
             }
         }
 
-        // ==========================================
-        // ⚡ CHUYỂN ĐỔI 4 TAB CHÍNH
-        // ==========================================
         function switchMainTab(tab) {
             const tabs = ['accs', 'boost', 'gamepass', 'fruit'];
             tabs.forEach(t => {
@@ -504,9 +501,6 @@
             if (tab === 'fruit') loadItemsClient('fruit');
         }
 
-        // ==========================================
-        // 🎟️ TẢI GAMEPASS VÀ TRÁI RƯƠNG CHO KHÁCH
-        // ==========================================
         async function loadItemsClient(type) {
             try {
                 const res = await fetch(`/api/items?type=${type}`);
@@ -589,9 +583,6 @@
             }
         });
 
-        // ==========================================
-        // 📂 DANH MỤC & ACC BLOX FRUITS
-        // ==========================================
         async function loadCategoriesClient() {
             try {
                 const res = await fetch('/api/categories');
@@ -721,9 +712,6 @@
             }
         }
 
-        // ==========================================
-        // ⚡ CÀY THUÊ CLIENT
-        // ==========================================
         async function loadBoostServicesClient() {
             const res = await fetch('/api/boost-services');
             allBoostServices = await res.json();
@@ -792,9 +780,6 @@
             }
         });
 
-        // ==========================================
-        // 📦 TỦ ĐỒ (GỒM 3 TAB: ACC, CÀY THUÊ, GAMEPASS/FRUIT)
-        // ==========================================
         function switchOrderSubTab(sub) {
             const accContent = document.getElementById('sub-content-acc');
             const boostContent = document.getElementById('sub-content-boost');
@@ -882,7 +867,6 @@
             });
         }
 
-        // TẢI TOP NẠP
         async function loadTopDeposits() {
             try {
                 const res = await fetch('/api/top-deposits');
@@ -924,6 +908,7 @@
                 const res = await fetch(`/api/user-balance?username=${currentUser.username}`);
                 const data = await res.json();
                 if (data && typeof data.balance === 'number') {
+                    if (data.role) currentUser.role = data.role;
                     if (data.balance > currentUser.balance) {
                         currentUser.balance = data.balance;
                         localStorage.setItem('otopi_user', JSON.stringify(currentUser));
