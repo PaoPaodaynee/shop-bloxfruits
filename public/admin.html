@@ -20,7 +20,7 @@
         <div class="flex flex-wrap justify-between items-center bg-gray-800 p-5 rounded-xl border border-gray-700 mb-8 gap-4">
             <div>
                 <h1 class="text-2xl font-black text-yellow-400">⚙️ HỆ THỐNG QUẢN TRỊ TỔNG</h1>
-                <p class="text-gray-400 text-xs">Đối soát đơn hàng, duyệt thẻ cào, cộng/trừ tiền và quản lý kho acc</p>
+                <p class="text-gray-400 text-xs">Cày thuê, kho acc, đơn hàng, thẻ cào và số dư khách</p>
             </div>
             <div class="flex gap-3">
                 <a href="/" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-bold text-sm">
@@ -32,15 +32,82 @@
             </div>
         </div>
 
-        <!-- 1. BẢNG ĐỐI SOÁT ĐƠN HÀNG ĐÃ BÁN (MỚI) -->
+        <!-- ⚡ KHU VỰC CÀY THUÊ DÀNH CHO ADMIN -->
+        <div class="bg-gray-800 p-5 rounded-xl border-2 border-purple-500/50 mb-8 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-gray-700 pb-3 mb-5">
+                <div>
+                    <h2 class="text-lg font-black text-purple-400 flex items-center gap-2">
+                        ⚡ QUẢN LÝ & CÀI ĐẶT CÀY THUÊ
+                    </h2>
+                    <p class="text-xs text-gray-400">Cài đặt gói cày và xử lý đơn cày thuê khách đặt</p>
+                </div>
+                <button onclick="loadBoostData()" class="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-xs font-bold">🔄 Làm Mới Cày Thuê</button>
+            </div>
+
+            <!-- 1. BẢNG ĐƠN KHÁCH ĐẶT CÀY THUÊ -->
+            <div class="mb-8">
+                <h3 class="text-sm font-bold text-yellow-400 mb-3 uppercase tracking-wider">📋 Đơn Khách Đặt Cày Thuê Chờ Xử Lý:</h3>
+                <div class="overflow-x-auto max-h-[350px] overflow-y-auto">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead class="sticky top-0 bg-gray-800">
+                            <tr class="border-b border-gray-700 text-gray-400 uppercase">
+                                <th class="p-2">Mã Đơn</th>
+                                <th class="p-2">Khách Đặt</th>
+                                <th class="p-2">Gói Dịch Vụ</th>
+                                <th class="p-2">Giá</th>
+                                <th class="p-2">Tài Khoản | Pass Roblox</th>
+                                <th class="p-2">Ghi Chú / 2FA</th>
+                                <th class="p-2">Trạng Thái</th>
+                                <th class="p-2 text-center">Hành Động</th>
+                            </tr>
+                        </thead>
+                        <tbody id="boost-orders-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 2. CÀI ĐẶT GÓI CÀY THUÊ -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 border-t border-gray-700 pt-5">
+                <div class="lg:col-span-4 bg-gray-900 p-4 rounded-xl border border-gray-700">
+                    <h4 class="text-xs font-bold text-green-400 uppercase mb-3">➕ Tạo Gói Cày Thuê Mới:</h4>
+                    <form id="add-service-form" class="space-y-3">
+                        <input type="text" id="bs-name" required placeholder="Tên gói (VD: Lấy Tộc V4 Full Gear)" class="w-full bg-gray-800 border border-gray-700 rounded p-2 text-xs outline-none">
+                        <input type="number" id="bs-price" required placeholder="Giá tiền (VNĐ)" class="w-full bg-gray-800 border border-gray-700 rounded p-2 text-xs outline-none">
+                        <input type="url" id="bs-image" placeholder="Link ảnh minh họa (hoặc để trống)" class="w-full bg-gray-800 border border-gray-700 rounded p-2 text-xs text-yellow-300 outline-none">
+                        <textarea id="bs-desc" rows="2" placeholder="Mô tả / Yêu cầu (VD: Yêu cầu đủ 5k Frag...)" class="w-full bg-gray-800 border border-gray-700 rounded p-2 text-xs outline-none"></textarea>
+                        <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 py-2 rounded-lg font-bold text-xs">Tạo Gói Cày Thuê</button>
+                    </form>
+                </div>
+
+                <div class="lg:col-span-8 bg-gray-900 p-4 rounded-xl border border-gray-700">
+                    <h4 class="text-xs font-bold text-blue-400 uppercase mb-3">📦 Danh Sách Gói Cày Hiện Có:</h4>
+                    <div class="overflow-x-auto max-h-[260px] overflow-y-auto">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="border-b border-gray-800 text-gray-400 uppercase">
+                                    <th class="p-2">Ảnh</th>
+                                    <th class="p-2">Tên Gói</th>
+                                    <th class="p-2">Giá</th>
+                                    <th class="p-2">Mô Tả</th>
+                                    <th class="p-2 text-center">Xóa</th>
+                                </tr>
+                            </thead>
+                            <tbody id="boost-services-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 1. BẢNG ĐỐI SOÁT ĐƠN HÀNG ACC ĐÃ BÁN -->
         <div class="bg-gray-800 p-5 rounded-xl border border-blue-500/40 mb-8 shadow-xl">
             <div class="flex justify-between items-center border-b border-gray-700 pb-2 mb-4">
                 <h2 class="text-base font-bold text-blue-400 flex items-center gap-2">
-                    📦 LỊCH SỬ ĐƠN HÀNG ĐÃ BÁN (ĐỐI SOÁT BẢO HÀNH)
+                    📦 LỊCH SỬ BÁN ACC (ĐỐI SOÁT BẢO HÀNH)
                 </h2>
                 <button onclick="loadAllOrders()" class="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-xs">🔄 Tải Lại Đơn</button>
             </div>
-            <div class="overflow-x-auto max-h-[350px] overflow-y-auto">
+            <div class="overflow-x-auto max-h-[300px] overflow-y-auto">
                 <table class="w-full text-left border-collapse text-xs">
                     <thead class="sticky top-0 bg-gray-800">
                         <tr class="border-b border-gray-700 text-gray-400 uppercase">
@@ -180,7 +247,8 @@
             if (adminToken) {
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('dashboard-screen').classList.remove('hidden');
-                loadAllOrders(); // Tải đơn hàng đã bán
+                loadBoostData();
+                loadAllOrders();
                 loadAllCards();
                 loadAllUsers();
                 loadAllAccounts();
@@ -190,29 +258,143 @@
             }
         }
 
-        // TẢI TOÀN BỘ ĐƠN HÀNG ĐÃ BÁN (ĐỐI SOÁT BẢO HÀNH)
+        async function loadBoostData() {
+            loadBoostOrders();
+            loadBoostServices();
+        }
+
+        async function loadBoostOrders() {
+            const res = await fetch('/api/admin/boost-orders', { headers: { 'Authorization': adminToken } });
+            const orders = await res.json();
+            const tbody = document.getElementById('boost-orders-body');
+            tbody.innerHTML = '';
+
+            if (orders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="p-3 text-center text-gray-400">Chưa có đơn cày thuê nào được đặt.</td></tr>';
+                return;
+            }
+
+            orders.forEach(o => {
+                let badge = `<span class="bg-yellow-900 text-yellow-300 px-2 py-0.5 rounded text-[10px] font-bold">Chờ Cày</span>`;
+                let btns = `
+                    <button onclick="updateBoostStatus(${o.id}, 'processing')" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-0.5 rounded text-[10px] font-bold mr-1">Nhận Cày</button>
+                    <button onclick="updateBoostStatus(${o.id}, 'completed')" class="bg-green-600 hover:bg-green-700 text-white px-2 py-0.5 rounded text-[10px] font-bold mr-1">Hoàn Thành</button>
+                    <button onclick="updateBoostStatus(${o.id}, 'cancelled')" class="bg-red-600 hover:bg-red-700 text-white px-2 py-0.5 rounded text-[10px] font-bold">Hủy & Hoàn Tiền</button>
+                `;
+
+                if (o.status === 'processing') {
+                    badge = `<span class="bg-blue-900 text-blue-300 px-2 py-0.5 rounded text-[10px] font-bold">Đang Cày...</span>`;
+                    btns = `
+                        <button onclick="updateBoostStatus(${o.id}, 'completed')" class="bg-green-600 hover:bg-green-700 text-white px-2 py-0.5 rounded text-[10px] font-bold mr-1">Hoàn Thành</button>
+                        <button onclick="updateBoostStatus(${o.id}, 'cancelled')" class="bg-red-600 hover:bg-red-700 text-white px-2 py-0.5 rounded text-[10px] font-bold">Hủy & Hoàn Tiền</button>
+                    `;
+                } else if (o.status === 'completed') {
+                    badge = `<span class="bg-green-900 text-green-300 px-2 py-0.5 rounded text-[10px] font-bold">Hoàn Thành</span>`;
+                    btns = `<span class="text-gray-500 text-[10px]">Đã xong</span>`;
+                } else if (o.status === 'cancelled') {
+                    badge = `<span class="bg-red-900 text-red-300 px-2 py-0.5 rounded text-[10px] font-bold">Đã Hủy (Đã hoàn tiền)</span>`;
+                    btns = `<span class="text-gray-500 text-[10px]">Đã hủy</span>`;
+                }
+
+                tbody.innerHTML += `
+                    <tr class="border-b border-gray-700/50 hover:bg-gray-750">
+                        <td class="p-2 font-bold text-gray-400">#${o.id}</td>
+                        <td class="p-2 font-bold text-yellow-400">👤 ${o.username}</td>
+                        <td class="p-2 font-semibold text-white">${o.serviceName}</td>
+                        <td class="p-2 font-bold text-green-400">${o.price.toLocaleString('vi-VN')} đ</td>
+                        <td class="p-2 font-mono text-xs text-yellow-300 select-all">
+                            User: <b class="text-white">${o.robloxUser}</b><br>
+                            Pass: <b class="text-white">${o.robloxPass}</b>
+                        </td>
+                        <td class="p-2 text-gray-300 italic max-w-[150px] truncate">${o.note || 'Không có'}</td>
+                        <td class="p-2">${badge}</td>
+                        <td class="p-2 text-center whitespace-nowrap">${btns}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        async function updateBoostStatus(orderId, status) {
+            let confirmMsg = `Bạn muốn đổi trạng thái đơn #${orderId} sang "${status}"?`;
+            if (status === 'cancelled') confirmMsg = `CẢNH BÁO: Hủy đơn cày #${orderId} sẽ TỰ ĐỘNG HOÀN TIỀN lại cho khách! Bạn chắc chắn chứ?`;
+            if (!confirm(confirmMsg)) return;
+
+            const res = await fetch('/api/admin/boost-order/status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': adminToken },
+                body: JSON.stringify({ orderId, status })
+            });
+            const data = await res.json();
+            alert(data.message);
+            loadBoostOrders();
+            loadAllUsers();
+        }
+
+        async function loadBoostServices() {
+            const res = await fetch('/api/admin/boost-services', { headers: { 'Authorization': adminToken } });
+            const services = await res.json();
+            const tbody = document.getElementById('boost-services-body');
+            tbody.innerHTML = '';
+
+            services.forEach(s => {
+                tbody.innerHTML += `
+                    <tr class="border-b border-gray-800 hover:bg-gray-800/40">
+                        <td class="p-2"><img src="${s.image}" class="w-8 h-8 object-cover rounded border border-gray-700"></td>
+                        <td class="p-2 font-bold text-white">${s.name}</td>
+                        <td class="p-2 font-bold text-yellow-400">${s.price.toLocaleString('vi-VN')} đ</td>
+                        <td class="p-2 text-gray-400 truncate max-w-[150px]">${s.description || '-'}</td>
+                        <td class="p-2 text-center">
+                            <button onclick="deleteBoostService(${s.id})" class="bg-red-800 hover:bg-red-700 text-red-200 px-2 py-0.5 rounded text-[10px] font-bold">Xóa</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        async function deleteBoostService(id) {
+            if (!confirm(`Xóa gói cày thuê #${id}?`)) return;
+            const res = await fetch(`/api/admin/boost-service/${id}`, { method: 'DELETE', headers: { 'Authorization': adminToken } });
+            const data = await res.json();
+            alert(data.message);
+            loadBoostServices();
+        }
+
+        document.getElementById('add-service-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const newService = {
+                name: document.getElementById('bs-name').value,
+                price: document.getElementById('bs-price').value,
+                image: document.getElementById('bs-image').value,
+                description: document.getElementById('bs-desc').value
+            };
+            const res = await fetch('/api/admin/boost-service/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': adminToken },
+                body: JSON.stringify(newService)
+            });
+            const data = await res.json();
+            alert("🎉 " + data.message);
+            document.getElementById('add-service-form').reset();
+            loadBoostServices();
+        });
+
         async function loadAllOrders() {
             const res = await fetch('/api/admin/orders', { headers: { 'Authorization': adminToken } });
             const orders = await res.json();
             const tbody = document.getElementById('order-table-body');
             tbody.innerHTML = '';
-
             if (orders.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="5" class="p-3 text-center text-gray-400">Chưa có đơn hàng nào được bán ra.</td></tr>';
                 return;
             }
-
             orders.forEach(o => {
-                const dateStr = new Date(o.boughtAt).toLocaleString('vi-VN');
                 tbody.innerHTML += `
                     <tr class="border-b border-gray-700/50 hover:bg-gray-750">
-                        <td class="p-2 text-gray-400">${dateStr}</td>
+                        <td class="p-2 text-gray-400">${new Date(o.boughtAt).toLocaleString('vi-VN')}</td>
                         <td class="p-2 font-bold text-yellow-400">👤 ${o.username}</td>
                         <td class="p-2 font-semibold text-white truncate max-w-[150px]">${o.title} (#${o.accId})</td>
                         <td class="p-2 font-bold text-green-400">${o.price.toLocaleString('vi-VN')} đ</td>
-                        <td class="p-2 font-mono text-xs text-yellow-300">
-                            U: <b class="text-white">${o.robloxUser}</b> | P: <b class="text-white">${o.robloxPass}</b>
-                        </td>
+                        <td class="p-2 font-mono text-xs text-yellow-300">U: <b class="text-white">${o.robloxUser}</b> | P: <b class="text-white">${o.robloxPass}</b></td>
                     </tr>
                 `;
             });
@@ -223,19 +405,16 @@
             const cards = await res.json();
             const tbody = document.getElementById('card-table-body');
             tbody.innerHTML = '';
-
             if(cards.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="8" class="p-3 text-center text-gray-400">Chưa có thẻ cào nào gửi lên.</td></tr>';
                 return;
             }
-
             cards.forEach(c => {
                 let statusBadge = `<span class="bg-yellow-900 text-yellow-300 px-2 py-0.5 rounded text-[10px] font-bold">Chờ Duyệt</span>`;
                 let actionBtns = `
                     <button onclick="handleCard('${c._id}', 'approve')" class="bg-green-600 hover:bg-green-700 text-white px-2 py-0.5 rounded text-[10px] font-bold mr-1">Duyệt (+${c.realAmount.toLocaleString('vi-VN')}đ)</button>
                     <button onclick="handleCard('${c._id}', 'reject')" class="bg-red-600 hover:bg-red-700 text-white px-2 py-0.5 rounded text-[10px] font-bold">Hủy</button>
                 `;
-
                 if (c.status === 'success') {
                     statusBadge = `<span class="bg-green-900 text-green-300 px-2 py-0.5 rounded text-[10px] font-bold">Đã Duyệt</span>`;
                     actionBtns = `<span class="text-gray-500 text-[10px]">Đã xử lý</span>`;
@@ -243,7 +422,6 @@
                     statusBadge = `<span class="bg-red-900 text-red-300 px-2 py-0.5 rounded text-[10px] font-bold">Thẻ Sai / Đã Hủy</span>`;
                     actionBtns = `<span class="text-gray-500 text-[10px]">Đã xử lý</span>`;
                 }
-
                 tbody.innerHTML += `
                     <tr class="border-b border-gray-700/50">
                         <td class="p-2 font-bold text-white">${c.username}</td>
@@ -276,7 +454,6 @@
             const bulkForm = document.getElementById('bulk-form');
             const btnSingle = document.getElementById('tab-btn-single');
             const btnBulk = document.getElementById('tab-btn-bulk');
-
             if (tab === 'single') {
                 singleForm.classList.remove('hidden');
                 bulkForm.classList.add('hidden');
@@ -300,16 +477,10 @@
                     <tr class="border-b border-gray-700/50">
                         <td class="p-2 font-bold text-white">👤 ${u.username}</td>
                         <td class="p-2 font-bold text-yellow-400">${u.balance.toLocaleString('vi-VN')} đ</td>
-                        <td class="p-2">
-                            <input type="number" id="amt-${u.username}" placeholder="Số tiền..." class="bg-gray-900 border border-gray-600 rounded px-2 py-1 text-xs text-white w-32 outline-none">
-                        </td>
+                        <td class="p-2"><input type="number" id="amt-${u.username}" placeholder="Số tiền..." class="bg-gray-900 border border-gray-600 rounded px-2 py-1 text-xs text-white w-32 outline-none"></td>
                         <td class="p-2 flex gap-1">
-                            <button onclick="adjustBalance('${u.username}', 'add')" class="bg-green-600 hover:bg-green-700 text-white px-2.5 py-1 rounded text-xs font-bold transition">
-                                + Cộng
-                            </button>
-                            <button onclick="adjustBalance('${u.username}', 'subtract')" class="bg-red-600 hover:bg-red-700 text-white px-2.5 py-1 rounded text-xs font-bold transition">
-                                - Trừ
-                            </button>
+                            <button onclick="adjustBalance('${u.username}', 'add')" class="bg-green-600 hover:bg-green-700 text-white px-2.5 py-1 rounded text-xs font-bold">+ Cộng</button>
+                            <button onclick="adjustBalance('${u.username}', 'subtract')" class="bg-red-600 hover:bg-red-700 text-white px-2.5 py-1 rounded text-xs font-bold">- Trừ</button>
                         </td>
                     </tr>
                 `;
@@ -343,12 +514,10 @@
             document.getElementById('total-accs').innerText = `Tổng: ${data.length} acc`;
             const tbody = document.getElementById('admin-table-body');
             tbody.innerHTML = '';
-
             data.forEach(acc => {
                 const badge = acc.sold 
                     ? `<span class="bg-red-900 text-red-300 px-2 py-0.5 rounded text-[10px] font-bold">Đã Bán</span>`
                     : `<span class="bg-green-900 text-green-300 px-2 py-0.5 rounded text-[10px] font-bold">Đang Bán</span>`;
-
                 tbody.innerHTML += `
                     <tr class="border-b border-gray-700/50 hover:bg-gray-750">
                         <td class="p-2"><img src="${acc.image || 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80'}" class="w-10 h-10 object-cover rounded border border-gray-700"></td>
@@ -403,7 +572,6 @@
                 image: document.getElementById('b-image').value,
                 bulkText: document.getElementById('b-text').value
             };
-
             const res = await fetch('/api/admin/add-bulk', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': adminToken },
