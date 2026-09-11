@@ -19,11 +19,9 @@ const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://autophobia011_db_user:
 const GTF_PARTNER_ID = process.env.GTF_PARTNER_ID || "3314076622";
 const GTF_PARTNER_KEY = process.env.GTF_PARTNER_KEY || "";
 
-mongoose.connect(MONGO_URI)
-    .then(() => console.log(">>> [DATABASE]: BẢO MẬT & KẾT NỐI THÀNH CÔNG!"))
-    .catch(err => console.error(">>> [DATABASE LỖI]:", err.message));
-
-// SCHEMAS
+// ==========================================
+// 1. TẤT CẢ SCHEMAS & MODELS ĐƯỢC ĐẶT TRÊN ĐẦU
+// ==========================================
 const User = mongoose.model('User', new mongoose.Schema({
     username: { type: String, required: true, unique: true },
     password: { type: String, required: true },
@@ -74,7 +72,50 @@ const Deposit = mongoose.model('Deposit', new mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
 }));
 
-// ĐĂNG KÝ
+const BoostService = mongoose.model('BoostService', new mongoose.Schema({
+    id: { type: Number, required: true },
+    name: String,
+    price: Number,
+    description: String,
+    image: { type: String, default: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80" },
+    active: { type: Boolean, default: true }
+}));
+
+const BoostOrder = mongoose.model('BoostOrder', new mongoose.Schema({
+    id: { type: Number, required: true },
+    username: String,
+    serviceName: String,
+    price: Number,
+    robloxUser: String,
+    robloxPass: String,
+    note: String,
+    status: { type: String, default: "pending" }, // pending, processing, completed, cancelled
+    createdAt: { type: Date, default: Date.now }
+}));
+
+// ==========================================
+// 2. KẾT NỐI DATABASE & TẠO GÓI CÀY MẪU
+// ==========================================
+mongoose.connect(MONGO_URI)
+    .then(async () => {
+        console.log(">>> [DATABASE]: BẢO MẬT & KẾT NỐI THÀNH CÔNG!");
+        try {
+            const count = await BoostService.countDocuments();
+            if (count === 0) {
+                await BoostService.create([
+                    { id: 1, name: "Cày Level 1 -> Max Level (2550)", price: 50000, description: "Cày siêu tốc 24h, bảo đảm an toàn 100%", image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80" },
+                    { id: 2, name: "Lấy Melee Godhuman (Full nguyên liệu)", price: 70000, description: "Yêu cầu đủ 5M Beli & 5K Fragments", image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=600&q=80" },
+                    { id: 3, name: "Lấy Song Kiếm Oden (CDK)", price: 60000, description: "Yêu cầu có Yama và Tushita 350 mastery", image: "https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=600&q=80" },
+                    { id: 4, name: "Săn 2.5 Triệu Bounty (Bật PvP)", price: 40000, description: "Hoàn thành trong ngày, không tụt rank", image: "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=600&q=80" }
+                ]);
+            }
+        } catch (seedErr) {}
+    })
+    .catch(err => console.error(">>> [DATABASE LỖI]:", err.message));
+
+// ==========================================
+// 3. API ĐĂNG KÝ / ĐĂNG NHẬP / SỐ DƯ
+// ==========================================
 app.post('/api/register', async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -97,7 +138,6 @@ app.post('/api/register', async (req, res) => {
     }
 });
 
-// ĐĂNG NHẬP
 app.post('/api/login', async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -143,7 +183,6 @@ app.get('/api/user-balance', async (req, res) => {
     }
 });
 
-// BẢNG VÀNG TOP NẠP
 app.get('/api/top-deposits', async (req, res) => {
     try {
         const now = new Date();
@@ -168,6 +207,9 @@ app.get('/api/top-deposits', async (req, res) => {
     }
 });
 
+// ==========================================
+// 4. API MUA BÁN ACC
+// ==========================================
 app.get('/api/accounts', async (req, res) => {
     try {
         const accounts = await Account.find({ sold: false }).select('id title level fruit melee price image');
@@ -212,7 +254,6 @@ app.post('/api/buy', async (req, res) => {
     }
 });
 
-// KHÁCH XEM TỦ ĐỒ CÁ NHÂN
 app.get('/api/my-orders', async (req, res) => {
     try {
         const { username } = req.query;
@@ -224,7 +265,75 @@ app.get('/api/my-orders', async (req, res) => {
     }
 });
 
-// NẠP THẺ CÀO
+// ==========================================
+// 5. API CÀY THUÊ CHO KHÁCH HÀNG
+// ==========================================
+app.get('/api/boost-services', async (req, res) => {
+    try {
+        const services = await BoostService.find({ active: true }).sort({ id: 1 });
+        res.json(services);
+    } catch (e) {
+        res.status(500).json([]);
+    }
+});
+
+app.post('/api/boost-order', async (req, res) => {
+    try {
+        const { username, serviceId, robloxUser, robloxPass, note } = req.body;
+        const user = await User.findOne({ username });
+        if (!user) return res.status(401).json({ success: false, message: "Vui lòng đăng nhập trước khi đặt cày!" });
+
+        const service = await BoostService.findOne({ id: Number(serviceId), active: true });
+        if (!service) return res.status(400).json({ success: false, message: "Gói cày thuê không tồn tại!" });
+
+        if (!robloxUser || !robloxPass) {
+            return res.status(400).json({ success: false, message: "Vui lòng nhập tài khoản và mật khẩu Roblox để shop cày!" });
+        }
+
+        if (user.balance < service.price) {
+            return res.status(400).json({ success: false, message: "Số dư không đủ! Vui lòng nạp thêm tiền." });
+        }
+
+        user.balance -= service.price;
+        await user.save();
+
+        const count = await BoostOrder.countDocuments();
+        const newOrder = await BoostOrder.create({
+            id: count + 1,
+            username: user.username,
+            serviceName: service.name,
+            price: service.price,
+            robloxUser: robloxUser.trim(),
+            robloxPass: robloxPass.trim(),
+            note: note ? note.trim() : "",
+            status: "pending"
+        });
+
+        res.json({
+            success: true,
+            message: `Đặt cày gói "${service.name}" thành công! Shop sẽ sớm tiến hành cày.`,
+            newBalance: user.balance,
+            order: newOrder
+        });
+    } catch (e) {
+        res.status(500).json({ success: false, message: "Lỗi đặt cày: " + e.message });
+    }
+});
+
+app.get('/api/my-boost-orders', async (req, res) => {
+    try {
+        const { username } = req.query;
+        if (!username) return res.json([]);
+        const orders = await BoostOrder.find({ username }).sort({ createdAt: -1 });
+        res.json(orders);
+    } catch (e) {
+        res.status(500).json([]);
+    }
+});
+
+// ==========================================
+// 6. NẠP THẺ CÀO & WEBHOOKS
+// ==========================================
 app.post('/api/topup-card', async (req, res) => {
     try {
         const { username, telco, amount, code, serial } = req.body;
@@ -356,14 +465,83 @@ app.post('/api/webhook/sepay', async (req, res) => {
     }
 });
 
-// ADMIN AUTH
+// ==========================================
+// 7. ADMIN ROUTES
+// ==========================================
 function checkAdminAuth(req, res, next) {
     const token = req.headers['authorization'];
     if (token === ADMIN_SECRET_KEY) return next();
     return res.status(403).json({ success: false, message: "Không có quyền Admin!" });
 }
 
-// 📦 API ADMIN: XEM TOÀN BỘ ĐƠN HÀNG ĐÃ BÁN (ĐỐI SOÁT BẢO HÀNH)
+app.get('/api/admin/boost-services', checkAdminAuth, async (req, res) => {
+    try {
+        const services = await BoostService.find().sort({ id: 1 });
+        res.json(services);
+    } catch (e) {
+        res.status(500).json([]);
+    }
+});
+
+app.post('/api/admin/boost-service/add', checkAdminAuth, async (req, res) => {
+    try {
+        const { name, price, description, image } = req.body;
+        const count = await BoostService.countDocuments();
+        await BoostService.create({
+            id: count + 1,
+            name,
+            price: Number(price),
+            description: description || "",
+            image: image || "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80",
+            active: true
+        });
+        res.json({ success: true, message: "Đã tạo gói cày thuê mới!" });
+    } catch (e) {
+        res.status(500).json({ success: false, message: "Lỗi tạo gói cày!" });
+    }
+});
+
+app.delete('/api/admin/boost-service/:id', checkAdminAuth, async (req, res) => {
+    try {
+        await BoostService.findOneAndDelete({ id: Number(req.params.id) });
+        res.json({ success: true, message: "Đã xóa gói cày thuê!" });
+    } catch (e) {
+        res.status(500).json({ success: false, message: "Lỗi xóa gói cày!" });
+    }
+});
+
+app.get('/api/admin/boost-orders', checkAdminAuth, async (req, res) => {
+    try {
+        const orders = await BoostOrder.find().sort({ createdAt: -1 });
+        res.json(orders);
+    } catch (e) {
+        res.status(500).json([]);
+    }
+});
+
+app.post('/api/admin/boost-order/status', checkAdminAuth, async (req, res) => {
+    try {
+        const { orderId, status } = req.body;
+        const order = await BoostOrder.findOne({ id: Number(orderId) });
+        if (!order) return res.status(404).json({ success: false, message: "Không tìm thấy đơn cày!" });
+
+        if (status === 'cancelled' && order.status !== 'cancelled') {
+            const user = await User.findOne({ username: order.username });
+            if (user) {
+                user.balance += order.price;
+                await user.save();
+            }
+        }
+
+        order.status = status;
+        await order.save();
+
+        res.json({ success: true, message: `Đã cập nhật trạng thái đơn cày sang "${status}"!` });
+    } catch (e) {
+        res.status(500).json({ success: false, message: "Lỗi cập nhật đơn cày!" });
+    }
+});
+
 app.get('/api/admin/orders', checkAdminAuth, async (req, res) => {
     try {
         const orders = await Order.find().sort({ boughtAt: -1 });
@@ -494,7 +672,6 @@ app.get('/api/admin/users', checkAdminAuth, async (req, res) => {
     }
 });
 
-// CỘNG / TRỪ TIỀN
 app.post('/api/admin/adjust-balance', checkAdminAuth, async (req, res) => {
     try {
         const { username, amount, type } = req.body;
