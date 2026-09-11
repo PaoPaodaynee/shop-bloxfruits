@@ -20,7 +20,7 @@
         <div class="flex flex-wrap justify-between items-center bg-gray-800 p-5 rounded-xl border border-gray-700 mb-8 gap-4">
             <div>
                 <h1 class="text-2xl font-black text-yellow-400">⚙️ HỆ THỐNG QUẢN TRỊ TỔNG</h1>
-                <p class="text-gray-400 text-xs">Cày thuê, kho acc, đơn hàng, thẻ cào và số dư khách</p>
+                <p class="text-gray-400 text-xs">Quản lý chuyên mục, cày thuê, kho acc, thẻ cào và số dư khách</p>
             </div>
             <div class="flex gap-3">
                 <a href="/" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-bold text-sm">
@@ -32,11 +32,66 @@
             </div>
         </div>
 
-        <!-- ⚡ KHU VỰC CÀY THUÊ DÀNH CHO ADMIN -->
-        <div class="bg-gray-800 p-5 rounded-xl border-2 border-purple-500/50 mb-8 shadow-2xl">
+        <!-- ========================================== -->
+        <!-- 📂 KHU VỰC QUẢN LÝ TẠO MỤC / DANH MỤC (MỚI) -->
+        <!-- ========================================== -->
+        <div class="bg-gray-800 p-5 rounded-xl border-2 border-green-500/50 mb-8 shadow-2xl">
             <div class="flex justify-between items-center border-b border-gray-700 pb-3 mb-5">
                 <div>
-                    <h2 class="text-lg font-black text-purple-400 flex items-center gap-2">
+                    <h2 class="text-lg font-black text-green-400 flex items-center gap-2">
+                        📂 CÀI ĐẶT & TẠO CHUYÊN MỤC CHO KHO ACC
+                    </h2>
+                    <p class="text-xs text-gray-400">Tạo các mục như: Acc Giá Rẻ, Acc Max Lv Godhuman, Acc Trái Kitsune...</p>
+                </div>
+                <button onclick="loadAdminCategories()" class="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-xs font-bold">🔄 Tải Lại Mục</button>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- FORM TẠO MỤC MỚI -->
+                <div class="lg:col-span-4 bg-gray-900 p-4 rounded-xl border border-gray-700">
+                    <h3 class="text-xs font-bold text-yellow-400 uppercase mb-3">➕ Thêm Mục Mới:</h3>
+                    <form id="add-category-form" class="space-y-3">
+                        <div>
+                            <label class="text-[11px] text-gray-400 font-bold uppercase">Tên Mục:</label>
+                            <input type="text" id="cat-name" required placeholder="VD: Acc Blox Fruits Giá Rẻ" class="w-full bg-gray-800 border border-gray-700 rounded p-2 text-xs outline-none text-white mt-1">
+                        </div>
+                        <div>
+                            <label class="text-[11px] text-gray-400 font-bold uppercase">Mô Tả Mục:</label>
+                            <input type="text" id="cat-desc" placeholder="VD: Phù hợp cho học sinh từ 20k - 50k" class="w-full bg-gray-800 border border-gray-700 rounded p-2 text-xs outline-none text-white mt-1">
+                        </div>
+                        <div>
+                            <label class="text-[11px] text-gray-400 font-bold uppercase">Link Ảnh Bìa Mục (Nếu có):</label>
+                            <input type="url" id="cat-image" placeholder="Dán link ảnh (hoặc để trống)" class="w-full bg-gray-800 border border-gray-700 rounded p-2 text-xs text-yellow-300 outline-none mt-1">
+                        </div>
+                        <button type="submit" class="w-full bg-green-600 hover:bg-green-700 py-2 rounded-lg font-bold text-xs mt-2">Tạo Mục Mới</button>
+                    </form>
+                </div>
+
+                <!-- DANH SÁCH MỤC HIỆN CÓ -->
+                <div class="lg:col-span-8 bg-gray-900 p-4 rounded-xl border border-gray-700">
+                    <h3 class="text-xs font-bold text-blue-400 uppercase mb-3">📋 Danh Sách Các Mục Đang Có:</h3>
+                    <div class="overflow-x-auto max-h-[250px] overflow-y-auto">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="border-b border-gray-800 text-gray-400 uppercase">
+                                    <th class="p-2">Ảnh</th>
+                                    <th class="p-2">Tên Mục</th>
+                                    <th class="p-2">Mô Tả</th>
+                                    <th class="p-2 text-center">Xóa</th>
+                                </tr>
+                            </thead>
+                            <tbody id="categories-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ⚡ KHU VỰC CÀY THUÊ DÀNH CHO ADMIN -->
+        <div class="bg-gray-800 p-5 rounded-xl border border-purple-500/50 mb-8 shadow-xl">
+            <div class="flex justify-between items-center border-b border-gray-700 pb-3 mb-5">
+                <div>
+                    <h2 class="text-base font-black text-purple-400 flex items-center gap-2">
                         ⚡ QUẢN LÝ & CÀI ĐẶT CÀY THUÊ
                     </h2>
                     <p class="text-xs text-gray-400">Cài đặt gói cày và xử lý đơn cày thuê khách đặt</p>
@@ -44,18 +99,17 @@
                 <button onclick="loadBoostData()" class="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-xs font-bold">🔄 Làm Mới Cày Thuê</button>
             </div>
 
-            <!-- 1. BẢNG ĐƠN KHÁCH ĐẶT CÀY THUÊ -->
-            <div class="mb-8">
-                <h3 class="text-sm font-bold text-yellow-400 mb-3 uppercase tracking-wider">📋 Đơn Khách Đặt Cày Thuê Chờ Xử Lý:</h3>
-                <div class="overflow-x-auto max-h-[350px] overflow-y-auto">
+            <div class="mb-6">
+                <h3 class="text-xs font-bold text-yellow-400 mb-2 uppercase">📋 Đơn Khách Đặt Cày Thuê Chờ Xử Lý:</h3>
+                <div class="overflow-x-auto max-h-[300px] overflow-y-auto">
                     <table class="w-full text-left border-collapse text-xs">
                         <thead class="sticky top-0 bg-gray-800">
                             <tr class="border-b border-gray-700 text-gray-400 uppercase">
                                 <th class="p-2">Mã Đơn</th>
-                                <th class="p-2">Khách Đặt</th>
+                                <th class="p-2">Khách</th>
                                 <th class="p-2">Gói Dịch Vụ</th>
                                 <th class="p-2">Giá</th>
-                                <th class="p-2">Tài Khoản | Pass Roblox</th>
+                                <th class="p-2">User | Pass Roblox</th>
                                 <th class="p-2">Ghi Chú / 2FA</th>
                                 <th class="p-2">Trạng Thái</th>
                                 <th class="p-2 text-center">Hành Động</th>
@@ -66,29 +120,26 @@
                 </div>
             </div>
 
-            <!-- 2. CÀI ĐẶT GÓI CÀY THUÊ -->
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 border-t border-gray-700 pt-5">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 border-t border-gray-700 pt-4">
                 <div class="lg:col-span-4 bg-gray-900 p-4 rounded-xl border border-gray-700">
                     <h4 class="text-xs font-bold text-green-400 uppercase mb-3">➕ Tạo Gói Cày Thuê Mới:</h4>
-                    <form id="add-service-form" class="space-y-3">
-                        <input type="text" id="bs-name" required placeholder="Tên gói (VD: Lấy Tộc V4 Full Gear)" class="w-full bg-gray-800 border border-gray-700 rounded p-2 text-xs outline-none">
-                        <input type="number" id="bs-price" required placeholder="Giá tiền (VNĐ)" class="w-full bg-gray-800 border border-gray-700 rounded p-2 text-xs outline-none">
-                        <input type="url" id="bs-image" placeholder="Link ảnh minh họa (hoặc để trống)" class="w-full bg-gray-800 border border-gray-700 rounded p-2 text-xs text-yellow-300 outline-none">
-                        <textarea id="bs-desc" rows="2" placeholder="Mô tả / Yêu cầu (VD: Yêu cầu đủ 5k Frag...)" class="w-full bg-gray-800 border border-gray-700 rounded p-2 text-xs outline-none"></textarea>
-                        <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 py-2 rounded-lg font-bold text-xs">Tạo Gói Cày Thuê</button>
+                    <form id="add-service-form" class="space-y-2">
+                        <input type="text" id="bs-name" required placeholder="Tên gói cày" class="w-full bg-gray-800 border border-gray-700 rounded p-2 text-xs outline-none">
+                        <input type="number" id="bs-price" required placeholder="Giá tiền VNĐ" class="w-full bg-gray-800 border border-gray-700 rounded p-2 text-xs outline-none">
+                        <input type="url" id="bs-image" placeholder="Link ảnh minh họa" class="w-full bg-gray-800 border border-gray-700 rounded p-2 text-xs text-yellow-300 outline-none">
+                        <textarea id="bs-desc" rows="2" placeholder="Mô tả / Yêu cầu" class="w-full bg-gray-800 border border-gray-700 rounded p-2 text-xs outline-none"></textarea>
+                        <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 py-2 rounded-lg font-bold text-xs">Tạo Gói Cày</button>
                     </form>
                 </div>
-
                 <div class="lg:col-span-8 bg-gray-900 p-4 rounded-xl border border-gray-700">
                     <h4 class="text-xs font-bold text-blue-400 uppercase mb-3">📦 Danh Sách Gói Cày Hiện Có:</h4>
-                    <div class="overflow-x-auto max-h-[260px] overflow-y-auto">
+                    <div class="overflow-x-auto max-h-[220px] overflow-y-auto">
                         <table class="w-full text-left border-collapse text-xs">
                             <thead>
                                 <tr class="border-b border-gray-800 text-gray-400 uppercase">
                                     <th class="p-2">Ảnh</th>
                                     <th class="p-2">Tên Gói</th>
                                     <th class="p-2">Giá</th>
-                                    <th class="p-2">Mô Tả</th>
                                     <th class="p-2 text-center">Xóa</th>
                                 </tr>
                             </thead>
@@ -107,7 +158,7 @@
                 </h2>
                 <button onclick="loadAllOrders()" class="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-xs">🔄 Tải Lại Đơn</button>
             </div>
-            <div class="overflow-x-auto max-h-[300px] overflow-y-auto">
+            <div class="overflow-x-auto max-h-[260px] overflow-y-auto">
                 <table class="w-full text-left border-collapse text-xs">
                     <thead class="sticky top-0 bg-gray-800">
                         <tr class="border-b border-gray-700 text-gray-400 uppercase">
@@ -170,7 +221,7 @@
             </div>
         </div>
 
-        <!-- 4. KHU VỰC QUẢN LÝ KHO ACC -->
+        <!-- 4. KHU VỰC QUẢN LÝ KHO ACC (ĐÃ TÍCH HỢP CHỌN MỤC) -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <div class="lg:col-span-5 bg-gray-800 p-6 rounded-xl border border-gray-700 h-fit">
                 <div class="flex border-b border-gray-700 mb-5 gap-2">
@@ -182,9 +233,20 @@
                     </button>
                 </div>
 
+                <!-- FORM 1: THÊM LẺ (CÓ CHỌN MỤC) -->
                 <form id="single-form" class="space-y-3">
-                    <input type="text" id="s-title" required placeholder="Tiêu đề acc" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-xs outline-none">
-                    <input type="url" id="s-image" placeholder="Link Ảnh (hoặc để trống)" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-xs text-yellow-300 outline-none">
+                    <div>
+                        <label class="text-[11px] text-green-400 font-bold uppercase">📂 Chọn Mục Đăng Acc:</label>
+                        <select id="s-category" class="w-full bg-gray-900 border border-green-600 rounded p-2 text-xs text-yellow-300 font-bold outline-none mt-1"></select>
+                    </div>
+                    <div>
+                        <label class="text-[11px] text-gray-400 font-bold uppercase">Tiêu Đề Acc:</label>
+                        <input type="text" id="s-title" required placeholder="VD: Acc Max Lv Trái Kitsune" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-xs outline-none">
+                    </div>
+                    <div>
+                        <label class="text-[11px] text-yellow-400 font-bold uppercase">Link Ảnh:</label>
+                        <input type="url" id="s-image" placeholder="Dán link ảnh (hoặc để trống)" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-xs text-yellow-300 outline-none">
+                    </div>
                     <div class="grid grid-cols-2 gap-2">
                         <input type="text" id="s-level" required placeholder="Level (Max 2550)" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-xs outline-none">
                         <input type="number" id="s-price" required placeholder="Giá VNĐ" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-xs outline-none">
@@ -197,10 +259,15 @@
                         <input type="text" id="s-user" required placeholder="Tài khoản Roblox" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-xs text-yellow-300 outline-none">
                         <input type="text" id="s-pass" required placeholder="Mật khẩu Roblox" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-xs text-yellow-300 outline-none">
                     </div>
-                    <button type="submit" class="w-full bg-green-600 hover:bg-green-700 py-2 rounded-lg font-bold text-xs mt-2">Đăng Acc</button>
+                    <button type="submit" class="w-full bg-green-600 hover:bg-green-700 py-2 rounded-lg font-bold text-xs mt-2">Đăng Acc Lên Mục Này</button>
                 </form>
 
+                <!-- FORM 2: THÊM HÀNG LOẠT (CÓ CHỌN MỤC) -->
                 <form id="bulk-form" class="space-y-3 hidden">
+                    <div>
+                        <label class="text-[11px] text-green-400 font-bold uppercase">📂 Chọn Mục Đăng Chung:</label>
+                        <select id="b-category" class="w-full bg-gray-900 border border-green-600 rounded p-2 text-xs text-yellow-300 font-bold outline-none mt-1"></select>
+                    </div>
                     <div class="grid grid-cols-2 gap-2">
                         <input type="text" id="b-title" placeholder="Tiêu đề chung" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-xs outline-none">
                         <input type="number" id="b-price" required placeholder="Giá chung VNĐ" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-xs outline-none">
@@ -212,10 +279,11 @@
                     </div>
                     <input type="url" id="b-image" placeholder="Link ảnh chung (hoặc để trống)" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-xs text-yellow-300 outline-none">
                     <textarea id="b-text" rows="7" required placeholder="user01|pass123&#10;user02|pass456&#10;user03:pass789" class="w-full bg-gray-900 border border-gray-700 rounded p-2.5 font-mono text-xs text-yellow-300 outline-none"></textarea>
-                    <button type="submit" class="w-full bg-yellow-500 hover:bg-yellow-600 text-black py-2.5 rounded-lg font-black text-xs">⚡ NHẬP TOÀN BỘ VÀO SHOP</button>
+                    <button type="submit" class="w-full bg-yellow-500 hover:bg-yellow-600 text-black py-2.5 rounded-lg font-black text-xs">⚡ NHẬP TOÀN BỘ VÀO MỤC NÀY</button>
                 </form>
             </div>
 
+            <!-- BẢNG KHO ACC -->
             <div class="lg:col-span-7 bg-gray-800 p-6 rounded-xl border border-gray-700">
                 <div class="flex justify-between items-center border-b border-gray-700 pb-3 mb-4">
                     <h2 class="text-base font-bold text-blue-400">📦 KHO TOÀN BỘ ACC CỦA SHOP</h2>
@@ -226,6 +294,7 @@
                         <thead class="sticky top-0 bg-gray-800">
                             <tr class="border-b border-gray-700 text-gray-400 uppercase">
                                 <th class="p-2">Ảnh</th>
+                                <th class="p-2">Mục</th>
                                 <th class="p-2">Tên Acc</th>
                                 <th class="p-2">Giá</th>
                                 <th class="p-2">Tài Khoản / Pass</th>
@@ -247,6 +316,7 @@
             if (adminToken) {
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('dashboard-screen').classList.remove('hidden');
+                loadAdminCategories(); // Tải danh mục trước
                 loadBoostData();
                 loadAllOrders();
                 loadAllCards();
@@ -258,6 +328,71 @@
             }
         }
 
+        // ==========================================
+        // 📂 JS QUẢN LÝ DANH MỤC ACC (MỚI)
+        // ==========================================
+        async function loadAdminCategories() {
+            const res = await fetch('/api/admin/categories', { headers: { 'Authorization': adminToken } });
+            const cats = await res.json();
+            const tbody = document.getElementById('categories-table-body');
+            const sSelect = document.getElementById('s-category');
+            const bSelect = document.getElementById('b-category');
+
+            tbody.innerHTML = '';
+            sSelect.innerHTML = '';
+            bSelect.innerHTML = '';
+
+            if (cats.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="p-3 text-center text-gray-400">Chưa có mục nào được tạo.</td></tr>';
+            }
+
+            cats.forEach(c => {
+                tbody.innerHTML += `
+                    <tr class="border-b border-gray-800 hover:bg-gray-800/40">
+                        <td class="p-2"><img src="${c.image}" class="w-8 h-8 object-cover rounded border border-gray-700"></td>
+                        <td class="p-2 font-bold text-white">${c.name}</td>
+                        <td class="p-2 text-gray-400 max-w-[150px] truncate">${c.description || '-'}</td>
+                        <td class="p-2 text-center">
+                            <button onclick="deleteCategory(${c.id})" class="bg-red-800 hover:bg-red-700 text-red-200 px-2 py-0.5 rounded text-[10px] font-bold">Xóa</button>
+                        </td>
+                    </tr>
+                `;
+
+                // Đổ vào các ô select đăng acc
+                sSelect.innerHTML += `<option value="${c.name}">${c.name}</option>`;
+                bSelect.innerHTML += `<option value="${c.name}">${c.name}</option>`;
+            });
+        }
+
+        async function deleteCategory(id) {
+            if (!confirm(`Xóa mục #${id}? Các acc thuộc mục này vẫn được giữ nguyên.`)) return;
+            const res = await fetch(`/api/admin/category/${id}`, { method: 'DELETE', headers: { 'Authorization': adminToken } });
+            const data = await res.json();
+            alert(data.message);
+            loadAdminCategories();
+        }
+
+        document.getElementById('add-category-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const newCat = {
+                name: document.getElementById('cat-name').value,
+                description: document.getElementById('cat-desc').value,
+                image: document.getElementById('cat-image').value
+            };
+            const res = await fetch('/api/admin/category/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': adminToken },
+                body: JSON.stringify(newCat)
+            });
+            const data = await res.json();
+            alert("🎉 " + data.message);
+            document.getElementById('add-category-form').reset();
+            loadAdminCategories();
+        });
+
+        // ==========================================
+        // ⚡ JS QUẢN LÝ CÀY THUÊ ADMIN
+        // ==========================================
         async function loadBoostData() {
             loadBoostOrders();
             loadBoostServices();
@@ -342,7 +477,6 @@
                         <td class="p-2"><img src="${s.image}" class="w-8 h-8 object-cover rounded border border-gray-700"></td>
                         <td class="p-2 font-bold text-white">${s.name}</td>
                         <td class="p-2 font-bold text-yellow-400">${s.price.toLocaleString('vi-VN')} đ</td>
-                        <td class="p-2 text-gray-400 truncate max-w-[150px]">${s.description || '-'}</td>
                         <td class="p-2 text-center">
                             <button onclick="deleteBoostService(${s.id})" class="bg-red-800 hover:bg-red-700 text-red-200 px-2 py-0.5 rounded text-[10px] font-bold">Xóa</button>
                         </td>
@@ -378,6 +512,9 @@
             loadBoostServices();
         });
 
+        // ==========================================
+        // CÁC HÀM QUẢN TRỊ KHÁC
+        // ==========================================
         async function loadAllOrders() {
             const res = await fetch('/api/admin/orders', { headers: { 'Authorization': adminToken } });
             const orders = await res.json();
@@ -508,6 +645,7 @@
             }
         }
 
+        // TẢI TOÀN BỘ ACC (CÓ CỘT HIỂN THỊ MỤC)
         async function loadAllAccounts() {
             const res = await fetch('/api/admin/accounts', { headers: { 'Authorization': adminToken } });
             const data = await res.json();
@@ -518,9 +656,11 @@
                 const badge = acc.sold 
                     ? `<span class="bg-red-900 text-red-300 px-2 py-0.5 rounded text-[10px] font-bold">Đã Bán</span>`
                     : `<span class="bg-green-900 text-green-300 px-2 py-0.5 rounded text-[10px] font-bold">Đang Bán</span>`;
+
                 tbody.innerHTML += `
                     <tr class="border-b border-gray-700/50 hover:bg-gray-750">
                         <td class="p-2"><img src="${acc.image || 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80'}" class="w-10 h-10 object-cover rounded border border-gray-700"></td>
+                        <td class="p-2"><span class="bg-gray-700 text-yellow-400 px-2 py-0.5 rounded text-[10px] font-bold">${acc.category || 'Mặc định'}</span></td>
                         <td class="p-2 font-semibold text-white max-w-[120px] truncate">${acc.title}</td>
                         <td class="p-2 text-yellow-400 font-bold">${acc.price.toLocaleString('vi-VN')} đ</td>
                         <td class="p-2 font-mono text-[11px] text-gray-300">U: <b>${acc.robloxUser}</b><br>P: <b>${acc.robloxPass}</b></td>
@@ -539,31 +679,37 @@
             loadAllAccounts();
         }
 
+        // ĐĂNG 1 ACC LẺ (KÈM MỤC ĐÃ CHỌN)
         document.getElementById('single-form').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const newAcc = {
+                category: document.getElementById('s-category').value,
+                title: document.getElementById('s-title').value,
+                image: document.getElementById('s-image').value,
+                level: document.getElementById('s-level').value,
+                price: document.getElementById('s-price').value,
+                fruit: document.getElementById('s-fruit').value,
+                melee: document.getElementById('s-melee').value,
+                robloxUser: document.getElementById('s-user').value,
+                robloxPass: document.getElementById('s-pass').value
+            };
             const res = await fetch('/api/admin/add', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': adminToken },
-                body: JSON.stringify({
-                    title: document.getElementById('s-title').value,
-                    image: document.getElementById('s-image').value,
-                    level: document.getElementById('s-level').value,
-                    price: document.getElementById('s-price').value,
-                    fruit: document.getElementById('s-fruit').value,
-                    melee: document.getElementById('s-melee').value,
-                    robloxUser: document.getElementById('s-user').value,
-                    robloxPass: document.getElementById('s-pass').value
-                })
+                body: JSON.stringify(newAcc)
             });
             const data = await res.json();
             alert("🎉 " + data.message);
             document.getElementById('single-form').reset();
+            loadAdminCategories();
             loadAllAccounts();
         });
 
+        // ĐĂNG HÀNG LOẠT (KÈM MỤC ĐÃ CHỌN)
         document.getElementById('bulk-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const bulkData = {
+                category: document.getElementById('b-category').value,
                 title: document.getElementById('b-title').value,
                 price: document.getElementById('b-price').value,
                 level: document.getElementById('b-level').value,
