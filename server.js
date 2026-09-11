@@ -90,8 +90,12 @@ app.post('/api/login', async (req, res) => {
     try {
         const { username, password } = req.body;
 
-        // Nick Sếp Admin đăng nhập thẳng (không cần chờ Database)
-        if (username === ADMIN_USER && password === ADMIN_PASS) {
+       // Tự động xóa dấu cách thừa và không phân biệt viết hoa/thường
+        const cleanUser = (username || "").trim().toLowerCase();
+        const cleanPass = (password || "").trim();
+
+        // Chấp nhận mật khẩu trên Render hoặc mật khẩu mặc định otopi123
+        if (cleanUser === "admin" && (cleanPass === (ADMIN_PASS || "").trim() || cleanPass === "otopi123")) {
             return res.json({
                 success: true,
                 isAdmin: true,
