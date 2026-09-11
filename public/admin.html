@@ -23,6 +23,9 @@
                 <p class="text-gray-400 text-xs">Gamepass, Trái Rương, Cày Thuê, Kho Acc, Đơn Hàng và Khách Hàng</p>
             </div>
             <div class="flex gap-3">
+                <a href="/ctv.html" class="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg font-bold text-sm">
+                    🛠️ Xem Cổng CTV
+                </a>
                 <a href="/" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-bold text-sm">
                     🌐 Xem Trang Chủ
                 </a>
@@ -32,9 +35,7 @@
             </div>
         </div>
 
-        <!-- ========================================== -->
-        <!-- 🎁 KHU VỰC QUẢN LÝ GAMEPASS & TRÁI RƯƠNG (MỚI) -->
-        <!-- ========================================== -->
+        <!-- 🎁 KHU VỰC QUẢN LÝ GAMEPASS & TRÁI RƯƠNG -->
         <div class="bg-gray-800 p-5 rounded-xl border-2 border-yellow-500/50 mb-8 shadow-2xl">
             <div class="flex justify-between items-center border-b border-gray-700 pb-3 mb-5">
                 <div>
@@ -46,7 +47,7 @@
                 <button onclick="loadItemData()" class="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-xs font-bold">🔄 Làm Mới</button>
             </div>
 
-            <!-- 1. BẢNG ĐƠN KHÁCH ĐẶT MUA GAMEPASS & TRÁI RƯƠNG -->
+            <!-- BẢNG ĐƠN KHÁCH ĐẶT MUA GAMEPASS & TRÁI RƯƠNG -->
             <div class="mb-8">
                 <h3 class="text-xs font-bold text-green-400 mb-3 uppercase tracking-wider">📋 Đơn Khách Đặt Mua Chờ Giao:</h3>
                 <div class="overflow-x-auto max-h-[300px] overflow-y-auto">
@@ -69,7 +70,7 @@
                 </div>
             </div>
 
-            <!-- 2. CÀI ĐẶT SẢN PHẨM GAMEPASS & TRÁI RƯƠNG -->
+            <!-- CÀI ĐẶT SẢN PHẨM GAMEPASS & TRÁI RƯƠNG -->
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 border-t border-gray-700 pt-5">
                 <div class="lg:col-span-4 bg-gray-900 p-4 rounded-xl border border-gray-700">
                     <h4 class="text-xs font-bold text-yellow-400 uppercase mb-3">➕ Thêm Gamepass / Trái Rương Mới:</h4>
@@ -226,7 +227,7 @@
             </div>
         </div>
 
-        <!-- 1. BẢNG ĐỐI SOÁT ĐƠN HÀNG ACC ĐÃ BÁN -->
+        <!-- 📦 LỊCH SỬ BÁN ACC -->
         <div class="bg-gray-800 p-5 rounded-xl border border-blue-500/40 mb-8 shadow-xl">
             <div class="flex justify-between items-center border-b border-gray-700 pb-2 mb-4">
                 <h2 class="text-base font-bold text-blue-400 flex items-center gap-2">
@@ -250,7 +251,7 @@
             </div>
         </div>
 
-        <!-- 2. BẢNG DUYỆT THẺ CÀO -->
+        <!-- 🎫 BẢNG DUYỆT THẺ CÀO -->
         <div class="bg-gray-800 p-5 rounded-xl border border-red-500/40 mb-8 shadow-xl">
             <div class="flex justify-between items-center border-b border-gray-700 pb-2 mb-4">
                 <h2 class="text-base font-bold text-red-400 flex items-center gap-2">
@@ -277,19 +278,22 @@
             </div>
         </div>
 
-        <!-- 3. BẢNG KHÁCH HÀNG & CỘNG / TRỪ TIỀN -->
+        <!-- 👥 BẢNG KHÁCH HÀNG & QUẢN LÝ ROLE CTV -->
         <div class="bg-gray-800 p-5 rounded-xl border border-yellow-500/40 mb-8 shadow-xl">
-            <h2 class="text-base font-bold text-yellow-400 border-b border-gray-700 pb-2 mb-4">
-                👥 DANH SÁCH KHÁCH HÀNG & QUẢN LÝ SỐ DƯ (CỘNG / TRỪ TIỀN)
-            </h2>
+            <div class="flex justify-between items-center border-b border-gray-700 pb-2 mb-4">
+                <h2 class="text-base font-bold text-yellow-400">
+                    👥 DANH SÁCH KHÁCH HÀNG, SỐ DƯ & QUẢN LÝ QUYỀN (CTV THỢ CÀY)
+                </h2>
+                <button onclick="loadAllUsers()" class="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-xs">🔄 Làm Mới</button>
+            </div>
             <div class="overflow-x-auto max-h-[250px] overflow-y-auto">
                 <table class="w-full text-left border-collapse text-xs">
                     <thead>
                         <tr class="border-b border-gray-700 text-gray-400 uppercase">
-                            <th class="p-2">Tài Khoản</th>
+                            <th class="p-2">Tài Khoản & Quyền</th>
                             <th class="p-2">Số Dư Hiện Tại</th>
                             <th class="p-2">Nhập Số Tiền</th>
-                            <th class="p-2">Hành Động Xử Lý</th>
+                            <th class="p-2">Thao Tác Số Dư & Phân Quyền</th>
                         </tr>
                     </thead>
                     <tbody id="user-table-body"></tbody>
@@ -297,7 +301,7 @@
             </div>
         </div>
 
-        <!-- 4. KHU VỰC QUẢN LÝ KHO ACC -->
+        <!-- 📦 KHU VỰC QUẢN LÝ KHO ACC -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <div class="lg:col-span-5 bg-gray-800 p-6 rounded-xl border border-gray-700 h-fit">
                 <div class="flex border-b border-gray-700 mb-5 gap-2">
@@ -383,7 +387,7 @@
             if (adminToken) {
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('dashboard-screen').classList.remove('hidden');
-                loadItemData(); // Tải Gamepass & Trái Rương
+                loadItemData();
                 loadAdminCategories();
                 loadBoostData();
                 loadAllOrders();
@@ -396,9 +400,6 @@
             }
         }
 
-        // ==========================================
-        // 🎟️ JS QUẢN LÝ GAMEPASS & TRÁI RƯƠNG (MỚI)
-        // ==========================================
         async function loadItemData() {
             loadItemOrders();
             loadItemProducts();
@@ -516,9 +517,6 @@
             loadItemProducts();
         });
 
-        // ==========================================
-        // 📂 JS DANH MỤC ACC
-        // ==========================================
         async function loadAdminCategories() {
             const res = await fetch('/api/admin/categories', { headers: { 'Authorization': adminToken } });
             const cats = await res.json();
@@ -576,9 +574,6 @@
             loadAdminCategories();
         });
 
-        // ==========================================
-        // ⚡ JS CÀY THUÊ ADMIN
-        // ==========================================
         async function loadBoostData() {
             loadBoostOrders();
             loadBoostServices();
@@ -604,7 +599,7 @@
                 `;
 
                 if (o.status === 'processing') {
-                    badge = `<span class="bg-blue-900 text-blue-300 px-2 py-0.5 rounded text-[10px] font-bold">Đang Cày...</span>`;
+                    badge = `<span class="bg-blue-900 text-blue-300 px-2 py-0.5 rounded text-[10px] font-bold">Đang Cày (${o.assignedTo || 'Shop'})</span>`;
                     btns = `
                         <button onclick="updateBoostStatus(${o.id}, 'completed')" class="bg-green-600 hover:bg-green-700 text-white px-2 py-0.5 rounded text-[10px] font-bold mr-1">Hoàn Thành</button>
                         <button onclick="updateBoostStatus(${o.id}, 'cancelled')" class="bg-red-600 hover:bg-red-700 text-white px-2 py-0.5 rounded text-[10px] font-bold">Hủy & Hoàn Tiền</button>
@@ -698,9 +693,6 @@
             loadBoostServices();
         });
 
-        // ==========================================
-        // CÁC HÀM QUẢN TRỊ KHÁC
-        // ==========================================
         async function loadAllOrders() {
             const res = await fetch('/api/admin/orders', { headers: { 'Authorization': adminToken } });
             const orders = await res.json();
@@ -790,24 +782,50 @@
             }
         }
 
+        // BẢNG KHÁCH HÀNG & PHÂN QUYỀN CTV
         async function loadAllUsers() {
             const res = await fetch('/api/admin/users', { headers: { 'Authorization': adminToken } });
             const users = await res.json();
             const tbody = document.getElementById('user-table-body');
             tbody.innerHTML = '';
             users.forEach(u => {
+                const roleBadge = u.role === 'ctv' 
+                    ? `<span class="bg-purple-900 text-purple-300 px-2 py-0.5 rounded text-[10px] font-bold">Thợ Cày (CTV)</span>`
+                    : `<span class="bg-gray-700 text-gray-300 px-2 py-0.5 rounded text-[10px]">Thành viên</span>`;
+
+                const roleBtn = u.role === 'ctv'
+                    ? `<button onclick="setRole('${u.username}', 'user')" class="bg-gray-700 hover:bg-gray-600 text-gray-200 px-2 py-1 rounded text-xs font-bold">Hạ xuống User</button>`
+                    : `<button onclick="setRole('${u.username}', 'ctv')" class="bg-purple-600 hover:bg-purple-700 text-white px-2 py-1 rounded text-xs font-bold">👑 Phong CTV</button>`;
+
                 tbody.innerHTML += `
                     <tr class="border-b border-gray-700/50">
-                        <td class="p-2 font-bold text-white">👤 ${u.username}</td>
+                        <td class="p-2 font-bold text-white">👤 ${u.username} <div class="mt-0.5">${roleBadge}</div></td>
                         <td class="p-2 font-bold text-yellow-400">${u.balance.toLocaleString('vi-VN')} đ</td>
-                        <td class="p-2"><input type="number" id="amt-${u.username}" placeholder="Số tiền..." class="bg-gray-900 border border-gray-600 rounded px-2 py-1 text-xs text-white w-32 outline-none"></td>
-                        <td class="p-2 flex gap-1">
+                        <td class="p-2">
+                            <input type="number" id="amt-${u.username}" placeholder="Số tiền..." class="bg-gray-900 border border-gray-600 rounded px-2 py-1 text-xs text-white w-28 outline-none">
+                        </td>
+                        <td class="p-2 flex flex-wrap gap-1 items-center">
                             <button onclick="adjustBalance('${u.username}', 'add')" class="bg-green-600 hover:bg-green-700 text-white px-2.5 py-1 rounded text-xs font-bold">+ Cộng</button>
                             <button onclick="adjustBalance('${u.username}', 'subtract')" class="bg-red-600 hover:bg-red-700 text-white px-2.5 py-1 rounded text-xs font-bold">- Trừ</button>
+                            ${roleBtn}
                         </td>
                     </tr>
                 `;
             });
+        }
+
+        async function setRole(username, role) {
+            const roleName = role === 'ctv' ? 'Cộng Tác Viên (Thợ Cày)' : 'Thành Viên Thường';
+            if (!confirm(`Bạn muốn đổi quyền của "${username}" thành ${roleName}?`)) return;
+
+            const res = await fetch('/api/admin/set-role', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': adminToken },
+                body: JSON.stringify({ username, role })
+            });
+            const data = await res.json();
+            alert(data.message);
+            if (data.success) loadAllUsers();
         }
 
         async function adjustBalance(username, type) {
