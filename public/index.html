@@ -12,13 +12,11 @@
         <header class="flex justify-between items-center bg-gray-800 p-4 rounded-xl border border-gray-700 mb-8">
             <h1 class="text-2xl font-black text-red-500 tracking-wider">🔥 SHOP BLOX FRUITS OTOPI</h1>
             
-            <!-- Khu vực tài khoản người dùng -->
             <div id="auth-area" class="flex items-center gap-3">
-                <!-- Sẽ tự động đổi bằng Javascript khi đăng nhập -->
+                <!-- Khu vực nút đăng nhập -->
             </div>
         </header>
 
-        <!-- DANH SÁCH ACC ĐANG BÁN -->
         <h2 class="text-xl font-bold mb-6 text-gray-300 border-l-4 border-red-500 pl-3">KHO ACC TỰ ĐỘNG</h2>
         <div id="acc-list" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
     </div>
@@ -26,7 +24,8 @@
     <!-- MODAL ĐĂNG NHẬP -->
     <div id="login-modal" class="fixed inset-0 bg-black/80 flex items-center justify-center hidden z-50 p-4">
         <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 max-w-sm w-full">
-            <h2 class="text-xl font-bold mb-4 text-center text-blue-400">ĐĂNG NHẬP</h2>
+            <h2 class="text-xl font-bold mb-2 text-center text-blue-400">ĐĂNG NHẬP</h2>
+            <p class="text-xs text-gray-400 text-center mb-4">(Admin đăng nhập nick tại đây sẽ tự chuyển sang trang Đăng Acc)</p>
             <form id="login-form" class="space-y-4">
                 <input type="text" id="login-user" required placeholder="Tên tài khoản" class="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-sm">
                 <input type="password" id="login-pass" required placeholder="Mật khẩu" class="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-sm">
@@ -40,7 +39,7 @@
     <div id="register-modal" class="fixed inset-0 bg-black/80 flex items-center justify-center hidden z-50 p-4">
         <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 max-w-sm w-full">
             <h2 class="text-xl font-bold mb-2 text-center text-green-400">TẠO TÀI KHOẢN MỚI</h2>
-            <p class="text-xs text-yellow-400 text-center mb-4">🎁 Tặng ngay 100.000 VNĐ khi đăng ký tài khoản!</p>
+            <p class="text-xs text-yellow-400 text-center mb-4">🎁 Tặng ngay 100.000 VNĐ khi đăng ký!</p>
             <form id="register-form" class="space-y-4">
                 <input type="text" id="reg-user" required placeholder="Tên tài khoản bạn muốn tạo" class="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-sm">
                 <input type="password" id="reg-pass" required placeholder="Mật khẩu" class="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-sm">
@@ -64,14 +63,19 @@
     </div>
 
     <script>
-        // Lấy thông tin tài khoản đang lưu trong máy
         let currentUser = JSON.parse(localStorage.getItem('otopi_user')) || null;
 
-        // Cập nhật thanh Menu Header
         function updateHeader() {
             const authArea = document.getElementById('auth-area');
             if (currentUser) {
+                let adminBtn = '';
+                // Nếu là nick admin thì hiện thêm nút Vào trang Đăng Acc
+                if (currentUser.role === 'admin') {
+                    adminBtn = `<a href="/admin.html" class="bg-yellow-500 hover:bg-yellow-600 text-black px-3 py-1.5 rounded-lg text-sm font-black">⚙️ ĐĂNG ACC</a>`;
+                }
+
                 authArea.innerHTML = `
+                    ${adminBtn}
                     <div class="bg-gray-700 px-3 py-1.5 rounded-lg border border-yellow-500 text-yellow-400 text-sm font-bold">
                         👤 ${currentUser.username} | ${currentUser.balance.toLocaleString('vi-VN')} đ
                     </div>
@@ -91,7 +95,6 @@
             }
         }
 
-        // Tải danh sách acc
         async function loadAccounts() {
             const res = await fetch('/api/accounts');
             const accounts = await res.json();
@@ -117,15 +120,14 @@
             });
         }
 
-        // Xử lý Mua Acc
         async function buyAcc(id) {
             if (!currentUser) {
-                alert("Bạn phải Đăng Nhập hoặc Đăng Ký tài khoản trước khi mua nhé!");
+                alert("Bạn phải Đăng Nhập hoặc Đăng Ký trước nhé!");
                 document.getElementById('login-modal').classList.remove('hidden');
                 return;
             }
 
-            if (!confirm("Bạn có chắc chắn muốn dùng số dư để mua acc này?")) return;
+            if (!confirm("Xác nhận mua tài khoản này?")) return;
 
             const res = await fetch('/api/buy', {
                 method: 'POST',
@@ -147,7 +149,37 @@
             }
         }
 
-        // Đăng Ký Form
+        // XỬ LÝ ĐĂNG NHẬP
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const res = await fetch('/api/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    username: document.getElementById('login-user').value,
+                    password: document.getElementById('login-pass').value
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                currentUser = data.user;
+                localStorage.setItem('otopi_user', JSON.stringify(currentUser));
+
+                // NẾU LÀ SẾP ADMIN -> LƯU MÃ VÀ TỰ ĐỘNG CHUYỂN SANG TRANG ADMIN LUÔN!
+                if (data.isAdmin) {
+                    localStorage.setItem('otopi_admin_token', data.adminToken);
+                    alert("🚀 Xin chào Sếp OTOPI! Đang bay sang trang Quản trị đăng acc...");
+                    window.location.href = '/admin.html';
+                    return;
+                }
+
+                closeModals();
+                updateHeader();
+            } else {
+                alert(data.message);
+            }
+        });
+
         document.getElementById('register-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const res = await fetch('/api/register', {
@@ -170,31 +202,9 @@
             }
         });
 
-        // Đăng Nhập Form
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const res = await fetch('/api/login', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    username: document.getElementById('login-user').value,
-                    password: document.getElementById('login-pass').value
-                })
-            });
-            const data = await res.json();
-            if (data.success) {
-                alert(data.message);
-                currentUser = data.user;
-                localStorage.setItem('otopi_user', JSON.stringify(currentUser));
-                closeModals();
-                updateHeader();
-            } else {
-                alert(data.message);
-            }
-        });
-
         function logout() {
             localStorage.removeItem('otopi_user');
+            localStorage.removeItem('otopi_admin_token');
             currentUser = null;
             updateHeader();
         }
