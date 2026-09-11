@@ -33,7 +33,7 @@
                     SỞ HỮU ACC BLOX FRUITS <span class="text-yellow-400">VIP GIÁ RẺ</span>
                 </h2>
                 <p class="text-gray-300 text-sm mt-2 mb-5">
-                    Hệ thống bán acc tự động nhận nick 1 giây & Nhận cày thuê Up Level, Godhuman, Tộc V4, CDK giá học sinh!
+                    Hệ thống bán acc tự động phân theo chuyên mục & Nhận cày thuê Up Level, Godhuman, Tộc V4, CDK giá học sinh!
                 </p>
                 <div class="flex gap-3">
                     <button onclick="openTopupModal()" class="bg-yellow-500 hover:bg-yellow-600 text-black px-5 py-2.5 rounded-xl font-black text-sm shadow-lg shadow-yellow-500/30 transition">
@@ -87,11 +87,21 @@
 
         <!-- PHẦN 1: KHO ACC BLOX FRUITS -->
         <section id="section-accs" class="mb-6">
+            
+            <!-- THANH CHỌN MỤC / CHUYÊN MỤC CHO KHÁCH (MỚI) -->
+            <div class="mb-6">
+                <p class="text-xs font-bold text-gray-400 uppercase mb-2">📂 Chọn Chuyên Mục Bạn Cần Mua:</p>
+                <div id="category-pills" class="flex flex-wrap gap-2">
+                    <!-- Javascript sẽ tự động load các nút Danh Mục vào đây -->
+                </div>
+            </div>
+
+            <!-- BỘ LỌC TÌM KIẾM & GIÁ -->
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-800 pb-4 mb-6">
                 <div>
                     <h3 class="text-xl font-black text-white flex items-center gap-2">
                         <span class="w-2.5 h-6 bg-red-600 rounded-full inline-block"></span>
-                        DANH SÁCH ACC BLOX FRUITS TỰ ĐỘNG
+                        <span id="current-category-title">TẤT CẢ ACC BLOX FRUITS</span>
                     </h3>
                     <p class="text-xs text-gray-400 mt-1">Tài khoản chuẩn trắng thông tin, có hình ảnh thật</p>
                 </div>
@@ -119,6 +129,7 @@
             </div>
             <div id="boost-services-list" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
         </section>
+
     </main>
 
     <!-- FOOTER -->
@@ -351,7 +362,9 @@
     <script>
         let currentUser = JSON.parse(localStorage.getItem('otopi_user')) || null;
         let allAccounts = [];
+        let allCategories = [];
         let allBoostServices = [];
+        let selectedCategory = 'all';
         let pollingTimer = null;
 
         function updateHeader() {
@@ -409,6 +422,118 @@
             }
         }
 
+        // ==========================================
+        // 📂 TẢI DANH MỤC CHO KHÁCH BẤM LỌC
+        // ==========================================
+        async function loadCategoriesClient() {
+            try {
+                const res = await fetch('/api/categories');
+                allCategories = await res.json();
+                const container = document.getElementById('category-pills');
+                container.innerHTML = '';
+
+                // Nút "Tất Cả Mục"
+                container.innerHTML += `
+                    <button onclick="selectCategory('all', 'TẤT CẢ ACC BLOX FRUITS')" id="cat-pill-all" class="cat-pill px-4 py-2 rounded-xl text-xs font-black transition bg-red-600 text-white shadow-lg">
+                        ⭐ Tất Cả Mục
+                    </button>
+                `;
+
+                allCategories.forEach(c => {
+                    container.innerHTML += `
+                        <button onclick="selectCategory('${c.name}', '${c.name.toUpperCase()}')" id="cat-pill-${c.id}" class="cat-pill px-4 py-2 rounded-xl text-xs font-bold transition bg-gray-900 hover:bg-gray-800 text-gray-300 border border-gray-800 hover:border-gray-600">
+                            📂 ${c.name}
+                        </button>
+                    `;
+                });
+            } catch (e) {}
+        }
+
+        function selectCategory(catName, catTitle) {
+            selectedCategory = catName;
+            document.getElementById('current-category-title').innerText = catTitle;
+
+            // Đổi màu nút được chọn
+            document.querySelectorAll('.cat-pill').forEach(b => {
+                b.className = "cat-pill px-4 py-2 rounded-xl text-xs font-bold transition bg-gray-900 hover:bg-gray-800 text-gray-300 border border-gray-800 hover:border-gray-600";
+            });
+
+            if (catName === 'all') {
+                const allBtn = document.getElementById('cat-pill-all');
+                if (allBtn) allBtn.className = "cat-pill px-4 py-2 rounded-xl text-xs font-black transition bg-red-600 text-white shadow-lg";
+            } else {
+                const found = allCategories.find(c => c.name === catName);
+                if (found) {
+                    const activeBtn = document.getElementById('cat-pill-' + found.id);
+                    if (activeBtn) activeBtn.className = "cat-pill px-4 py-2 rounded-xl text-xs font-black transition bg-red-600 text-white shadow-lg";
+                }
+            }
+
+            filterAccounts();
+        }
+
+        async function loadAccounts() {
+            const res = await fetch('/api/accounts');
+            allAccounts = await res.json();
+            renderAccounts(allAccounts);
+        }
+
+        function renderAccounts(accs) {
+            const list = document.getElementById('acc-list');
+            list.innerHTML = '';
+            if(accs.length === 0) {
+                list.innerHTML = `<p class="col-span-3 text-center text-gray-500 py-10">Hiện chưa có acc phù hợp với mục này!</p>`;
+                return;
+            }
+            accs.forEach(acc => {
+                const imgUrl = acc.image || 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80';
+                list.innerHTML += `
+                    <div class="bg-gray-900 border border-gray-800 hover:border-red-500/50 rounded-2xl overflow-hidden shadow-xl flex flex-col justify-between transition duration-300 group">
+                        <div class="h-44 overflow-hidden relative bg-black">
+                            <img src="${imgUrl}" alt="${acc.title}" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
+                            <span class="absolute top-2 left-2 bg-red-600/90 text-white text-[10px] px-2 py-0.5 rounded font-black uppercase tracking-wider shadow">Mã #${acc.id}</span>
+                            <span class="absolute bottom-2 left-2 bg-black/80 text-yellow-400 text-[10px] px-2 py-0.5 rounded font-bold border border-yellow-500/40">📂 ${acc.category || 'Mặc định'}</span>
+                        </div>
+                        <div class="p-4 flex-grow flex flex-col justify-between">
+                            <div>
+                                <h4 class="font-bold text-sm text-white line-clamp-2">${acc.title}</h4>
+                                <div class="mt-3 space-y-1 text-xs text-gray-400 border-t border-gray-800 pt-2">
+                                    <p>⚔️ Level: <span class="text-white font-semibold">${acc.level}</span></p>
+                                    <p>🍎 Trái: <span class="text-purple-400 font-bold">${acc.fruit}</span></p>
+                                    <p>👊 Melee: <span class="text-orange-400 font-bold">${acc.melee}</span></p>
+                                </div>
+                            </div>
+                            <div class="mt-4 pt-3 border-t border-gray-800 flex justify-between items-center">
+                                <span class="text-yellow-400 font-black text-base">${acc.price.toLocaleString('vi-VN')} đ</span>
+                                <button onclick="buyAcc(${acc.id})" class="bg-red-600 hover:bg-red-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow-lg transition">Mua Ngay</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // LỌC THEO TÌM KIẾM, GIÁ VÀ CHUYÊN MỤC
+        function filterAccounts() {
+            const search = document.getElementById('search-input').value.toLowerCase();
+            const priceRange = document.getElementById('price-filter').value;
+
+            const filtered = allAccounts.filter(acc => {
+                const matchCategory = (selectedCategory === 'all') || (acc.category === selectedCategory);
+                const matchSearch = acc.title.toLowerCase().includes(search) || acc.fruit.toLowerCase().includes(search) || acc.melee.toLowerCase().includes(search);
+                let matchPrice = true;
+                if(priceRange === 'under50') matchPrice = acc.price < 50000;
+                else if(priceRange === '50to100') matchPrice = acc.price >= 50000 && acc.price <= 100000;
+                else if(priceRange === 'over100') matchPrice = acc.price > 100000;
+
+                return matchCategory && matchSearch && matchPrice;
+            });
+            renderAccounts(filtered);
+        }
+
+        // ==========================================
+        // CÀY THUÊ CLIENT
+        // ==========================================
         async function loadBoostServicesClient() {
             const res = await fetch('/api/boost-services');
             allBoostServices = await res.json();
@@ -429,9 +554,7 @@
                             </div>
                             <div class="mt-4 pt-3 border-t border-gray-800 flex justify-between items-center">
                                 <span class="text-yellow-400 font-black text-base">${s.price.toLocaleString('vi-VN')} đ</span>
-                                <button onclick="openBoostOrderModal(${s.id})" class="bg-purple-600 hover:bg-purple-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow-lg transition">
-                                    Thuê Cày
-                                </button>
+                                <button onclick="openBoostOrderModal(${s.id})" class="bg-purple-600 hover:bg-purple-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow-lg transition">Thuê Cày</button>
                             </div>
                         </div>
                     </div>
@@ -445,7 +568,6 @@
                 document.getElementById('login-modal').classList.remove('hidden');
                 return;
             }
-
             const service = allBoostServices.find(s => s.id === serviceId);
             if (!service) return;
 
@@ -634,60 +756,6 @@
             }
         }
 
-        async function loadAccounts() {
-            const res = await fetch('/api/accounts');
-            allAccounts = await res.json();
-            renderAccounts(allAccounts);
-        }
-
-        function renderAccounts(accs) {
-            const list = document.getElementById('acc-list');
-            list.innerHTML = '';
-            if(accs.length === 0) {
-                list.innerHTML = `<p class="col-span-3 text-center text-gray-500 py-10">Hiện chưa có acc phù hợp!</p>`;
-                return;
-            }
-            accs.forEach(acc => {
-                const imgUrl = acc.image || 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80';
-                list.innerHTML += `
-                    <div class="bg-gray-900 border border-gray-800 hover:border-red-500/50 rounded-2xl overflow-hidden shadow-xl flex flex-col justify-between transition duration-300 group">
-                        <div class="h-44 overflow-hidden relative bg-black">
-                            <img src="${imgUrl}" alt="${acc.title}" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
-                            <span class="absolute top-2 left-2 bg-red-600/90 text-white text-[10px] px-2 py-0.5 rounded font-black uppercase tracking-wider shadow">Mã #${acc.id}</span>
-                        </div>
-                        <div class="p-4 flex-grow flex flex-col justify-between">
-                            <div>
-                                <h4 class="font-bold text-sm text-white line-clamp-2">${acc.title}</h4>
-                                <div class="mt-3 space-y-1 text-xs text-gray-400 border-t border-gray-800 pt-2">
-                                    <p>⚔️ Level: <span class="text-white font-semibold">${acc.level}</span></p>
-                                    <p>🍎 Trái: <span class="text-purple-400 font-bold">${acc.fruit}</span></p>
-                                    <p>👊 Melee: <span class="text-orange-400 font-bold">${acc.melee}</span></p>
-                                </div>
-                            </div>
-                            <div class="mt-4 pt-3 border-t border-gray-800 flex justify-between items-center">
-                                <span class="text-yellow-400 font-black text-base">${acc.price.toLocaleString('vi-VN')} đ</span>
-                                <button onclick="buyAcc(${acc.id})" class="bg-red-600 hover:bg-red-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow-lg transition">Mua Ngay</button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-
-        function filterAccounts() {
-            const search = document.getElementById('search-input').value.toLowerCase();
-            const priceRange = document.getElementById('price-filter').value;
-            const filtered = allAccounts.filter(acc => {
-                const matchSearch = acc.title.toLowerCase().includes(search) || acc.fruit.toLowerCase().includes(search) || acc.melee.toLowerCase().includes(search);
-                let matchPrice = true;
-                if(priceRange === 'under50') matchPrice = acc.price < 50000;
-                else if(priceRange === '50to100') matchPrice = acc.price >= 50000 && acc.price <= 100000;
-                else if(priceRange === 'over100') matchPrice = acc.price > 100000;
-                return matchSearch && matchPrice;
-            });
-            renderAccounts(filtered);
-        }
-
         async function buyAcc(id) {
             if (!currentUser) {
                 alert("Bạn phải Đăng Nhập trước nhé!");
@@ -835,6 +903,7 @@
 
         updateHeader();
         syncUserBalance();
+        loadCategoriesClient(); // Tải các Danh Mục cho khách bấm lọc
         loadAccounts();
         loadTopDeposits();
     </script>
