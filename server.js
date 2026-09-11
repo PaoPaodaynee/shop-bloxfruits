@@ -1,13 +1,16 @@
 const express = require('express');
+const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
-app.use(express.static('public'));
+
+// Tự động nhận diện giao diện dù nằm ở thư mục public hay nằm ở ngoài
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(__dirname));
 
 let userBalance = 100000;
 
-// Danh sách các tài khoản Blox Fruits
 let accounts = [
     {
         id: 1,
@@ -33,13 +36,20 @@ let accounts = [
     }
 ];
 
-// --- CÁC ĐƯỜNG DẪN DÀNH CHO KHÁCH HÀNG ---
+// Đường dẫn trang chủ
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'), (err) => {
+        if (err) {
+            res.sendFile(path.join(__dirname, 'index.html'));
+        }
+    });
+});
+
 app.get('/api/user', (req, res) => {
     res.json({ balance: userBalance });
 });
 
 app.get('/api/accounts', (req, res) => {
-    // Chỉ lấy acc CHƯA BÁN cho khách xem
     const available = accounts.filter(a => !a.sold).map(a => ({
         id: a.id,
         title: a.title,
@@ -68,33 +78,22 @@ app.post('/api/buy', (req, res) => {
     });
 });
 
-// --- CÁC ĐƯỜNG DẪN DÀNH RIÊNG CHO TRANG ADMIN ---
-
-// Lấy TẤT CẢ acc (kể cả acc đã bán để Admin quản lý)
 app.get('/api/admin/accounts', (req, res) => {
     res.json(accounts);
 });
 
-// Thêm Acc Mới
 app.post('/api/admin/add', (req, res) => {
     const { title, level, fruit, melee, price, robloxUser, robloxPass } = req.body;
-    
-    const newAcc = {
+    accounts.push({
         id: accounts.length + 1,
-        title,
-        level,
-        fruit,
-        melee,
+        title, level, fruit, melee,
         price: Number(price),
         sold: false,
-        robloxUser,
-        robloxPass
-    };
-
-    accounts.push(newAcc);
-    res.json({ success: true, message: "Thêm tài khoản thành công!" });
+        robloxUser, robloxPass
+    });
+    res.json({ success: true, message: "Thành công!" });
 });
 
 app.listen(PORT, () => {
-    console.log(`Web dang chay tai: http://localhost:${PORT}`);
+    console.log(`Web dang chay tai port ${PORT}`);
 });
