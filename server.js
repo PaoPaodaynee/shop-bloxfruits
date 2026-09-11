@@ -48,6 +48,18 @@ const Order = mongoose.model('Order', new mongoose.Schema({
     boughtAt: { type: Date, default: Date.now }
 }));
 
+// SCHEMA LƯU THẺ CÀO KHÁCH NẠP
+const Card = mongoose.model('Card', new mongoose.Schema({
+    username: String,
+    telco: String,
+    declaredAmount: Number,
+    realAmount: Number,
+    code: String,
+    serial: String,
+    status: { type: String, default: "pending" }, // pending, success, failed
+    createdAt: { type: Date, default: Date.now }
+}));
+
 // 1. ĐĂNG KÝ
 app.post('/api/register', async (req, res) => {
     try {
@@ -159,14 +171,43 @@ app.get('/api/my-orders', async (req, res) => {
     }
 });
 
-// WEBHOOK SEPAY
+// 5. KHÁCH NẠP THẺ CÀO
+app.post('/api/topup-card', async (req, res) => {
+    try {
+        const { username, telco, amount, code, serial } = req.body;
+        if (!username || !telco || !amount || !code || !serial) {
+            return res.status(400).json({ success: false, message: "Vui lòng điền đầy đủ thông tin thẻ cào!" });
+        }
+
+        // Tính số tiền thực nhận sau chiết khấu nhà mạng (thường nhận 80% giá trị thẻ)
+        const declared = Number(amount);
+        const received = Math.round(declared * 0.8); // Nhận 80%
+
+        await Card.create({
+            username,
+            telco,
+            declaredAmount: declared,
+            realAmount: received,
+            code: code.trim(),
+            serial: serial.trim(),
+            status: "pending"
+        });
+
+        res.json({
+            success: true,
+            message: `Gửi thẻ ${telco} ${declared.toLocaleString('vi-VN')}đ thành công! Thẻ đang được xử lý, bạn sẽ nhận được ${received.toLocaleString('vi-VN')}đ sau khi duyệt.`
+        });
+    } catch (e) {
+        res.status(500).json({ success: false, message: "Lỗi gửi thẻ: " + e.message });
+    }
+});
+
+// WEBHOOK SEPAY (BANK TỰ ĐỘNG)
 app.post('/api/webhook/sepay', async (req, res) => {
     try {
         const data = req.body;
-        console.log(">>> [SEPAY WEBHOOK]: Nhận tín hiệu:", data);
         const content = data.content || data.description || "";
         const amount = Number(data.transferAmount) || 0;
-
         const match = content.match(/OTOPI\s*([A-Za-z0-9_]+)/i);
 
         if (match && match[1] && amount > 0) {
@@ -186,12 +227,48 @@ app.post('/api/webhook/sepay', async (req, res) => {
     }
 });
 
-// ADMIN
+// BẢO MẬT ADMIN
 function checkAdminAuth(req, res, next) {
     const token = req.headers['authorization'];
     if (token === ADMIN_SECRET_KEY) return next();
     return res.status(403).json({ success: false, message: "Không có quyền Admin!" });
 }
+
+// LẤY DANH SÁCH THẺ CÀO CHỜ DUYỆT
+app.get('/api/admin/cards', checkAdminAuth, async (req, res) => {
+    try {
+        const cards = await Card.find().sort({ createdAt: -1 });
+        res.json(cards);
+    } catch (e) {
+        res.status(500).json([]);
+    }
+});
+
+// ADMIN XỬ LÝ THẺ (DUYỆT HOẶC HỦY)
+app.post('/api/admin/card-action', checkAdminAuth, async (req, res) => {
+    try {
+        const { cardId, action } = req.body;
+        const card = await Card.findById(cardId);
+        if (!card || card.status !== 'pending') return res.status(400).json({ success: false, message: "Thẻ không hợp lệ hoặc đã xử lý rồi!" });
+
+        if (action === 'approve') {
+            const user = await User.findOne({ username: new RegExp('^' + card.username + '$', 'i') });
+            if (user) {
+                user.balance += card.realAmount;
+                await user.save();
+            }
+            card.status = 'success';
+            await card.save();
+            return res.json({ success: true, message: `Đã duyệt thẻ và cộng ${card.realAmount.toLocaleString('vi-VN')}đ cho ${card.username}!` });
+        } else {
+            card.status = 'failed';
+            await card.save();
+            return res.json({ success: true, message: "Đã hủy thẻ sai!" });
+        }
+    } catch (e) {
+        res.status(500).json({ success: false, message: "Lỗi: " + e.message });
+    }
+});
 
 app.get('/api/admin/accounts', checkAdminAuth, async (req, res) => {
     try {
