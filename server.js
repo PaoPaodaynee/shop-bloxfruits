@@ -4,12 +4,14 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
-
-// Tự động nhận diện giao diện dù nằm ở thư mục public hay nằm ở ngoài
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(__dirname));
 
-let userBalance = 100000;
+// Danh sách người dùng của Shop (Mỗi người có tài khoản và số dư riêng)
+// Mặc định tạo sẵn 1 nick admin (user: admin / pass: 123456)
+let users = [
+    { username: "admin", password: "123", balance: 500000 }
+];
 
 let accounts = [
     {
@@ -36,19 +38,35 @@ let accounts = [
     }
 ];
 
-// Đường dẫn trang chủ
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'), (err) => {
-        if (err) {
-            res.sendFile(path.join(__dirname, 'index.html'));
-        }
-    });
+// --- 1. API ĐĂNG KÝ ---
+app.post('/api/register', (req, res) => {
+    const { username, password } = req.body;
+    if (!username || !password) {
+        return res.status(400).json({ success: false, message: "Vui lòng nhập đầy đủ thông tin!" });
+    }
+    const existUser = users.find(u => u.username.toLowerCase() === username.toLowerCase());
+    if (existUser) {
+        return res.status(400).json({ success: false, message: "Tên tài khoản này đã có người dùng!" });
+    }
+
+    // Tạo tài khoản mới, tặng sẵn 100k vào số dư để test mua hàng
+    const newUser = { username, password, balance: 100000 };
+    users.push(newUser);
+
+    res.json({ success: true, message: "Đăng ký thành công! Đã tặng bạn 100.000đ trải nghiệm.", user: newUser });
 });
 
-app.get('/api/user', (req, res) => {
-    res.json({ balance: userBalance });
+// --- 2. API ĐĂNG NHẬP ---
+app.post('/api/login', (req, res) => {
+    const { username, password } = req.body;
+    const user = users.find(u => u.username.toLowerCase() === username.toLowerCase() && u.password === password);
+    if (!user) {
+        return res.status(400).json({ success: false, message: "Sai tên tài khoản hoặc mật khẩu!" });
+    }
+    res.json({ success: true, message: "Đăng nhập thành công!", user });
 });
 
+// --- 3. API LẤY DANH SÁCH ACC ---
 app.get('/api/accounts', (req, res) => {
     const available = accounts.filter(a => !a.sold).map(a => ({
         id: a.id,
@@ -61,37 +79,33 @@ app.get('/api/accounts', (req, res) => {
     res.json(available);
 });
 
+// --- 4. API MUA ACC (Đã gắn với tài khoản đang đăng nhập) ---
 app.post('/api/buy', (req, res) => {
-    const { accountId } = req.body;
+    const { accountId, username } = req.body;
+    const user = users.find(u => u.username === username);
+
+    if (!user) {
+        return res.status(401).json({ success: false, message: "Bạn phải đăng nhập tài khoản trước khi mua!" });
+    }
+
     const acc = accounts.find(a => a.id === accountId);
+    if (!acc || acc.sold) {
+        return res.status(400).json({ success: false, message: "Acc không tồn tại hoặc đã có người mua!" });
+    }
 
-    if (!acc || acc.sold) return res.status(400).json({ success: false, message: "Acc không tồn tại hoặc đã bán!" });
-    if (userBalance < acc.price) return res.status(400).json({ success: false, message: "Số dư không đủ!" });
+    if (user.balance < acc.price) {
+        return res.status(400).json({ success: false, message: "Số dư của bạn không đủ, vui lòng nạp thêm!" });
+    }
 
-    userBalance -= acc.price;
+    // Trừ tiền của đúng người này
+    user.balance -= acc.price;
     acc.sold = true;
 
     res.json({
         success: true,
         accountInfo: { username: acc.robloxUser, password: acc.robloxPass },
-        newBalance: userBalance
+        newBalance: user.balance
     });
-});
-
-app.get('/api/admin/accounts', (req, res) => {
-    res.json(accounts);
-});
-
-app.post('/api/admin/add', (req, res) => {
-    const { title, level, fruit, melee, price, robloxUser, robloxPass } = req.body;
-    accounts.push({
-        id: accounts.length + 1,
-        title, level, fruit, melee,
-        price: Number(price),
-        sold: false,
-        robloxUser, robloxPass
-    });
-    res.json({ success: true, message: "Thành công!" });
 });
 
 app.listen(PORT, () => {
