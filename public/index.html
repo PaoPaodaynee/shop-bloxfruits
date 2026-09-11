@@ -27,17 +27,17 @@
         <div class="relative rounded-2xl overflow-hidden border border-red-500/30 bg-gradient-to-r from-red-950 via-gray-900 to-purple-950 p-6 md:p-10 mb-8 shadow-2xl">
             <div class="max-w-xl">
                 <span class="bg-red-600/30 border border-red-500 text-red-400 text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider">
-                    🔥 Sự Kiện Đua Top Nạp Tháng Này
+                    🔥 Hỗ Trợ Nạp Tự Động 24/7
                 </span>
                 <h2 class="text-2xl md:text-4xl font-black mt-3 leading-tight text-white">
                     SỞ HỮU ACC BLOX FRUITS <span class="text-yellow-400">VIP GIÁ RẺ</span>
                 </h2>
                 <p class="text-gray-300 text-sm mt-2 mb-5">
-                    Đua Top nạp tháng nhận ngay Acc Kitsune Max Skill & hàng trăm phần quà tiền mặt!
+                    Hệ thống bán tài khoản game Blox Fruits tự động, nhận nick sau 1 giây, bảo hành đăng nhập lần đầu 100%!
                 </p>
                 <div class="flex gap-3">
                     <button onclick="openTopupModal()" class="bg-yellow-500 hover:bg-yellow-600 text-black px-5 py-2.5 rounded-xl font-black text-sm shadow-lg shadow-yellow-500/30 transition">
-                        💳 NẠP TIỀN ĐUA TOP
+                        💳 NẠP TIỀN NGAY
                     </button>
                     <a href="#shop-section" class="bg-gray-800 hover:bg-gray-700 border border-gray-600 px-5 py-2.5 rounded-xl font-bold text-sm">
                         Xem Danh Sách
@@ -46,14 +46,14 @@
             </div>
         </div>
 
-        <!-- BẢNG VÀNG ĐUA TOP NẠP THÁNG (MỚI) -->
+        <!-- BẢNG VÀNG ĐUA TOP NẠP THÁNG (ĐÃ BỎ CAM KẾT QUÀ, CHỈ ĐỂ VINH DANH) -->
         <section class="mb-10 bg-gray-900 border border-yellow-500/40 rounded-2xl p-5 md:p-6 shadow-2xl relative overflow-hidden">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-800 pb-3 mb-5 gap-2">
                 <div class="flex items-center gap-2">
                     <span class="text-2xl">🏆</span>
                     <div>
                         <h3 class="text-lg md:text-xl font-black text-yellow-400 tracking-wide uppercase">BẢNG VÀNG ĐUA TOP NẠP THÁNG</h3>
-                        <p class="text-xs text-gray-400">Phần thưởng: Top 1 tặng Acc Kitsune VIP • Top 2 tặng 200k • Top 3 tặng 100k</p>
+                        <p class="text-xs text-gray-400">Vinh danh các thành viên nạp nhiều nhất trong tháng</p>
                     </div>
                 </div>
                 <button onclick="loadTopDeposits()" class="text-xs bg-gray-800 hover:bg-gray-700 border border-gray-700 px-3 py-1.5 rounded-lg text-yellow-300 font-bold">
@@ -62,9 +62,7 @@
             </div>
 
             <!-- TOP 1, 2, 3 PODIUM -->
-            <div id="top-podium" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <!-- Javascript sẽ tự động gắn Top 1 2 3 vào đây -->
-            </div>
+            <div id="top-podium" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6"></div>
 
             <!-- DANH SÁCH TOP 4 - 10 -->
             <div class="overflow-x-auto">
@@ -76,9 +74,7 @@
                             <th class="p-2 text-right">Tổng Nạp</th>
                         </tr>
                     </thead>
-                    <tbody id="top-list-body">
-                        <!-- Javascript sẽ render danh sách vào đây -->
-                    </tbody>
+                    <tbody id="top-list-body"></tbody>
                 </table>
             </div>
         </section>
@@ -167,7 +163,7 @@
     <div id="topup-modal" class="fixed inset-0 bg-black/85 flex items-center justify-center hidden z-50 p-4">
         <div class="bg-gray-800 p-6 rounded-2xl border border-yellow-500 max-w-md w-full shadow-2xl">
             <div class="flex justify-between items-center border-b border-gray-700 pb-3 mb-4">
-                <h2 class="text-lg font-black text-yellow-400">💳 NẠP TIỀN ĐUA TOP</h2>
+                <h2 class="text-lg font-black text-yellow-400">💳 NẠP TIỀN VÀO TÀI KHOẢN</h2>
                 <button onclick="closeModals()" class="text-gray-400 hover:text-white text-xl font-bold">&times;</button>
             </div>
 
@@ -255,7 +251,7 @@
         <div class="bg-gray-800 p-6 rounded-2xl border-2 border-green-500 text-center max-w-sm w-full shadow-2xl animate-bounce">
             <span class="text-6xl">🎉</span>
             <h2 class="text-2xl font-black text-green-400 mt-2">NẠP TIỀN THÀNH CÔNG!</h2>
-            <p class="text-xs text-gray-300 mt-2">Điểm đua top của bạn đã được cập nhật.</p>
+            <p class="text-xs text-gray-300 mt-2">Hệ thống đã tự động cộng tiền vào tài khoản.</p>
             <p class="text-sm font-bold text-yellow-400 mt-3">Số dư mới: <span id="topup-new-balance">0</span> VNĐ</p>
             <button onclick="document.getElementById('topup-success-modal').classList.add('hidden')" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 rounded-xl text-xs mt-5">
                 Tuyệt Vời, Mua Acc Ngay!
@@ -263,7 +259,7 @@
         </div>
     </div>
 
-    <!-- MODAL ĐĂNG NHẬP / ĐĂNG KÝ / MUA ACC -->
+    <!-- MODAL ĐĂNG NHẬP / ĐĂNG KÝ -->
     <div id="login-modal" class="fixed inset-0 bg-black/80 flex items-center justify-center hidden z-50 p-4">
         <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 max-w-sm w-full">
             <h2 class="text-xl font-bold mb-4 text-center text-blue-400">ĐĂNG NHẬP</h2>
@@ -279,7 +275,7 @@
     <div id="register-modal" class="fixed inset-0 bg-black/80 flex items-center justify-center hidden z-50 p-4">
         <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 max-w-sm w-full">
             <h2 class="text-xl font-bold mb-2 text-center text-green-400">TẠO TÀI KHOẢN MỚI</h2>
-            <p class="text-xs text-yellow-400 text-center mb-4">🎁 Tặng ngay 100.000 VNĐ trải nghiệm!</p>
+            <p class="text-xs text-gray-400 text-center mb-4">Đăng ký tài khoản để bắt đầu mua acc</p>
             <form id="register-form" class="space-y-4">
                 <input type="text" id="reg-user" required placeholder="Tên tài khoản muốn tạo" class="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-sm">
                 <input type="password" id="reg-pass" required placeholder="Mật khẩu" class="w-full bg-gray-900 border border-gray-700 rounded p-2.5 text-sm">
@@ -335,13 +331,13 @@
                         Đăng Nhập
                     </button>
                     <button onclick="document.getElementById('register-modal').classList.remove('hidden')" class="bg-green-600 hover:bg-green-700 px-3 py-1.5 rounded-lg text-xs font-bold">
-                        Đăng Ký (+100k)
+                        Đăng Ký
                     </button>
                 `;
             }
         }
 
-        // TẢI BẢNG VÀNG ĐUA TOP NẠP THÁNG
+        // TẢI TOP NẠP (CHỈ VINH DANH DANH DỰ, KHÔNG KÈM QUÀ)
         async function loadTopDeposits() {
             try {
                 const res = await fetch('/api/top-deposits');
@@ -356,13 +352,12 @@
                     podium.innerHTML = `
                         <div class="col-span-3 text-center py-6 bg-gray-950/60 rounded-xl border border-gray-800">
                             <p class="text-sm text-yellow-400 font-bold">Chưa có ai đua top tháng này!</p>
-                            <p class="text-xs text-gray-400 mt-1">Hãy là người đầu tiên nạp tiền để chiếm ngôi vị Quán Quân Top 1 🥇</p>
+                            <p class="text-xs text-gray-400 mt-1">Hãy là người đầu tiên nạp tiền để vinh danh trên Top 1 🥇</p>
                         </div>
                     `;
                     return;
                 }
 
-                // Render Top 1, Top 2, Top 3 Podium
                 const top1 = tops[0];
                 const top2 = tops[1];
                 const top3 = tops[2];
@@ -376,7 +371,6 @@
                             <span class="block text-xs text-gray-400 font-bold uppercase mt-1">HẠNG 2</span>
                             <p class="font-black text-base text-white mt-1 truncate">${top2.username}</p>
                             <p class="text-sm font-bold text-yellow-400 mt-1">${top2.total.toLocaleString('vi-VN')} đ</p>
-                            <span class="inline-block mt-2 text-[10px] bg-gray-700 text-gray-300 px-2 py-0.5 rounded font-bold">🎁 Quà: 200.000đ Shop</span>
                         </div>
                     `;
                 }
@@ -388,7 +382,6 @@
                             <span class="block text-xs text-yellow-400 font-black uppercase mt-1">QUÁN QUÂN TOP 1</span>
                             <p class="font-black text-lg text-yellow-300 mt-1 truncate">${top1.username}</p>
                             <p class="text-base font-black text-green-400 mt-1">${top1.total.toLocaleString('vi-VN')} đ</p>
-                            <span class="inline-block mt-2 text-xs bg-yellow-500 text-black px-3 py-1 rounded-full font-black shadow">🎁 Acc Kitsune VIP</span>
                         </div>
                     `;
                 }
@@ -400,14 +393,12 @@
                             <span class="block text-xs text-amber-500 font-bold uppercase mt-1">HẠNG 3</span>
                             <p class="font-black text-base text-white mt-1 truncate">${top3.username}</p>
                             <p class="text-sm font-bold text-yellow-400 mt-1">${top3.total.toLocaleString('vi-VN')} đ</p>
-                            <span class="inline-block mt-2 text-[10px] bg-amber-900 text-amber-200 px-2 py-0.5 rounded font-bold">🎁 Quà: 100.000đ Shop</span>
                         </div>
                     `;
                 }
 
                 podium.innerHTML = podiumHtml;
 
-                // Render Top 4 đến 10
                 const others = tops.slice(3);
                 if (others.length === 0) {
                     listBody.innerHTML = '<tr><td colspan="3" class="p-3 text-center text-gray-500">Chưa có thêm thứ hạng khác.</td></tr>';
@@ -439,7 +430,7 @@
                         document.getElementById('topup-new-balance').innerText = data.balance.toLocaleString('vi-VN');
                         document.getElementById('topup-success-modal').classList.remove('hidden');
                         stopPolling();
-                        loadTopDeposits(); // Cập nhật lại Bảng Top ngay
+                        loadTopDeposits();
                     } else {
                         currentUser.balance = data.balance;
                         localStorage.setItem('otopi_user', JSON.stringify(currentUser));
@@ -696,7 +687,7 @@
         updateHeader();
         syncUserBalance();
         loadAccounts();
-        loadTopDeposits(); // Tự động load Bảng Vàng Đua Top
+        loadTopDeposits();
     </script>
 </body>
 </html>
