@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shop Blox Fruits OTOPI - Bán Acc & Cày Thuê Tự Động Uy Tín</title>
+    <title>Shop Blox Fruits OTOPI - Acc, Cày Thuê, Gamepass & Trái Rương Uy Tín</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-950 text-white min-h-screen flex flex-col justify-between font-sans">
@@ -15,7 +15,7 @@
                 <span class="text-3xl animate-bounce">⚔️</span>
                 <div>
                     <a href="/" class="text-xl md:text-2xl font-black text-red-500 tracking-wider hover:text-red-400">OTOPI-ROBLOX</a>
-                    <p class="text-[10px] text-gray-400 uppercase tracking-widest font-semibold">Shop Blox Fruits & Cày Thuê 24/7</p>
+                    <p class="text-[10px] text-gray-400 uppercase tracking-widest font-semibold">Acc • Cày Thuê • Gamepass • Trái Rương</p>
                 </div>
             </div>
             <div id="auth-area" class="flex flex-wrap items-center gap-2"></div>
@@ -27,20 +27,23 @@
         <div class="relative rounded-2xl overflow-hidden border border-red-500/30 bg-gradient-to-r from-red-950 via-gray-900 to-purple-950 p-6 md:p-10 mb-8 shadow-2xl">
             <div class="max-w-xl">
                 <span class="bg-red-600/30 border border-red-500 text-red-400 text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider">
-                    🔥 Hỗ Trợ Mua Acc & Cày Thuê Siêu Tốc
+                    🔥 Hệ Thống Tự Động 24/7
                 </span>
                 <h2 class="text-2xl md:text-4xl font-black mt-3 leading-tight text-white">
-                    SỞ HỮU ACC BLOX FRUITS <span class="text-yellow-400">VIP GIÁ RẺ</span>
+                    SIÊU THỊ BLOX FRUITS <span class="text-yellow-400">GIÁ HỌC SINH</span>
                 </h2>
                 <p class="text-gray-300 text-sm mt-2 mb-5">
-                    Hệ thống bán acc tự động phân theo chuyên mục & Nhận cày thuê Up Level, Godhuman, Tộc V4, CDK giá học sinh!
+                    Mua Acc nhận ngay 1s • Cày Thuê Siêu Tốc • Mua Gamepass Gift Trực Tiếp • Trade Trái Rương Uy Tín 100%!
                 </p>
-                <div class="flex gap-3">
+                <div class="flex flex-wrap gap-3">
                     <button onclick="openTopupModal()" class="bg-yellow-500 hover:bg-yellow-600 text-black px-5 py-2.5 rounded-xl font-black text-sm shadow-lg shadow-yellow-500/30 transition">
                         💳 NẠP TIỀN NGAY
                     </button>
-                    <button onclick="switchMainTab('boost')" class="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-xl font-black text-sm shadow-lg transition">
-                        ⚡ Thuê Cày Ngay
+                    <button onclick="switchMainTab('gamepass')" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-black text-sm shadow-lg transition">
+                        🎟️ Xem Gamepass
+                    </button>
+                    <button onclick="switchMainTab('fruit')" class="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-xl font-black text-sm shadow-lg transition">
+                        🍎 Xem Trái Rương
                     </button>
                 </div>
             </div>
@@ -75,28 +78,31 @@
             </div>
         </section>
 
-        <!-- NÚT CHUYỂN ĐỔI TAB: MUA ACC VS CÀY THUÊ -->
-        <div class="flex justify-center mb-8 gap-3">
-            <button id="main-tab-accs-btn" onclick="switchMainTab('accs')" class="px-6 py-3 rounded-xl font-black text-sm bg-red-600 text-white shadow-xl shadow-red-600/30 transition flex items-center gap-2">
-                ⚔️ KHO ACC BLOX FRUITS
+        <!-- ========================================== -->
+        <!-- ⚡ NÚT CHUYỂN ĐỔI 4 TAB LỚN TRÊN TRANG CHỦ -->
+        <!-- ========================================== -->
+        <div class="flex flex-wrap justify-center mb-8 gap-2 md:gap-3">
+            <button id="main-tab-accs-btn" onclick="switchMainTab('accs')" class="px-5 py-2.5 rounded-xl font-black text-xs md:text-sm bg-red-600 text-white shadow-xl shadow-red-600/30 transition flex items-center gap-1.5">
+                ⚔️ MUA ACC BLOX FRUITS
             </button>
-            <button id="main-tab-boost-btn" onclick="switchMainTab('boost')" class="px-6 py-3 rounded-xl font-black text-sm bg-gray-800 text-gray-400 hover:text-white border border-gray-700 transition flex items-center gap-2">
+            <button id="main-tab-boost-btn" onclick="switchMainTab('boost')" class="px-5 py-2.5 rounded-xl font-black text-xs md:text-sm bg-gray-800 text-gray-400 hover:text-white border border-gray-700 transition flex items-center gap-1.5">
                 ⚡ DỊCH VỤ CÀY THUÊ
+            </button>
+            <button id="main-tab-gamepass-btn" onclick="switchMainTab('gamepass')" class="px-5 py-2.5 rounded-xl font-black text-xs md:text-sm bg-gray-800 text-gray-400 hover:text-white border border-gray-700 transition flex items-center gap-1.5">
+                🎟️ BÁN GAMEPASS
+            </button>
+            <button id="main-tab-fruit-btn" onclick="switchMainTab('fruit')" class="px-5 py-2.5 rounded-xl font-black text-xs md:text-sm bg-gray-800 text-gray-400 hover:text-white border border-gray-700 transition flex items-center gap-1.5">
+                🍎 BÁN TRÁI RƯƠNG
             </button>
         </div>
 
         <!-- PHẦN 1: KHO ACC BLOX FRUITS -->
         <section id="section-accs" class="mb-6">
-            
-            <!-- THANH CHỌN MỤC / CHUYÊN MỤC CHO KHÁCH (MỚI) -->
             <div class="mb-6">
                 <p class="text-xs font-bold text-gray-400 uppercase mb-2">📂 Chọn Chuyên Mục Bạn Cần Mua:</p>
-                <div id="category-pills" class="flex flex-wrap gap-2">
-                    <!-- Javascript sẽ tự động load các nút Danh Mục vào đây -->
-                </div>
+                <div id="category-pills" class="flex flex-wrap gap-2"></div>
             </div>
 
-            <!-- BỘ LỌC TÌM KIẾM & GIÁ -->
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-800 pb-4 mb-6">
                 <div>
                     <h3 class="text-xl font-black text-white flex items-center gap-2">
@@ -130,12 +136,36 @@
             <div id="boost-services-list" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
         </section>
 
+        <!-- PHẦN 3: BÁN GAMEPASS BLOX FRUITS (MỚI) -->
+        <section id="section-gamepass" class="mb-6 hidden">
+            <div class="border-b border-gray-800 pb-4 mb-6">
+                <h3 class="text-xl font-black text-blue-400 flex items-center gap-2">
+                    <span class="w-2.5 h-6 bg-blue-600 rounded-full inline-block"></span>
+                    KHO GAMEPASS BLOX FRUITS (GIFT TRỰC TIẾP)
+                </h3>
+                <p class="text-xs text-gray-400 mt-1">Khách mua chỉ cần nhập tên Roblox, shop vào game gửi tặng trực tiếp trong 5-15 phút!</p>
+            </div>
+            <div id="gamepass-list" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+        </section>
+
+        <!-- PHẦN 4: BÁN TRÁI RƯƠNG BLOX FRUITS (MỚI) -->
+        <section id="section-fruit" class="mb-6 hidden">
+            <div class="border-b border-gray-800 pb-4 mb-6">
+                <h3 class="text-xl font-black text-yellow-400 flex items-center gap-2">
+                    <span class="w-2.5 h-6 bg-yellow-500 rounded-full inline-block"></span>
+                    KHO TRÁI ÁC QUỶ RƯƠNG (TRADE TRỰC TIẾP TRONG GAME)
+                </h3>
+                <p class="text-xs text-gray-400 mt-1">Trái rương Kitsune, Dragon, Leopard, Mochi... Giao dịch trade tại Sea 2 hoặc Sea 3!</p>
+            </div>
+            <div id="fruit-list" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+        </section>
+
     </main>
 
     <!-- FOOTER -->
     <footer class="bg-gray-900 border-t border-gray-800 py-8 px-4 mt-12 text-xs text-gray-400 text-center">
         <div class="max-w-4xl mx-auto space-y-2">
-            <p class="font-bold text-white text-sm">🔥 SHOP BLOX FRUITS OTOPI - BÁN ACC & CÀY THUÊ TỰ ĐỘNG</p>
+            <p class="font-bold text-white text-sm">🔥 SHOP BLOX FRUITS OTOPI - TỰ ĐỘNG UY TÍN HÀNG ĐẦU</p>
             <p>Bản quyền © 2026 OTOPI-ROBLOX. Vận hành bởi Admin TRAN VU THIEN.</p>
         </div>
     </footer>
@@ -145,6 +175,36 @@
         <span class="text-xl">💬</span>
         <span class="text-xs font-bold hidden md:inline">Hỗ Trợ Admin</span>
     </a>
+
+    <!-- MODAL ĐẶT MUA GAMEPASS & TRÁI RƯƠNG (MỚI) -->
+    <div id="order-item-modal" class="fixed inset-0 bg-black/85 flex items-center justify-center hidden z-50 p-4">
+        <div class="bg-gray-800 p-6 rounded-2xl border-2 border-blue-500 max-w-md w-full shadow-2xl">
+            <div class="flex justify-between items-center border-b border-gray-700 pb-3 mb-4">
+                <h2 id="modal-item-header" class="text-base font-black text-blue-400 uppercase">MUA VẬT PHẨM</h2>
+                <button onclick="closeModals()" class="text-gray-400 hover:text-white text-xl font-bold">&times;</button>
+            </div>
+            <div class="bg-gray-900 p-3 rounded-lg mb-4 border border-gray-700">
+                <p class="text-xs text-gray-400">Sản phẩm đã chọn:</p>
+                <p id="modal-item-name" class="text-sm font-bold text-white mt-0.5"></p>
+                <p class="text-xs text-yellow-400 font-bold mt-1">Giá thanh toán: <span id="modal-item-price"></span> đ</p>
+            </div>
+            <form id="item-order-form" class="space-y-3">
+                <input type="hidden" id="modal-item-id">
+                <div>
+                    <label class="text-xs text-yellow-300 font-bold uppercase">Tên Nhân Vật Roblox Của Bạn (Để Nhận Đồ):</label>
+                    <input type="text" id="it-roblox-user" required placeholder="Nhập chính xác Username Roblox (Không cần mật khẩu)" class="w-full bg-gray-900 border border-yellow-500/60 rounded p-2 text-xs text-white outline-none mt-1 focus:border-yellow-400">
+                    <p class="text-[10px] text-gray-400 mt-1">💡 Bạn chỉ cần nhập Tên Roblox, <b>KHÔNG CẦN nhập mật khẩu</b>!</p>
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400 font-bold uppercase">Ghi Chú / Link Server VIP (Nếu có):</label>
+                    <textarea id="it-note" rows="2" placeholder="Ví dụ: Đang ở Sea 3, hoặc link server vip..." class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-xs text-white outline-none mt-1"></textarea>
+                </div>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-lg font-black text-xs tracking-wide">
+                    XÁC NHẬN THANH TOÁN & ĐẶT MUA
+                </button>
+            </form>
+        </div>
+    </div>
 
     <!-- MODAL ĐẶT CÀY THUÊ -->
     <div id="order-boost-modal" class="fixed inset-0 bg-black/85 flex items-center justify-center hidden z-50 p-4">
@@ -162,11 +222,11 @@
                 <input type="hidden" id="modal-boost-id">
                 <div>
                     <label class="text-xs text-gray-400 font-bold uppercase">Tài khoản Roblox của bạn:</label>
-                    <input type="text" id="bo-user" required placeholder="Nhập tên đăng nhập Roblox" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-xs text-white outline-none mt-1 focus:border-purple-500">
+                    <input type="text" id="bo-user" required placeholder="Tên đăng nhập Roblox" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-xs text-white outline-none mt-1 focus:border-purple-500">
                 </div>
                 <div>
                     <label class="text-xs text-gray-400 font-bold uppercase">Mật khẩu Roblox:</label>
-                    <input type="password" id="bo-pass" required placeholder="Nhập mật khẩu Roblox" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-xs text-white outline-none mt-1 focus:border-purple-500">
+                    <input type="password" id="bo-pass" required placeholder="Mật khẩu Roblox" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-xs text-white outline-none mt-1 focus:border-purple-500">
                 </div>
                 <div>
                     <label class="text-xs text-gray-400 font-bold uppercase">Mã Pin 2FA / Ghi Chú (Nếu có):</label>
@@ -180,20 +240,22 @@
         </div>
     </div>
 
-    <!-- MODAL TỦ ĐỒ -->
+    <!-- MODAL TỦ ĐỒ (GỒM 3 SUB-TAB) -->
     <div id="orders-modal" class="fixed inset-0 bg-black/85 flex items-center justify-center hidden z-50 p-4">
         <div class="bg-gray-800 p-6 rounded-2xl border border-blue-500 max-w-2xl w-full shadow-2xl max-h-[85vh] flex flex-col">
             <div class="flex justify-between items-center border-b border-gray-700 pb-3 mb-4">
-                <h2 class="text-lg font-black text-blue-400 flex items-center gap-2">📦 TỦ ĐỒ & LỊCH SỬ CỦA BẠN</h2>
+                <h2 class="text-lg font-black text-blue-400 flex items-center gap-2">📦 TỦ ĐỒ & ĐƠN HÀNG CỦA BẠN</h2>
                 <button onclick="closeModals()" class="text-gray-400 hover:text-white text-xl font-bold">&times;</button>
             </div>
             
-            <div class="flex gap-2 mb-4">
+            <div class="flex flex-wrap gap-2 mb-4">
                 <button id="sub-tab-acc-btn" onclick="switchOrderSubTab('acc')" class="text-xs font-bold px-3 py-1.5 rounded-lg bg-blue-600 text-white">Acc Đã Mua</button>
                 <button id="sub-tab-boost-btn" onclick="switchOrderSubTab('boost')" class="text-xs font-bold px-3 py-1.5 rounded-lg bg-gray-700 text-gray-300">Đơn Cày Thuê</button>
+                <button id="sub-tab-items-btn" onclick="switchOrderSubTab('items')" class="text-xs font-bold px-3 py-1.5 rounded-lg bg-gray-700 text-gray-300">Gamepass & Trái Rương</button>
             </div>
 
             <div class="overflow-y-auto flex-grow">
+                <!-- ACC ĐÃ MUA -->
                 <div id="sub-content-acc">
                     <table class="w-full text-left border-collapse text-xs">
                         <thead>
@@ -208,6 +270,7 @@
                     </table>
                 </div>
 
+                <!-- ĐƠN CÀY THUÊ -->
                 <div id="sub-content-boost" class="hidden">
                     <table class="w-full text-left border-collapse text-xs">
                         <thead>
@@ -219,6 +282,22 @@
                             </tr>
                         </thead>
                         <tbody id="boost-orders-client-body"></tbody>
+                    </table>
+                </div>
+
+                <!-- ĐƠN GAMEPASS & TRÁI RƯƠNG (MỚI) -->
+                <div id="sub-content-items" class="hidden">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="border-b border-gray-700 text-gray-400 uppercase">
+                                <th class="p-2">Mã Đơn</th>
+                                <th class="p-2">Sản Phẩm</th>
+                                <th class="p-2">Giá</th>
+                                <th class="p-2">Roblox Nhận</th>
+                                <th class="p-2">Trạng Thái</th>
+                            </tr>
+                        </thead>
+                        <tbody id="items-orders-client-body"></tbody>
                     </table>
                 </div>
             </div>
@@ -364,6 +443,7 @@
         let allAccounts = [];
         let allCategories = [];
         let allBoostServices = [];
+        let allItems = [];
         let selectedCategory = 'all';
         let pollingTimer = null;
 
@@ -402,28 +482,115 @@
             }
         }
 
+        // ==========================================
+        // ⚡ CHUYỂN ĐỔI 4 TAB CHÍNH
+        // ==========================================
         function switchMainTab(tab) {
-            const secAccs = document.getElementById('section-accs');
-            const secBoost = document.getElementById('section-boost');
-            const btnAccs = document.getElementById('main-tab-accs-btn');
-            const btnBoost = document.getElementById('main-tab-boost-btn');
+            const tabs = ['accs', 'boost', 'gamepass', 'fruit'];
+            tabs.forEach(t => {
+                const sec = document.getElementById('section-' + t);
+                const btn = document.getElementById('main-tab-' + t + '-btn');
+                if (t === tab) {
+                    sec.classList.remove('hidden');
+                    btn.className = "px-5 py-2.5 rounded-xl font-black text-xs md:text-sm bg-red-600 text-white shadow-xl shadow-red-600/30 transition flex items-center gap-1.5";
+                } else {
+                    sec.classList.add('hidden');
+                    btn.className = "px-5 py-2.5 rounded-xl font-black text-xs md:text-sm bg-gray-800 text-gray-400 hover:text-white border border-gray-700 transition flex items-center gap-1.5";
+                }
+            });
 
-            if (tab === 'accs') {
-                secAccs.classList.remove('hidden');
-                secBoost.classList.add('hidden');
-                btnAccs.className = "px-6 py-3 rounded-xl font-black text-sm bg-red-600 text-white shadow-xl shadow-red-600/30 transition flex items-center gap-2";
-                btnBoost.className = "px-6 py-3 rounded-xl font-black text-sm bg-gray-800 text-gray-400 hover:text-white border border-gray-700 transition flex items-center gap-2";
-            } else {
-                secAccs.classList.add('hidden');
-                secBoost.classList.remove('hidden');
-                btnBoost.className = "px-6 py-3 rounded-xl font-black text-sm bg-purple-600 text-white shadow-xl shadow-purple-600/30 transition flex items-center gap-2";
-                btnAccs.className = "px-6 py-3 rounded-xl font-black text-sm bg-gray-800 text-gray-400 hover:text-white border border-gray-700 transition flex items-center gap-2";
-                loadBoostServicesClient();
-            }
+            if (tab === 'boost') loadBoostServicesClient();
+            if (tab === 'gamepass') loadItemsClient('gamepass');
+            if (tab === 'fruit') loadItemsClient('fruit');
         }
 
         // ==========================================
-        // 📂 TẢI DANH MỤC CHO KHÁCH BẤM LỌC
+        // 🎟️ TẢI GAMEPASS VÀ TRÁI RƯƠNG CHO KHÁCH
+        // ==========================================
+        async function loadItemsClient(type) {
+            try {
+                const res = await fetch(`/api/items?type=${type}`);
+                allItems = await res.json();
+                const containerId = type === 'gamepass' ? 'gamepass-list' : 'fruit-list';
+                const container = document.getElementById(containerId);
+                container.innerHTML = '';
+
+                if (allItems.length === 0) {
+                    container.innerHTML = `<p class="col-span-3 text-center text-gray-500 py-10">Hiện chưa có sản phẩm nào đang mở bán!</p>`;
+                    return;
+                }
+
+                allItems.forEach(it => {
+                    const tagBg = it.type === 'gamepass' ? 'bg-blue-600' : 'bg-yellow-500 text-black';
+                    const tagText = it.type === 'gamepass' ? 'GIFT TRỰC TIẾP' : 'TRADE RƯƠNG';
+
+                    container.innerHTML += `
+                        <div class="bg-gray-900 border border-gray-800 hover:border-yellow-500/60 rounded-2xl overflow-hidden shadow-xl flex flex-col justify-between transition duration-300 group">
+                            <div class="h-44 overflow-hidden relative bg-black">
+                                <img src="${it.image}" alt="${it.name}" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
+                                <span class="absolute top-2 left-2 ${tagBg} px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">${tagText}</span>
+                            </div>
+                            <div class="p-4 flex-grow flex flex-col justify-between">
+                                <div>
+                                    <h4 class="font-bold text-sm text-white">${it.name}</h4>
+                                    <p class="text-xs text-gray-400 mt-2 line-clamp-2">${it.description || 'Giao hàng siêu tốc trong game'}</p>
+                                </div>
+                                <div class="mt-4 pt-3 border-t border-gray-800 flex justify-between items-center">
+                                    <span class="text-yellow-400 font-black text-base">${it.price.toLocaleString('vi-VN')} đ</span>
+                                    <button onclick="openItemOrderModal(${it.id})" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow-lg transition">
+                                        Mua Ngay
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            } catch (e) {}
+        }
+
+        function openItemOrderModal(itemId) {
+            if (!currentUser) {
+                alert("Vui lòng Đăng Nhập trước khi Mua Hàng!");
+                document.getElementById('login-modal').classList.remove('hidden');
+                return;
+            }
+
+            const item = allItems.find(i => i.id === itemId);
+            if (!item) return;
+
+            document.getElementById('modal-item-id').value = item.id;
+            document.getElementById('modal-item-name').innerText = item.name;
+            document.getElementById('modal-item-price').innerText = item.price.toLocaleString('vi-VN');
+            document.getElementById('modal-item-header').innerText = item.type === 'gamepass' ? '🎟️ MUA GAMEPASS BLOX FRUITS' : '🍎 MUA TRÁI ÁC QUỶ RƯƠNG';
+            document.getElementById('order-item-modal').classList.remove('hidden');
+        }
+
+        document.getElementById('item-order-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const itemId = document.getElementById('modal-item-id').value;
+            const robloxUsername = document.getElementById('it-roblox-user').value;
+            const note = document.getElementById('it-note').value;
+
+            const res = await fetch('/api/item-order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: currentUser.username, itemId, robloxUsername, note })
+            });
+
+            const data = await res.json();
+            alert(data.message);
+
+            if (data.success) {
+                currentUser.balance = data.newBalance;
+                localStorage.setItem('otopi_user', JSON.stringify(currentUser));
+                updateHeader();
+                document.getElementById('item-order-form').reset();
+                closeModals();
+            }
+        });
+
+        // ==========================================
+        // 📂 DANH MỤC & ACC BLOX FRUITS
         // ==========================================
         async function loadCategoriesClient() {
             try {
@@ -432,7 +599,6 @@
                 const container = document.getElementById('category-pills');
                 container.innerHTML = '';
 
-                // Nút "Tất Cả Mục"
                 container.innerHTML += `
                     <button onclick="selectCategory('all', 'TẤT CẢ ACC BLOX FRUITS')" id="cat-pill-all" class="cat-pill px-4 py-2 rounded-xl text-xs font-black transition bg-red-600 text-white shadow-lg">
                         ⭐ Tất Cả Mục
@@ -453,7 +619,6 @@
             selectedCategory = catName;
             document.getElementById('current-category-title').innerText = catTitle;
 
-            // Đổi màu nút được chọn
             document.querySelectorAll('.cat-pill').forEach(b => {
                 b.className = "cat-pill px-4 py-2 rounded-xl text-xs font-bold transition bg-gray-900 hover:bg-gray-800 text-gray-300 border border-gray-800 hover:border-gray-600";
             });
@@ -513,7 +678,6 @@
             });
         }
 
-        // LỌC THEO TÌM KIẾM, GIÁ VÀ CHUYÊN MỤC
         function filterAccounts() {
             const search = document.getElementById('search-input').value.toLowerCase();
             const priceRange = document.getElementById('price-filter').value;
@@ -531,8 +695,34 @@
             renderAccounts(filtered);
         }
 
+        async function buyAcc(id) {
+            if (!currentUser) {
+                alert("Bạn phải Đăng Nhập trước nhé!");
+                document.getElementById('login-modal').classList.remove('hidden');
+                return;
+            }
+            if (!confirm("Xác nhận dùng số dư để mua acc này?")) return;
+            const res = await fetch('/api/buy', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ accountId: id, username: currentUser.username })
+            });
+            const data = await res.json();
+            if (data.success) {
+                currentUser.balance = data.newBalance;
+                localStorage.setItem('otopi_user', JSON.stringify(currentUser));
+                updateHeader();
+                document.getElementById('user-out').innerText = data.accountInfo.username;
+                document.getElementById('pass-out').innerText = data.accountInfo.password;
+                document.getElementById('modal').classList.remove('hidden');
+                loadAccounts();
+            } else {
+                alert(data.message);
+            }
+        }
+
         // ==========================================
-        // CÀY THUÊ CLIENT
+        // ⚡ CÀY THUÊ CLIENT
         // ==========================================
         async function loadBoostServicesClient() {
             const res = await fetch('/api/boost-services');
@@ -602,23 +792,35 @@
             }
         });
 
+        // ==========================================
+        // 📦 TỦ ĐỒ (GỒM 3 TAB: ACC, CÀY THUÊ, GAMEPASS/FRUIT)
+        // ==========================================
         function switchOrderSubTab(sub) {
             const accContent = document.getElementById('sub-content-acc');
             const boostContent = document.getElementById('sub-content-boost');
+            const itemsContent = document.getElementById('sub-content-items');
             const btnAcc = document.getElementById('sub-tab-acc-btn');
             const btnBoost = document.getElementById('sub-tab-boost-btn');
+            const btnItems = document.getElementById('sub-tab-items-btn');
+
+            accContent.classList.add('hidden');
+            boostContent.classList.add('hidden');
+            itemsContent.classList.add('hidden');
+            btnAcc.className = "text-xs font-bold px-3 py-1.5 rounded-lg bg-gray-700 text-gray-300";
+            btnBoost.className = "text-xs font-bold px-3 py-1.5 rounded-lg bg-gray-700 text-gray-300";
+            btnItems.className = "text-xs font-bold px-3 py-1.5 rounded-lg bg-gray-700 text-gray-300";
 
             if (sub === 'acc') {
                 accContent.classList.remove('hidden');
-                boostContent.classList.add('hidden');
                 btnAcc.className = "text-xs font-bold px-3 py-1.5 rounded-lg bg-blue-600 text-white";
-                btnBoost.className = "text-xs font-bold px-3 py-1.5 rounded-lg bg-gray-700 text-gray-300";
-            } else {
-                accContent.classList.add('hidden');
+            } else if (sub === 'boost') {
                 boostContent.classList.remove('hidden');
                 btnBoost.className = "text-xs font-bold px-3 py-1.5 rounded-lg bg-purple-600 text-white";
-                btnAcc.className = "text-xs font-bold px-3 py-1.5 rounded-lg bg-gray-700 text-gray-300";
                 loadMyBoostOrders();
+            } else {
+                itemsContent.classList.remove('hidden');
+                btnItems.className = "text-xs font-bold px-3 py-1.5 rounded-lg bg-yellow-500 text-black";
+                loadMyItemOrders();
             }
         }
 
@@ -651,6 +853,36 @@
             });
         }
 
+        async function loadMyItemOrders() {
+            if (!currentUser) return;
+            const res = await fetch(`/api/my-item-orders?username=${currentUser.username}`);
+            const orders = await res.json();
+            const tbody = document.getElementById('items-orders-client-body');
+            tbody.innerHTML = '';
+
+            if (orders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-gray-500">Bạn chưa mua Gamepass hoặc Trái Rương nào!</td></tr>';
+                return;
+            }
+
+            orders.forEach(o => {
+                let badge = `<span class="bg-yellow-900 text-yellow-300 px-2 py-0.5 rounded text-[10px] font-bold">Đang Chờ Giao</span>`;
+                if (o.status === 'completed') badge = `<span class="bg-green-900 text-green-300 px-2 py-0.5 rounded text-[10px] font-bold">Đã Giao Xong 🎉</span>`;
+                else if (o.status === 'cancelled') badge = `<span class="bg-red-900 text-red-300 px-2 py-0.5 rounded text-[10px] font-bold">Đã Hủy (Đã Hoàn Tiền)</span>`;
+
+                tbody.innerHTML += `
+                    <tr class="border-b border-gray-700/50">
+                        <td class="p-2 font-bold text-gray-400">#${o.id}</td>
+                        <td class="p-2 font-semibold text-white">${o.productName}</td>
+                        <td class="p-2 font-bold text-green-400">${o.price.toLocaleString('vi-VN')} đ</td>
+                        <td class="p-2 font-bold text-yellow-300 font-mono">${o.robloxUsername}</td>
+                        <td class="p-2">${badge}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        // TẢI TOP NẠP
         async function loadTopDeposits() {
             try {
                 const res = await fetch('/api/top-deposits');
@@ -753,32 +985,6 @@
                 document.getElementById('card-code').value = '';
                 document.getElementById('card-serial').value = '';
                 closeModals();
-            }
-        }
-
-        async function buyAcc(id) {
-            if (!currentUser) {
-                alert("Bạn phải Đăng Nhập trước nhé!");
-                document.getElementById('login-modal').classList.remove('hidden');
-                return;
-            }
-            if (!confirm("Xác nhận dùng số dư để mua acc này?")) return;
-            const res = await fetch('/api/buy', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ accountId: id, username: currentUser.username })
-            });
-            const data = await res.json();
-            if (data.success) {
-                currentUser.balance = data.newBalance;
-                localStorage.setItem('otopi_user', JSON.stringify(currentUser));
-                updateHeader();
-                document.getElementById('user-out').innerText = data.accountInfo.username;
-                document.getElementById('pass-out').innerText = data.accountInfo.password;
-                document.getElementById('modal').classList.remove('hidden');
-                loadAccounts();
-            } else {
-                alert(data.message);
             }
         }
 
@@ -899,11 +1105,12 @@
             document.getElementById('topup-modal').classList.add('hidden');
             document.getElementById('orders-modal').classList.add('hidden');
             document.getElementById('order-boost-modal').classList.add('hidden');
+            document.getElementById('order-item-modal').classList.add('hidden');
         }
 
         updateHeader();
         syncUserBalance();
-        loadCategoriesClient(); // Tải các Danh Mục cho khách bấm lọc
+        loadCategoriesClient();
         loadAccounts();
         loadTopDeposits();
     </script>
