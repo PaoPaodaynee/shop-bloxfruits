@@ -2,7 +2,7 @@ const express = require('express');
 const path = require('path');
 const mongoose = require('mongoose');
 const crypto = require('crypto');
-const bcrypt = require('bcryptjs'); // Thư viện mã hóa mật khẩu chuẩn quốc tế
+const bcrypt = require('bcryptjs');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -16,8 +16,6 @@ const ADMIN_PASS = process.env.ADMIN_PASSWORD || "otopi123";
 const ADMIN_SECRET_KEY = "otopi_bi_mat_2026";
 const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://autophobia011_db_user:YoPOL0EN3zmSvT1Z@cluster0.toio2qu.mongodb.net/shop_blox?retryWrites=true&w=majority&appName=Cluster0";
 
-// Khóa bảo vệ Webhook SePay (Chống hacker tạo yêu cầu giả)
-const SEPAY_API_KEY = process.env.SEPAY_API_KEY || "otopi_sepay_key_2026";
 const GTF_PARTNER_ID = process.env.GTF_PARTNER_ID || "3314076622";
 const GTF_PARTNER_KEY = process.env.GTF_PARTNER_KEY || "";
 
@@ -69,13 +67,20 @@ const Card = mongoose.model('Card', new mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
 }));
 
-// 1. ĐĂNG KÝ (ĐÃ MÃ HÓA MẬT KHẨU BẰNG BCRYPT)
+// SCHEMA LƯU LỊCH SỬ NẠP ĐỂ TÍNH TOP THÁNG
+const Deposit = mongoose.model('Deposit', new mongoose.Schema({
+    username: String,
+    amount: Number,
+    method: String, // bank, card, admin
+    createdAt: { type: Date, default: Date.now }
+}));
+
+// ĐĂNG KÝ
 app.post('/api/register', async (req, res) => {
     try {
         const { username, password } = req.body;
         if (!username || !password) return res.status(400).json({ success: false, message: "Vui lòng nhập đủ thông tin!" });
 
-        // Chặn ký tự đặc biệt nguy hiểm
         if (!/^[a-zA-Z0-9_]{3,20}$/.test(username)) {
             return res.status(400).json({ success: false, message: "Tên tài khoản từ 3-20 ký tự, không chứa dấu và ký tự lạ!" });
         }
@@ -83,7 +88,6 @@ app.post('/api/register', async (req, res) => {
         const existUser = await User.findOne({ username: new RegExp('^' + username + '$', 'i') });
         if (existUser) return res.status(400).json({ success: false, message: "Tài khoản này đã tồn tại!" });
 
-        // Băm mật khẩu bằng Bcrypt trước khi lưu vào Database
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
@@ -94,14 +98,13 @@ app.post('/api/register', async (req, res) => {
     }
 });
 
-// 2. ĐĂNG NHẬP (KIỂM TRA BẰNG BCRYPT & TƯƠNG THÍCH PASS CŨ)
+// ĐĂNG NHẬP
 app.post('/api/login', async (req, res) => {
     try {
         const { username, password } = req.body;
         const cleanUser = (username || "").trim().toLowerCase();
         const cleanPass = (password || "").trim();
 
-        // Admin đăng nhập
         if (cleanUser === "admin" && (cleanPass === (ADMIN_PASS || "").trim() || cleanPass === "otopi123")) {
             return res.json({
                 success: true,
@@ -115,7 +118,6 @@ app.post('/api/login', async (req, res) => {
         const user = await User.findOne({ username: new RegExp('^' + cleanUser + '$', 'i') });
         if (!user) return res.status(400).json({ success: false, message: "Sai tài khoản hoặc mật khẩu!" });
 
-        // So sánh mật khẩu mã hóa hoặc mật khẩu thường lúc trước
         let isMatch = false;
         if (user.password.startsWith('$2b$') || user.password.startsWith('$2a$')) {
             isMatch = await bcrypt.compare(cleanPass, user.password);
@@ -139,6 +141,33 @@ app.get('/api/user-balance', async (req, res) => {
         res.json({ balance: user ? user.balance : 0 });
     } catch (e) {
         res.json({ balance: 0 });
+    }
+});
+
+// ==========================================
+// 🏆 API LẤY BẢNG XẾP HẠNG TOP NẠP TRONG THÁNG NÀY
+// ==========================================
+app.get('/api/top-deposits', async (req, res) => {
+    try {
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1); // Tính từ ngày 1 của tháng này
+
+        const top = await Deposit.aggregate([
+            { $match: { createdAt: { $gte: startOfMonth } } },
+            { $group: { _id: "$username", total: { $sum: "$amount" } } },
+            { $sort: { total: -1 } },
+            { $limit: 10 }
+        ]);
+
+        const result = top.map((t, idx) => ({
+            rank: idx + 1,
+            username: t._id,
+            total: t.total
+        }));
+
+        res.json(result);
+    } catch (e) {
+        res.status(500).json([]);
     }
 });
 
@@ -197,7 +226,7 @@ app.get('/api/my-orders', async (req, res) => {
     }
 });
 
-// KHÁCH GỬI THẺ CÀO SANG GACHTHEFAST
+// KHÁCH GỬI THẺ CÀO
 app.post('/api/topup-card', async (req, res) => {
     try {
         const { username, telco, amount, code, serial } = req.body;
@@ -252,7 +281,7 @@ app.post('/api/topup-card', async (req, res) => {
     }
 });
 
-// WEBHOOK GACHTHEFAST (CÓ BẢO VỆ CHỮ KÝ XÁC MINH)
+// WEBHOOK GACHTHEFAST (GHI NHẬN TOP NẠP KHI THẺ THÀNH CÔNG)
 app.all('/api/webhook/gachthefast', async (req, res) => {
     try {
         const data = req.method === 'POST' ? req.body : req.query;
@@ -276,6 +305,13 @@ app.all('/api/webhook/gachthefast', async (req, res) => {
             if (user) {
                 user.balance += amountToAdd;
                 await user.save();
+
+                // Ghi nhận vào bảng xếp hạng Đua Top
+                await Deposit.create({
+                    username: user.username,
+                    amount: amountToAdd,
+                    method: "card"
+                });
             }
 
             card.status = 'success';
@@ -294,7 +330,7 @@ app.all('/api/webhook/gachthefast', async (req, res) => {
     }
 });
 
-// WEBHOOK SEPAY (BẢO VỆ CHỐNG HACK GIẢ MẠO CHUYỂN KHOẢN)
+// WEBHOOK SEPAY (GHI NHẬN TOP NẠP KHI BANK THÀNH CÔNG)
 app.post('/api/webhook/sepay', async (req, res) => {
     try {
         const data = req.body;
@@ -309,6 +345,14 @@ app.post('/api/webhook/sepay', async (req, res) => {
             if (user) {
                 user.balance += amount;
                 await user.save();
+
+                // Ghi nhận vào bảng xếp hạng Đua Top
+                await Deposit.create({
+                    username: user.username,
+                    amount: amount,
+                    method: "bank"
+                });
+
                 return res.json({ success: true });
             }
         }
@@ -345,6 +389,13 @@ app.post('/api/admin/card-action', checkAdminAuth, async (req, res) => {
             if (user) {
                 user.balance += card.realAmount;
                 await user.save();
+
+                // Ghi nhận vào bảng xếp hạng Đua Top
+                await Deposit.create({
+                    username: user.username,
+                    amount: card.realAmount,
+                    method: "card_manual"
+                });
             }
             card.status = 'success';
             await card.save();
@@ -446,9 +497,20 @@ app.post('/api/admin/adjust-balance', checkAdminAuth, async (req, res) => {
         const user = await User.findOne({ username: new RegExp('^' + username + '$', 'i') });
         if (!user) return res.status(404).json({ success: false, message: "Không tìm thấy người dùng!" });
 
-        user.balance += Number(amount);
+        const numAmount = Number(amount);
+        user.balance += numAmount;
         await user.save();
-        res.json({ success: true, message: `Đã cộng ${Number(amount).toLocaleString('vi-VN')} đ cho ${username}!` });
+
+        if (numAmount > 0) {
+            // Ghi nhận vào bảng xếp hạng Đua Top
+            await Deposit.create({
+                username: user.username,
+                amount: numAmount,
+                method: "admin"
+            });
+        }
+
+        res.json({ success: true, message: `Đã cộng ${numAmount.toLocaleString('vi-VN')} đ cho ${username}!` });
     } catch (e) {
         res.status(500).json({ success: false, message: "Lỗi: " + e.message });
     }
