@@ -74,7 +74,7 @@ const Deposit = mongoose.model('Deposit', new mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
 }));
 
-// 1. ĐĂNG KÝ
+// ĐĂNG KÝ
 app.post('/api/register', async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -97,7 +97,7 @@ app.post('/api/register', async (req, res) => {
     }
 });
 
-// 2. ĐĂNG NHẬP
+// ĐĂNG NHẬP
 app.post('/api/login', async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -143,7 +143,7 @@ app.get('/api/user-balance', async (req, res) => {
     }
 });
 
-// TOP NẠP
+// BẢNG VÀNG TOP NẠP
 app.get('/api/top-deposits', async (req, res) => {
     try {
         const now = new Date();
@@ -212,6 +212,7 @@ app.post('/api/buy', async (req, res) => {
     }
 });
 
+// KHÁCH XEM TỦ ĐỒ CÁ NHÂN
 app.get('/api/my-orders', async (req, res) => {
     try {
         const { username } = req.query;
@@ -223,6 +224,7 @@ app.get('/api/my-orders', async (req, res) => {
     }
 });
 
+// NẠP THẺ CÀO
 app.post('/api/topup-card', async (req, res) => {
     try {
         const { username, telco, amount, code, serial } = req.body;
@@ -361,6 +363,16 @@ function checkAdminAuth(req, res, next) {
     return res.status(403).json({ success: false, message: "Không có quyền Admin!" });
 }
 
+// 📦 API ADMIN: XEM TOÀN BỘ ĐƠN HÀNG ĐÃ BÁN (ĐỐI SOÁT BẢO HÀNH)
+app.get('/api/admin/orders', checkAdminAuth, async (req, res) => {
+    try {
+        const orders = await Order.find().sort({ boughtAt: -1 });
+        res.json(orders);
+    } catch (e) {
+        res.status(500).json([]);
+    }
+});
+
 app.get('/api/admin/cards', checkAdminAuth, async (req, res) => {
     try {
         const cards = await Card.find().sort({ createdAt: -1 });
@@ -482,9 +494,7 @@ app.get('/api/admin/users', checkAdminAuth, async (req, res) => {
     }
 });
 
-// ========================================================
-// ⚡ CỘNG TIỀN HOẶC TRỪ TIỀN AN TOÀN CHO KHÁCH
-// ========================================================
+// CỘNG / TRỪ TIỀN
 app.post('/api/admin/adjust-balance', checkAdminAuth, async (req, res) => {
     try {
         const { username, amount, type } = req.body;
@@ -494,7 +504,6 @@ app.post('/api/admin/adjust-balance', checkAdminAuth, async (req, res) => {
         const numAmount = Math.abs(Number(amount));
         if (!numAmount || numAmount <= 0) return res.status(400).json({ success: false, message: "Số tiền nhập không hợp lệ!" });
 
-        // TRƯỜNG HỢP: TRỪ TIỀN
         if (type === 'subtract') {
             if (user.balance < numAmount) {
                 return res.status(400).json({
@@ -508,14 +517,10 @@ app.post('/api/admin/adjust-balance', checkAdminAuth, async (req, res) => {
                 success: true,
                 message: `Đã TRỪ ${numAmount.toLocaleString('vi-VN')} đ của ${username}! Số dư còn lại: ${user.balance.toLocaleString('vi-VN')} đ`
             });
-        } 
-        
-        // TRƯỜNG HỢP: CỘNG TIỀN
-        else {
+        } else {
             user.balance += numAmount;
             await user.save();
 
-            // Chỉ ghi nhận cộng tiền vào Bảng Đua Top (trừ tiền không bị tính)
             await Deposit.create({
                 username: user.username,
                 amount: numAmount,
