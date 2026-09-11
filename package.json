@@ -1,0 +1,17 @@
+{
+  "name": "shop-bloxfruits",
+  "version": "1.0.0",
+  "description": "Shop ban acc Blox Fruits",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.22.2"
+  },
+  "devDependencies": {},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}
