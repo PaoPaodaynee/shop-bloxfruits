@@ -13,7 +13,6 @@ const ADMIN_PASS = process.env.ADMIN_PASSWORD || "otopi123";
 const ADMIN_SECRET_KEY = "otopi_bi_mat_2026";
 const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://autophobia011_db_user:YoPOL0EN3zmSvT1Z@cluster0.toio2qu.mongodb.net/shop_blox?retryWrites=true&w=majority&appName=Cluster0";
 
-// KẾT NỐI DATABASE
 mongoose.connect(MONGO_URI)
     .then(() => console.log(">>> [DATABASE]: KẾT NỐI THÀNH CÔNG!"))
     .catch(err => console.error(">>> [DATABASE LỖI]:", err.message));
@@ -26,6 +25,7 @@ const User = mongoose.model('User', new mongoose.Schema({
     role: { type: String, default: "user" }
 }));
 
+// Bổ sung thêm trường image (ảnh acc)
 const Account = mongoose.model('Account', new mongoose.Schema({
     id: { type: Number, required: true },
     title: String,
@@ -33,12 +33,12 @@ const Account = mongoose.model('Account', new mongoose.Schema({
     fruit: String,
     melee: String,
     price: Number,
+    image: { type: String, default: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80" },
     sold: { type: Boolean, default: false },
     robloxUser: String,
     robloxPass: String
 }));
 
-// SCHEMA LỊCH SỬ ĐƠN HÀNG CỦA KHÁCH
 const Order = mongoose.model('Order', new mongoose.Schema({
     username: String,
     accId: Number,
@@ -49,7 +49,7 @@ const Order = mongoose.model('Order', new mongoose.Schema({
     boughtAt: { type: Date, default: Date.now }
 }));
 
-// 1. ĐĂNG KÝ
+// ĐĂNG KÝ
 app.post('/api/register', async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -65,7 +65,7 @@ app.post('/api/register', async (req, res) => {
     }
 });
 
-// 2. ĐĂNG NHẬP
+// ĐĂNG NHẬP
 app.post('/api/login', async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -91,17 +91,17 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-// 3. LẤY ACC CHO KHÁCH
+// LẤY ACC CHO KHÁCH (KÈM ẢNH)
 app.get('/api/accounts', async (req, res) => {
     try {
-        const accounts = await Account.find({ sold: false }).select('id title level fruit melee price');
+        const accounts = await Account.find({ sold: false }).select('id title level fruit melee price image');
         res.json(accounts);
     } catch (e) {
         res.status(500).json([]);
     }
 });
 
-// 4. MUA ACC & LƯU LỊCH SỬ ĐƠN HÀNG
+// MUA ACC
 app.post('/api/buy', async (req, res) => {
     try {
         const { accountId, username } = req.body;
@@ -118,7 +118,6 @@ app.post('/api/buy', async (req, res) => {
         acc.sold = true;
         await acc.save();
 
-        // Lưu đơn hàng vào Tủ Đồ của khách
         await Order.create({
             username: user.username,
             accId: acc.id,
@@ -138,7 +137,6 @@ app.post('/api/buy', async (req, res) => {
     }
 });
 
-// 5. LẤY LỊCH SỬ MUA HÀNG CỦA RIÊNG KHÁCH ĐÓ
 app.get('/api/my-orders', async (req, res) => {
     try {
         const { username } = req.query;
@@ -150,7 +148,7 @@ app.get('/api/my-orders', async (req, res) => {
     }
 });
 
-// --- ADMIN ---
+// ADMIN
 function checkAdminAuth(req, res, next) {
     const token = req.headers['authorization'];
     if (token === ADMIN_SECRET_KEY) return next();
@@ -166,18 +164,20 @@ app.get('/api/admin/accounts', checkAdminAuth, async (req, res) => {
     }
 });
 
+// ĐĂNG ACC MỚI KÈM ẢNH
 app.post('/api/admin/add', checkAdminAuth, async (req, res) => {
     try {
-        const { title, level, fruit, melee, price, robloxUser, robloxPass } = req.body;
+        const { title, level, fruit, melee, price, image, robloxUser, robloxPass } = req.body;
         const count = await Account.countDocuments();
         await Account.create({
             id: count + 1,
             title, level, fruit, melee,
             price: Number(price),
+            image: image || "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80",
             sold: false,
             robloxUser, robloxPass
         });
-        res.json({ success: true, message: "Đã đăng acc thành công!" });
+        res.json({ success: true, message: "Đã đăng acc kèm ảnh thành công!" });
     } catch (e) {
         res.status(500).json({ success: false, message: "Lỗi: " + e.message });
     }
