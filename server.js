@@ -27,7 +27,7 @@ mongoose.connect(MONGO_URI)
 const User = mongoose.model('User', new mongoose.Schema({
     username: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    balance: { type: Number, default: 0 }, // Mặc định số dư là 0đ
+    balance: { type: Number, default: 0 },
     role: { type: String, default: "user" }
 }));
 
@@ -74,7 +74,7 @@ const Deposit = mongoose.model('Deposit', new mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
 }));
 
-// 1. ĐĂNG KÝ (SỐ DƯ BẮT ĐẦU TỪ 0 ĐỒNG)
+// 1. ĐĂNG KÝ
 app.post('/api/register', async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -90,7 +90,6 @@ app.post('/api/register', async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        // Tạo tài khoản với số dư = 0đ (không tặng ảo nữa)
         const newUser = await User.create({ username, password: hashedPassword, balance: 0 });
         res.json({ success: true, message: "Đăng ký tài khoản thành công!", user: { username: newUser.username, balance: newUser.balance } });
     } catch (e) {
@@ -144,7 +143,7 @@ app.get('/api/user-balance', async (req, res) => {
     }
 });
 
-// BẢNG VÀNG ĐUA TOP NẠP THÁNG
+// TOP NẠP
 app.get('/api/top-deposits', async (req, res) => {
     try {
         const now = new Date();
@@ -224,7 +223,6 @@ app.get('/api/my-orders', async (req, res) => {
     }
 });
 
-// KHÁCH GỬI THẺ CÀO
 app.post('/api/topup-card', async (req, res) => {
     try {
         const { username, telco, amount, code, serial } = req.body;
@@ -279,7 +277,6 @@ app.post('/api/topup-card', async (req, res) => {
     }
 });
 
-// WEBHOOK GACHTHEFAST
 app.all('/api/webhook/gachthefast', async (req, res) => {
     try {
         const data = req.method === 'POST' ? req.body : req.query;
@@ -327,7 +324,6 @@ app.all('/api/webhook/gachthefast', async (req, res) => {
     }
 });
 
-// WEBHOOK SEPAY
 app.post('/api/webhook/sepay', async (req, res) => {
     try {
         const data = req.body;
@@ -486,25 +482,51 @@ app.get('/api/admin/users', checkAdminAuth, async (req, res) => {
     }
 });
 
+// ========================================================
+// ⚡ CỘNG TIỀN HOẶC TRỪ TIỀN AN TOÀN CHO KHÁCH
+// ========================================================
 app.post('/api/admin/adjust-balance', checkAdminAuth, async (req, res) => {
     try {
-        const { username, amount } = req.body;
+        const { username, amount, type } = req.body;
         const user = await User.findOne({ username: new RegExp('^' + username + '$', 'i') });
         if (!user) return res.status(404).json({ success: false, message: "Không tìm thấy người dùng!" });
 
-        const numAmount = Number(amount);
-        user.balance += numAmount;
-        await user.save();
+        const numAmount = Math.abs(Number(amount));
+        if (!numAmount || numAmount <= 0) return res.status(400).json({ success: false, message: "Số tiền nhập không hợp lệ!" });
 
-        if (numAmount > 0) {
+        // TRƯỜNG HỢP: TRỪ TIỀN
+        if (type === 'subtract') {
+            if (user.balance < numAmount) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Số dư của khách chỉ có ${user.balance.toLocaleString('vi-VN')} đ, không đủ để trừ ${numAmount.toLocaleString('vi-VN')} đ!`
+                });
+            }
+            user.balance -= numAmount;
+            await user.save();
+            return res.json({
+                success: true,
+                message: `Đã TRỪ ${numAmount.toLocaleString('vi-VN')} đ của ${username}! Số dư còn lại: ${user.balance.toLocaleString('vi-VN')} đ`
+            });
+        } 
+        
+        // TRƯỜNG HỢP: CỘNG TIỀN
+        else {
+            user.balance += numAmount;
+            await user.save();
+
+            // Chỉ ghi nhận cộng tiền vào Bảng Đua Top (trừ tiền không bị tính)
             await Deposit.create({
                 username: user.username,
                 amount: numAmount,
                 method: "admin"
             });
-        }
 
-        res.json({ success: true, message: `Đã cộng ${numAmount.toLocaleString('vi-VN')} đ cho ${username}!` });
+            return res.json({
+                success: true,
+                message: `Đã CỘNG ${numAmount.toLocaleString('vi-VN')} đ cho ${username}! Số dư mới: ${user.balance.toLocaleString('vi-VN')} đ`
+            });
+        }
     } catch (e) {
         res.status(500).json({ success: false, message: "Lỗi: " + e.message });
     }
