@@ -20,7 +20,7 @@ const GTF_PARTNER_ID = process.env.GTF_PARTNER_ID || "3314076622";
 const GTF_PARTNER_KEY = process.env.GTF_PARTNER_KEY || "";
 
 // ==========================================
-// 1. TẤT CẢ SCHEMAS & MODELS ĐƯỢC ĐẶT TRÊN ĐẦU
+// 1. TẤT CẢ SCHEMAS & MODELS ĐẶT TRÊN ĐẦU
 // ==========================================
 const User = mongoose.model('User', new mongoose.Schema({
     username: { type: String, required: true, unique: true },
@@ -29,8 +29,19 @@ const User = mongoose.model('User', new mongoose.Schema({
     role: { type: String, default: "user" }
 }));
 
+// SCHEMA DANH MỤC ACC (MỚI)
+const Category = mongoose.model('Category', new mongoose.Schema({
+    id: { type: Number, required: true },
+    name: { type: String, required: true },
+    description: String,
+    image: { type: String, default: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80" },
+    createdAt: { type: Date, default: Date.now }
+}));
+
+// SCHEMA ACC (CÓ THÊM TRƯỜNG CATEGORY)
 const Account = mongoose.model('Account', new mongoose.Schema({
     id: { type: Number, required: true },
+    category: { type: String, default: "Acc Blox Fruits VIP" }, // Tên danh mục của acc
     title: String,
     level: String,
     fruit: String,
@@ -89,19 +100,29 @@ const BoostOrder = mongoose.model('BoostOrder', new mongoose.Schema({
     robloxUser: String,
     robloxPass: String,
     note: String,
-    status: { type: String, default: "pending" }, // pending, processing, completed, cancelled
+    status: { type: String, default: "pending" },
     createdAt: { type: Date, default: Date.now }
 }));
 
 // ==========================================
-// 2. KẾT NỐI DATABASE & TẠO GÓI CÀY MẪU
+// 2. KẾT NỐI DATABASE & TẠO DANH MỤC MẪU
 // ==========================================
 mongoose.connect(MONGO_URI)
     .then(async () => {
         console.log(">>> [DATABASE]: BẢO MẬT & KẾT NỐI THÀNH CÔNG!");
         try {
-            const count = await BoostService.countDocuments();
-            if (count === 0) {
+            // Tạo 3 danh mục mẫu nếu chưa có
+            const catCount = await Category.countDocuments();
+            if (catCount === 0) {
+                await Category.create([
+                    { id: 1, name: "Acc Blox Fruits Giá Rẻ (Học Sinh)", description: "Các tài khoản giá mềm từ 20k - 50k", image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80" },
+                    { id: 2, name: "Acc Max Level + Godhuman", description: "Tài khoản max cấp độ 2550 kèm full võ vip", image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=600&q=80" },
+                    { id: 3, name: "Acc VIP Kitsune / Mochi V2", description: "Tài khoản sở hữu các trái ác quỷ hot nhất", image: "https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=600&q=80" }
+                ]);
+            }
+
+            const boostCount = await BoostService.countDocuments();
+            if (boostCount === 0) {
                 await BoostService.create([
                     { id: 1, name: "Cày Level 1 -> Max Level (2550)", price: 50000, description: "Cày siêu tốc 24h, bảo đảm an toàn 100%", image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80" },
                     { id: 2, name: "Lấy Melee Godhuman (Full nguyên liệu)", price: 70000, description: "Yêu cầu đủ 5M Beli & 5K Fragments", image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=600&q=80" },
@@ -208,11 +229,29 @@ app.get('/api/top-deposits', async (req, res) => {
 });
 
 // ==========================================
-// 4. API MUA BÁN ACC
+// 4. API DANH MỤC & MUA BÁN ACC
 // ==========================================
+
+// Lấy danh sách danh mục cho khách xem
+app.get('/api/categories', async (req, res) => {
+    try {
+        const cats = await Category.find().sort({ id: 1 });
+        res.json(cats);
+    } catch (e) {
+        res.status(500).json([]);
+    }
+});
+
+// Lấy danh sách acc (hỗ trợ lọc theo danh mục)
 app.get('/api/accounts', async (req, res) => {
     try {
-        const accounts = await Account.find({ sold: false }).select('id title level fruit melee price image');
+        const { category } = req.query;
+        let query = { sold: false };
+        if (category && category !== 'all') {
+            query.category = category;
+        }
+
+        const accounts = await Account.find(query).select('id category title level fruit melee price image');
         res.json(accounts);
     } catch (e) {
         res.status(500).json([]);
@@ -266,7 +305,7 @@ app.get('/api/my-orders', async (req, res) => {
 });
 
 // ==========================================
-// 5. API CÀY THUÊ CHO KHÁCH HÀNG
+// 5. API CÀY THUÊ CHO KHÁCH
 // ==========================================
 app.get('/api/boost-services', async (req, res) => {
     try {
@@ -332,7 +371,7 @@ app.get('/api/my-boost-orders', async (req, res) => {
 });
 
 // ==========================================
-// 6. NẠP THẺ CÀO & WEBHOOKS
+// 6. NẠP THẺ & WEBHOOKS
 // ==========================================
 app.post('/api/topup-card', async (req, res) => {
     try {
@@ -474,6 +513,119 @@ function checkAdminAuth(req, res, next) {
     return res.status(403).json({ success: false, message: "Không có quyền Admin!" });
 }
 
+// QUẢN LÝ DANH MỤC TRONG ADMIN
+app.get('/api/admin/categories', checkAdminAuth, async (req, res) => {
+    try {
+        const cats = await Category.find().sort({ id: 1 });
+        res.json(cats);
+    } catch (e) {
+        res.status(500).json([]);
+    }
+});
+
+app.post('/api/admin/category/add', checkAdminAuth, async (req, res) => {
+    try {
+        const { name, description, image } = req.body;
+        if (!name) return res.status(400).json({ success: false, message: "Tên mục không được để trống!" });
+
+        const count = await Category.countDocuments();
+        await Category.create({
+            id: count + 1,
+            name: name.trim(),
+            description: description || "",
+            image: image || "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80"
+        });
+        res.json({ success: true, message: "Đã tạo mục mới thành công!" });
+    } catch (e) {
+        res.status(500).json({ success: false, message: "Lỗi tạo mục: " + e.message });
+    }
+});
+
+app.delete('/api/admin/category/:id', checkAdminAuth, async (req, res) => {
+    try {
+        await Category.findOneAndDelete({ id: Number(req.params.id) });
+        res.json({ success: true, message: "Đã xóa mục!" });
+    } catch (e) {
+        res.status(500).json({ success: false, message: "Lỗi xóa mục!" });
+    }
+});
+
+// QUẢN LÝ KHO ACC & BULK ADD
+app.get('/api/admin/accounts', checkAdminAuth, async (req, res) => {
+    try {
+        const accounts = await Account.find().sort({ id: -1 });
+        res.json(accounts);
+    } catch (e) {
+        res.status(500).json([]);
+    }
+});
+
+app.post('/api/admin/add', checkAdminAuth, async (req, res) => {
+    try {
+        const { category, title, level, fruit, melee, price, image, robloxUser, robloxPass } = req.body;
+        const count = await Account.countDocuments();
+        await Account.create({
+            id: count + 1,
+            category: category || "Acc Blox Fruits VIP",
+            title, level, fruit, melee,
+            price: Number(price),
+            image: image || "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80",
+            sold: false,
+            robloxUser, robloxPass
+        });
+        res.json({ success: true, message: "Đã đăng acc thành công!" });
+    } catch (e) {
+        res.status(500).json({ success: false, message: "Lỗi: " + e.message });
+    }
+});
+
+app.post('/api/admin/add-bulk', checkAdminAuth, async (req, res) => {
+    try {
+        const { category, bulkText, title, price, level, fruit, melee, image } = req.body;
+        if (!bulkText) return res.status(400).json({ success: false, message: "Chưa nhập danh sách!" });
+
+        const lines = bulkText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+        let count = await Account.countDocuments();
+        const newAccounts = [];
+
+        for (let line of lines) {
+            const parts = line.includes('|') ? line.split('|') : line.split(':');
+            const u = parts[0]?.trim();
+            const p = parts[1]?.trim();
+            if (u && p) {
+                count++;
+                newAccounts.push({
+                    id: count,
+                    category: category || "Acc Blox Fruits VIP",
+                    title: title || `Acc Blox Fruits VIP #${count}`,
+                    price: Number(price) || 50000,
+                    level: level || "Max (2550)",
+                    fruit: fruit || "Ngẫu Nhiên",
+                    melee: melee || "Godhuman",
+                    image: image || "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80",
+                    robloxUser: u,
+                    robloxPass: p,
+                    sold: false
+                });
+            }
+        }
+        await Account.insertMany(newAccounts);
+        res.json({ success: true, message: `Thành công! Đã thêm ${newAccounts.length} acc vào shop!` });
+    } catch (e) {
+        res.status(500).json({ success: false, message: "Lỗi: " + e.message });
+    }
+});
+
+app.delete('/api/admin/account/:id', checkAdminAuth, async (req, res) => {
+    try {
+        await Account.findOneAndDelete({ id: Number(req.params.id) });
+        res.json({ success: true, message: "Đã xóa acc!" });
+    } catch (e) {
+        res.status(500).json({ success: false, message: "Lỗi xóa!" });
+    }
+});
+
+// CÀY THUÊ ADMIN
 app.get('/api/admin/boost-services', checkAdminAuth, async (req, res) => {
     try {
         const services = await BoostService.find().sort({ id: 1 });
@@ -588,78 +740,6 @@ app.post('/api/admin/card-action', checkAdminAuth, async (req, res) => {
         }
     } catch (e) {
         res.status(500).json({ success: false, message: "Lỗi: " + e.message });
-    }
-});
-
-app.get('/api/admin/accounts', checkAdminAuth, async (req, res) => {
-    try {
-        const accounts = await Account.find().sort({ id: -1 });
-        res.json(accounts);
-    } catch (e) {
-        res.status(500).json([]);
-    }
-});
-
-app.post('/api/admin/add', checkAdminAuth, async (req, res) => {
-    try {
-        const { title, level, fruit, melee, price, image, robloxUser, robloxPass } = req.body;
-        const count = await Account.countDocuments();
-        await Account.create({
-            id: count + 1,
-            title, level, fruit, melee,
-            price: Number(price),
-            image: image || "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80",
-            sold: false,
-            robloxUser, robloxPass
-        });
-        res.json({ success: true, message: "Đã đăng acc thành công!" });
-    } catch (e) {
-        res.status(500).json({ success: false, message: "Lỗi: " + e.message });
-    }
-});
-
-app.post('/api/admin/add-bulk', checkAdminAuth, async (req, res) => {
-    try {
-        const { bulkText, title, price, level, fruit, melee, image } = req.body;
-        if (!bulkText) return res.status(400).json({ success: false, message: "Chưa nhập danh sách!" });
-
-        const lines = bulkText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-        let count = await Account.countDocuments();
-        const newAccounts = [];
-
-        for (let line of lines) {
-            const parts = line.includes('|') ? line.split('|') : line.split(':');
-            const u = parts[0]?.trim();
-            const p = parts[1]?.trim();
-            if (u && p) {
-                count++;
-                newAccounts.push({
-                    id: count,
-                    title: title || `Acc Blox Fruits VIP #${count}`,
-                    price: Number(price) || 50000,
-                    level: level || "Max (2550)",
-                    fruit: fruit || "Ngẫu Nhiên",
-                    melee: melee || "Godhuman",
-                    image: image || "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80",
-                    robloxUser: u,
-                    robloxPass: p,
-                    sold: false
-                });
-            }
-        }
-        await Account.insertMany(newAccounts);
-        res.json({ success: true, message: `Thành công! Đã thêm ${newAccounts.length} acc vào shop!` });
-    } catch (e) {
-        res.status(500).json({ success: false, message: "Lỗi: " + e.message });
-    }
-});
-
-app.delete('/api/admin/account/:id', checkAdminAuth, async (req, res) => {
-    try {
-        await Account.findOneAndDelete({ id: Number(req.params.id) });
-        res.json({ success: true, message: "Đã xóa acc!" });
-    } catch (e) {
-        res.status(500).json({ success: false, message: "Lỗi xóa!" });
     }
 });
 
