@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cổng Cộng Tác Viên - Thợ Cày Thuê</title>
+    <!-- Tailwind CSS CDN để giao diện đẹp ngay lập tức -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #0d1117; color: #e6edf3; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .glass-card { background: rgba(22, 27, 34, 0.85); border: 1px solid #30363d; backdrop-filter: blur(10px); }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="glass-card sticky top-0 z-50 border-b border-gray-800 px-6 py-4 flex justify-between items-center">
+        <div class="flex items-center space-x-3">
+            <span class="text-2xl text-yellow-400"><i class="fa-solid fa-gamepad"></i></span>
+            <h1 class="text-xl font-bold tracking-wider text-white uppercase">Cổng Thợ Cày Blox Fruits</h1>
+        </div>
+        <div id="authBox" class="flex items-center space-x-4">
+            <span id="ctvDisplay" class="text-gray-400 font-medium"></span>
+            <button onclick="logoutCTV()" class="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1.5 rounded font-semibold transition">
+                <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6">
+
+        <!-- Tabs chuyển đổi trạng thái đơn -->
+        <div class="flex space-x-3 mb-6">
+            <button onclick="switchTab('pending')" id="tab-pending" class="px-5 py-2.5 rounded-lg font-bold text-sm bg-yellow-500 text-black shadow-lg transition">
+                <i class="fa-solid fa-inbox"></i> Đơn Chờ Nhận (<span id="count-pending">0</span>)
+            </button>
+            <button onclick="switchTab('processing')" id="tab-processing" class="px-5 py-2.5 rounded-lg font-bold text-sm bg-gray-800 text-gray-300 hover:bg-gray-700 transition">
+                <i class="fa-solid fa-spinner"></i> Đang Cày (<span id="count-processing">0</span>)
+            </button>
+            <button onclick="loadOrders()" class="ml-auto px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition">
+                <i class="fa-solid fa-rotate"></i> Làm mới
+            </button>
+        </div>
+
+        <!-- Danh sách đơn hàng -->
+        <div id="orderList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <!-- Render cards bằng JS -->
+        </div>
+
+        <div id="emptyState" class="hidden text-center py-16 text-gray-500">
+            <i class="fa-regular fa-folder-open text-5xl mb-3"></i>
+            <p class="text-base font-semibold">Hiện không có đơn nào ở mục này!</p>
+        </div>
+    </main>
+
+    <script>
+        // Kiểm tra CTV đã đăng nhập chưa từ localStorage
+        let ctvUsername = localStorage.getItem('username') || localStorage.getItem('ctvUser');
+        let currentTab = 'pending';
+        let allOrders = [];
+
+        window.onload = () => {
+            if (!ctvUsername) {
+                ctvUsername = prompt("Vui lòng nhập Username CTV của bạn:") || "";
+                if (ctvUsername) {
+                    localStorage.setItem('ctvUser', ctvUsername.trim());
+                } else {
+                    alert("Bạn cần nhập Username tài khoản CTV!");
+                    window.location.href = "/";
+                    return;
+                }
+            }
+            document.getElementById('ctvDisplay').innerHTML = `CTV: <b class="text-yellow-400">${ctvUsername}</b>`;
+            loadOrders();
+        };
+
+        function logoutCTV() {
+            localStorage.removeItem('ctvUser');
+            window.location.href = '/';
+        }
+
+        function switchTab(tab) {
+            currentTab = tab;
+            const btnPending = document.getElementById('tab-pending');
+            const btnProc = document.getElementById('tab-processing');
+
+            if (tab === 'pending') {
+                btnPending.className = "px-5 py-2.5 rounded-lg font-bold text-sm bg-yellow-500 text-black shadow-lg transition";
+                btnProc.className = "px-5 py-2.5 rounded-lg font-bold text-sm bg-gray-800 text-gray-300 hover:bg-gray-700 transition";
+            } else {
+                btnProc.className = "px-5 py-2.5 rounded-lg font-bold text-sm bg-green-500 text-black shadow-lg transition";
+                btnPending.className = "px-5 py-2.5 rounded-lg font-bold text-sm bg-gray-800 text-gray-300 hover:bg-gray-700 transition";
+            }
+            renderOrders();
+        }
+
+        async function loadOrders() {
+            try {
+                const res = await fetch('/api/ctv/orders', {
+                    headers: { 'x-ctv-user': ctvUsername }
+                });
+                const data = await res.json();
+
+                if (!data.success) {
+                    alert(data.message || "Lỗi quyền truy cập CTV!");
+                    return;
+                }
+
+                allOrders = data.orders || [];
+                renderOrders();
+            } catch (err) {
+                alert("Lỗi kết nối máy chủ!");
+            }
+        }
+
+        function renderOrders() {
+            const listEl = document.getElementById('orderList');
+            const emptyEl = document.getElementById('emptyState');
+            listEl.innerHTML = "";
+
+            const pendingOrders = allOrders.filter(o => o.status === 'pending');
+            const myProcessingOrders = allOrders.filter(o => o.status === 'processing' && o.assignedTo === ctvUsername);
+
+            document.getElementById('count-pending').innerText = pendingOrders.length;
+            document.getElementById('count-processing').innerText = myProcessingOrders.length;
+
+            const displayOrders = currentTab === 'pending' ? pendingOrders : myProcessingOrders;
+
+            if (displayOrders.length === 0) {
+                emptyEl.classList.remove('hidden');
+                return;
+            }
+            emptyEl.classList.add('hidden');
+
+            displayOrders.forEach(order => {
+                const isMyOrder = order.assignedTo === ctvUsername;
+                const card = document.createElement('div');
+                card.className = "glass-card rounded-xl p-5 flex flex-col justify-between shadow-md border-t-2 " + 
+                                 (currentTab === 'pending' ? "border-yellow-500" : "border-green-500");
+
+                card.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-start mb-3">
+                            <span class="text-xs bg-gray-800 text-gray-300 px-2.5 py-1 rounded font-mono font-bold">#${order.id}</span>
+                            <span class="text-xs font-semibold px-2 py-0.5 rounded ${order.status === 'pending' ? 'bg-yellow-900 text-yellow-300' : 'bg-green-900 text-green-300'}">
+                                ${order.status === 'pending' ? 'Chờ nhận' : 'Đang cày'}
+                            </span>
+                        </div>
+
+                        <h3 class="font-bold text-lg text-white mb-1 text-yellow-300">${order.serviceName}</h3>
+                        <p class="text-xs text-gray-400 mb-3">Tiền công: <b class="text-green-400 text-sm">${order.price.toLocaleString('vi-VN')} đ</b></p>
+                        
+                        <!-- Box Acc & Pass (Chỉ hiện rõ khi CTV đã bấm nhận đơn) -->
+                        <div class="bg-gray-900/90 rounded-lg p-3 border border-gray-800 text-xs mb-3 space-y-1.5">
+                            <div><span class="text-gray-400">Khách:</span> <b class="text-gray-200">${order.username}</b></div>
+                            <div>
+                                <span class="text-gray-400">Roblox Acc:</span> 
+                                <b class="text-white font-mono select-all bg-gray-800 px-1.5 py-0.5 rounded">${isMyOrder ? order.robloxUser : '*** (Nhận đơn để xem)'}</b>
+                            </div>
+                            <div>
+                                <span class="text-gray-400">Roblox Pass:</span> 
+                                <b class="text-red-400 font-mono select-all bg-gray-800 px-1.5 py-0.5 rounded">${isMyOrder ? order.robloxPass : '*** (Nhận đơn để xem)'}</b>
+                            </div>
+                            ${order.note ? `<div><span class="text-gray-400">Ghi chú:</span> <i class="text-yellow-200">${order.note}</i></div>` : ''}
+                        </div>
+                    </div>
+
+                    <div class="pt-2">
+                        ${order.status === 'pending' ? `
+                            <button onclick="claimOrder(${order.id})" class="w-full bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-2 px-4 rounded-lg transition text-sm flex items-center justify-center space-x-1">
+                                <i class="fa-solid fa-hand-holding-hand"></i> <span>Nhận Đơn Này</span>
+                            </button>
+                        ` : `
+                            <button onclick="completeOrder(${order.id})" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-lg transition text-sm flex items-center justify-center space-x-1">
+                                <i class="fa-solid fa-circle-check"></i> <span>Xác Nhận Đã Cày Xong</span>
+                            </button>
+                        `}
+                    </div>
+                `;
+                listEl.appendChild(card);
+            });
+        }
+
+        async function claimOrder(id) {
+            if (!confirm(`Bạn chắc chắn muốn nhận đơn #${id}? Hãy đảm bảo bạn sẽ vào acc cày ngay cho khách!`)) return;
+            try {
+                const res = await fetch('/api/ctv/claim', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-ctv-user': ctvUsername },
+                    body: JSON.stringify({ orderId: id })
+                });
+                const data = await res.json();
+                alert(data.message);
+                if (data.success) {
+                    await loadOrders();
+                    switchTab('processing');
+                }
+            } catch (err) {
+                alert("Lỗi xử lý!");
+            }
+        }
+
+        async function completeOrder(id) {
+            if (!confirm(`Xác nhận đã cày xong đơn #${id} và đổi lại mật khẩu cho khách?`)) return;
+            try {
+                const res = await fetch('/api/ctv/complete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-ctv-user': ctvUsername },
+                    body: JSON.stringify({ orderId: id })
+                });
+                const data = await res.json();
+                alert(data.message);
+                if (data.success) loadOrders();
+            } catch (err) {
+                alert("Lỗi xử lý!");
+            }
+        }
+    </script>
+</body>
+</html>
