@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cổng Cộng Tác Viên - Thợ Cày Thuê</title>
-    <!-- Tailwind CSS CDN để giao diện đẹp ngay lập tức -->
+    <title>Cổng Cộng Tác Viên - Thợ Cày Thuê OTOPI</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -18,10 +17,16 @@
     <header class="glass-card sticky top-0 z-50 border-b border-gray-800 px-6 py-4 flex justify-between items-center">
         <div class="flex items-center space-x-3">
             <span class="text-2xl text-yellow-400"><i class="fa-solid fa-gamepad"></i></span>
-            <h1 class="text-xl font-bold tracking-wider text-white uppercase">Cổng Thợ Cày Blox Fruits</h1>
+            <div>
+                <h1 class="text-lg md:text-xl font-bold tracking-wider text-white uppercase">Cổng Thợ Cày Blox Fruits</h1>
+                <p class="text-[11px] text-gray-400">Khu vực nhận và xử lý đơn cày thuê của CTV</p>
+            </div>
         </div>
         <div id="authBox" class="flex items-center space-x-4">
-            <span id="ctvDisplay" class="text-gray-400 font-medium"></span>
+            <a href="/" class="bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs px-3 py-1.5 rounded font-semibold transition">
+                🌐 Về Trang Chủ
+            </a>
+            <span id="ctvDisplay" class="text-gray-400 font-medium text-xs md:text-sm"></span>
             <button onclick="logoutCTV()" class="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1.5 rounded font-semibold transition">
                 <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
             </button>
@@ -32,22 +37,20 @@
     <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6">
 
         <!-- Tabs chuyển đổi trạng thái đơn -->
-        <div class="flex space-x-3 mb-6">
-            <button onclick="switchTab('pending')" id="tab-pending" class="px-5 py-2.5 rounded-lg font-bold text-sm bg-yellow-500 text-black shadow-lg transition">
+        <div class="flex flex-wrap gap-2 mb-6 items-center">
+            <button onclick="switchTab('pending')" id="tab-pending" class="px-5 py-2.5 rounded-lg font-bold text-sm bg-yellow-500 text-black shadow-lg transition flex items-center gap-2">
                 <i class="fa-solid fa-inbox"></i> Đơn Chờ Nhận (<span id="count-pending">0</span>)
             </button>
-            <button onclick="switchTab('processing')" id="tab-processing" class="px-5 py-2.5 rounded-lg font-bold text-sm bg-gray-800 text-gray-300 hover:bg-gray-700 transition">
-                <i class="fa-solid fa-spinner"></i> Đang Cày (<span id="count-processing">0</span>)
+            <button onclick="switchTab('processing')" id="tab-processing" class="px-5 py-2.5 rounded-lg font-bold text-sm bg-gray-800 text-gray-300 hover:bg-gray-700 transition flex items-center gap-2">
+                <i class="fa-solid fa-spinner"></i> Đơn Tôi Đang Cày (<span id="count-processing">0</span>)
             </button>
-            <button onclick="loadOrders()" class="ml-auto px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition">
-                <i class="fa-solid fa-rotate"></i> Làm mới
+            <button onclick="loadOrders()" class="ml-auto px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition flex items-center gap-1.5">
+                <i class="fa-solid fa-rotate"></i> Tải lại
             </button>
         </div>
 
         <!-- Danh sách đơn hàng -->
-        <div id="orderList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            <!-- Render cards bằng JS -->
-        </div>
+        <div id="orderList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
 
         <div id="emptyState" class="hidden text-center py-16 text-gray-500">
             <i class="fa-regular fa-folder-open text-5xl mb-3"></i>
@@ -56,27 +59,23 @@
     </main>
 
     <script>
-        // Kiểm tra CTV đã đăng nhập chưa từ localStorage
-        let ctvUsername = localStorage.getItem('username') || localStorage.getItem('ctvUser');
+        const userObj = JSON.parse(localStorage.getItem('otopi_user') || '{}');
+        let ctvUsername = userObj.username || localStorage.getItem('ctvUser');
         let currentTab = 'pending';
         let allOrders = [];
 
         window.onload = () => {
             if (!ctvUsername) {
-                ctvUsername = prompt("Vui lòng nhập Username CTV của bạn:") || "";
-                if (ctvUsername) {
-                    localStorage.setItem('ctvUser', ctvUsername.trim());
-                } else {
-                    alert("Bạn cần nhập Username tài khoản CTV!");
-                    window.location.href = "/";
-                    return;
-                }
+                alert("Vui lòng Đăng Nhập tài khoản trên Trang Chủ trước!");
+                window.location.href = "/";
+                return;
             }
             document.getElementById('ctvDisplay').innerHTML = `CTV: <b class="text-yellow-400">${ctvUsername}</b>`;
             loadOrders();
         };
 
         function logoutCTV() {
+            localStorage.removeItem('otopi_user');
             localStorage.removeItem('ctvUser');
             window.location.href = '/';
         }
@@ -87,11 +86,11 @@
             const btnProc = document.getElementById('tab-processing');
 
             if (tab === 'pending') {
-                btnPending.className = "px-5 py-2.5 rounded-lg font-bold text-sm bg-yellow-500 text-black shadow-lg transition";
-                btnProc.className = "px-5 py-2.5 rounded-lg font-bold text-sm bg-gray-800 text-gray-300 hover:bg-gray-700 transition";
+                btnPending.className = "px-5 py-2.5 rounded-lg font-bold text-sm bg-yellow-500 text-black shadow-lg transition flex items-center gap-2";
+                btnProc.className = "px-5 py-2.5 rounded-lg font-bold text-sm bg-gray-800 text-gray-300 hover:bg-gray-700 transition flex items-center gap-2";
             } else {
-                btnProc.className = "px-5 py-2.5 rounded-lg font-bold text-sm bg-green-500 text-black shadow-lg transition";
-                btnPending.className = "px-5 py-2.5 rounded-lg font-bold text-sm bg-gray-800 text-gray-300 hover:bg-gray-700 transition";
+                btnProc.className = "px-5 py-2.5 rounded-lg font-bold text-sm bg-green-500 text-black shadow-lg transition flex items-center gap-2";
+                btnPending.className = "px-5 py-2.5 rounded-lg font-bold text-sm bg-gray-800 text-gray-300 hover:bg-gray-700 transition flex items-center gap-2";
             }
             renderOrders();
         }
@@ -104,7 +103,8 @@
                 const data = await res.json();
 
                 if (!data.success) {
-                    alert(data.message || "Lỗi quyền truy cập CTV!");
+                    alert(data.message || "Tài khoản của bạn chưa được cấp quyền CTV!");
+                    window.location.href = "/";
                     return;
                 }
 
@@ -145,14 +145,13 @@
                         <div class="flex justify-between items-start mb-3">
                             <span class="text-xs bg-gray-800 text-gray-300 px-2.5 py-1 rounded font-mono font-bold">#${order.id}</span>
                             <span class="text-xs font-semibold px-2 py-0.5 rounded ${order.status === 'pending' ? 'bg-yellow-900 text-yellow-300' : 'bg-green-900 text-green-300'}">
-                                ${order.status === 'pending' ? 'Chờ nhận' : 'Đang cày'}
+                                ${order.status === 'pending' ? 'Chờ nhận cày' : 'Đang cày'}
                             </span>
                         </div>
 
                         <h3 class="font-bold text-lg text-white mb-1 text-yellow-300">${order.serviceName}</h3>
-                        <p class="text-xs text-gray-400 mb-3">Tiền công: <b class="text-green-400 text-sm">${order.price.toLocaleString('vi-VN')} đ</b></p>
+                        <p class="text-xs text-gray-400 mb-3">Tiền công gói: <b class="text-green-400 text-sm">${order.price.toLocaleString('vi-VN')} đ</b></p>
                         
-                        <!-- Box Acc & Pass (Chỉ hiện rõ khi CTV đã bấm nhận đơn) -->
                         <div class="bg-gray-900/90 rounded-lg p-3 border border-gray-800 text-xs mb-3 space-y-1.5">
                             <div><span class="text-gray-400">Khách:</span> <b class="text-gray-200">${order.username}</b></div>
                             <div>
@@ -170,7 +169,7 @@
                     <div class="pt-2">
                         ${order.status === 'pending' ? `
                             <button onclick="claimOrder(${order.id})" class="w-full bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-2 px-4 rounded-lg transition text-sm flex items-center justify-center space-x-1">
-                                <i class="fa-solid fa-hand-holding-hand"></i> <span>Nhận Đơn Này</span>
+                                <i class="fa-solid fa-hand-holding-hand"></i> <span>Nhận Cày Đơn Này</span>
                             </button>
                         ` : `
                             <button onclick="completeOrder(${order.id})" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-lg transition text-sm flex items-center justify-center space-x-1">
@@ -184,7 +183,7 @@
         }
 
         async function claimOrder(id) {
-            if (!confirm(`Bạn chắc chắn muốn nhận đơn #${id}? Hãy đảm bảo bạn sẽ vào acc cày ngay cho khách!`)) return;
+            if (!confirm(`Bạn chắc chắn muốn nhận đơn #${id}? Vui lòng vào cày ngay cho khách sau khi nhận!`)) return;
             try {
                 const res = await fetch('/api/ctv/claim', {
                     method: 'POST',
@@ -203,7 +202,7 @@
         }
 
         async function completeOrder(id) {
-            if (!confirm(`Xác nhận đã cày xong đơn #${id} và đổi lại mật khẩu cho khách?`)) return;
+            if (!confirm(`Xác nhận đã cày xong hoàn tất đơn #${id}?`)) return;
             try {
                 const res = await fetch('/api/ctv/complete', {
                     method: 'POST',
