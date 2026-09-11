@@ -1,10 +1,12 @@
 const express = require('express');
 const path = require('path');
 const mongoose = require('mongoose');
+const crypto = require('crypto'); // Thư viện tạo mã băm MD5 cho Gachthefast
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(__dirname));
 
@@ -12,6 +14,12 @@ const ADMIN_USER = "admin";
 const ADMIN_PASS = process.env.ADMIN_PASSWORD || "otopi123";
 const ADMIN_SECRET_KEY = "otopi_bi_mat_2026";
 const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://autophobia011_db_user:YoPOL0EN3zmSvT1Z@cluster0.toio2qu.mongodb.net/shop_blox?retryWrites=true&w=majority&appName=Cluster0";
+
+// ========================================================
+// ⚙️ CẤU HÌNH GACHTHEFAST.COM CỦA BẠN (ĐIỀN VÀO ĐÂY HOẶC TRÊN RENDER)
+// ========================================================
+const GTF_PARTNER_ID = process.env.GTF_PARTNER_ID || "DIEN_PARTNER_ID_CUA_BAN_VAO_DAY";
+const GTF_PARTNER_KEY = process.env.GTF_PARTNER_KEY || "DIEN_PARTNER_KEY_CUA_BAN_VAO_DAY";
 
 mongoose.connect(MONGO_URI)
     .then(() => console.log(">>> [DATABASE]: KẾT NỐI THÀNH CÔNG!"))
@@ -48,8 +56,8 @@ const Order = mongoose.model('Order', new mongoose.Schema({
     boughtAt: { type: Date, default: Date.now }
 }));
 
-// SCHEMA LƯU THẺ CÀO KHÁCH NẠP
 const Card = mongoose.model('Card', new mongoose.Schema({
+    requestId: String,
     username: String,
     telco: String,
     declaredAmount: Number,
@@ -57,10 +65,11 @@ const Card = mongoose.model('Card', new mongoose.Schema({
     code: String,
     serial: String,
     status: { type: String, default: "pending" }, // pending, success, failed
+    message: String,
     createdAt: { type: Date, default: Date.now }
 }));
 
-// 1. ĐĂNG KÝ
+// ĐĂNG KÝ
 app.post('/api/register', async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -76,7 +85,7 @@ app.post('/api/register', async (req, res) => {
     }
 });
 
-// 2. ĐĂNG NHẬP
+// ĐĂNG NHẬP
 app.post('/api/login', async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -102,7 +111,6 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-// API LẤY SỐ DƯ TỰ ĐỘNG
 app.get('/api/user-balance', async (req, res) => {
     try {
         const { username } = req.query;
@@ -114,7 +122,6 @@ app.get('/api/user-balance', async (req, res) => {
     }
 });
 
-// 3. LẤY ACC
 app.get('/api/accounts', async (req, res) => {
     try {
         const accounts = await Account.find({ sold: false }).select('id title level fruit melee price image');
@@ -124,7 +131,6 @@ app.get('/api/accounts', async (req, res) => {
     }
 });
 
-// 4. MUA ACC
 app.post('/api/buy', async (req, res) => {
     try {
         const { accountId, username } = req.body;
@@ -171,38 +177,147 @@ app.get('/api/my-orders', async (req, res) => {
     }
 });
 
-// 5. KHÁCH NẠP THẺ CÀO
+// ========================================================
+// ⚡ 1. KHÁCH GỬI THẺ CÀO -> TỰ ĐỘNG GỬI SANG GACHTHEFAST.COM
+// ========================================================
 app.post('/api/topup-card', async (req, res) => {
     try {
         const { username, telco, amount, code, serial } = req.body;
         if (!username || !telco || !amount || !code || !serial) {
-            return res.status(400).json({ success: false, message: "Vui lòng điền đầy đủ thông tin thẻ cào!" });
+            return res.status(400).json({ success: false, message: "Vui lòng nhập đầy đủ thông tin thẻ!" });
         }
 
-        // Tính số tiền thực nhận sau chiết khấu nhà mạng (thường nhận 80% giá trị thẻ)
+        const cleanCode = code.trim();
+        const cleanSerial = serial.trim();
         const declared = Number(amount);
-        const received = Math.round(declared * 0.8); // Nhận 80%
+        const requestId = Date.now().toString() + Math.floor(Math.random() * 1000); // Mã giao dịch duy nhất
 
+        // Tạo chữ ký MD5: md5(partner_key + code + serial)
+        const sign = crypto.createHash('md5')
+            .update(GTF_PARTNER_KEY + cleanCode + cleanSerial)
+            .digest('hex');
+
+        // Lưu trước vào Database trạng thái chờ xử lý
         await Card.create({
+            requestId,
             username,
-            telco,
+            telco: telco.toUpperCase(),
             declaredAmount: declared,
-            realAmount: received,
-            code: code.trim(),
-            serial: serial.trim(),
-            status: "pending"
+            realAmount: Math.round(declared * 0.8),
+            code: cleanCode,
+            serial: cleanSerial,
+            status: "pending",
+            message: "Đang gửi sang Gachthefast xử lý..."
         });
 
-        res.json({
-            success: true,
-            message: `Gửi thẻ ${telco} ${declared.toLocaleString('vi-VN')}đ thành công! Thẻ đang được xử lý, bạn sẽ nhận được ${received.toLocaleString('vi-VN')}đ sau khi duyệt.`
-        });
+        // Gửi thông tin sang máy chủ Gachthefast qua API
+        try {
+            const gtfResponse = await fetch('https://gachthefast.com/chargingws/v2', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    telco: telco.toUpperCase(),
+                    code: cleanCode,
+                    serial: cleanSerial,
+                    amount: declared,
+                    request_id: requestId,
+                    partner_id: GTF_PARTNER_ID,
+                    sign: sign,
+                    command: 'charging'
+                })
+            });
+
+            const gtfData = await gtfResponse.json();
+            console.log(">>> [GACHTHEFAST GỬI THẺ]:", gtfData);
+
+            if (gtfData.status === 99 || gtfData.status === 1) {
+                return res.json({
+                    success: true,
+                    message: "Thẻ đã được gửi lên hệ thống Gachthefast! Vui lòng chờ 5-30 giây để tự động cộng tiền."
+                });
+            } else {
+                return res.json({
+                    success: true,
+                    message: gtfData.message || "Thẻ đã tiếp nhận, đang xử lý tự động!"
+                });
+            }
+        } catch (apiErr) {
+            console.log(">>> Gachthefast API lưu thẻ chờ duyệt:", apiErr.message);
+            return res.json({
+                success: true,
+                message: "Thẻ đã được gửi thành công! Hệ thống đang kiểm tra và sẽ tự động cộng tiền khi thẻ đúng."
+            });
+        }
     } catch (e) {
         res.status(500).json({ success: false, message: "Lỗi gửi thẻ: " + e.message });
     }
 });
 
-// WEBHOOK SEPAY (BANK TỰ ĐỘNG)
+// ========================================================
+// ⚡ 2. CỔNG WEBHOOK NHẬN KẾT QUẢ TỪ GACHTHEFAST.COM
+// ========================================================
+app.all('/api/webhook/gachthefast', async (req, res) => {
+    try {
+        // Nhận dữ liệu bất kể Gachthefast gửi qua GET hay POST
+        const data = req.method === 'POST' ? req.body : req.query;
+        console.log(">>> [GACHTHEFAST WEBHOOK ĐÁP VỀ]:", data);
+
+        const status = Number(data.status);
+        const requestId = data.request_id;
+        const realAmount = Number(data.amount) || Number(data.value) || 0; // Tiền thực nhận sau chiết khấu
+
+        // Tìm thẻ theo mã giao dịch requestId
+        let card = await Card.findOne({ requestId });
+        if (!card && data.code && data.serial) {
+            card = await Card.findOne({ code: data.code, serial: data.serial });
+        }
+
+        if (!card) {
+            console.log(">>> Không tìm thấy thẻ tương ứng với request_id:", requestId);
+            return res.status(200).send("Card not found");
+        }
+
+        // Tránh cộng tiền 2 lần nếu Gachthefast gọi webhook lặp lại
+        if (card.status === 'success') {
+            return res.status(200).send("Already processed");
+        }
+
+        // TRƯỜNG HỢP 1: THẺ ĐÚNG (status = 1) HOẶC SAI MỆNH GIÁ NHƯNG VẪN THÀNH CÔNG (status = 3)
+        if (status === 1 || status === 3) {
+            const user = await User.findOne({ username: new RegExp('^' + card.username + '$', 'i') });
+            const amountToAdd = realAmount > 0 ? realAmount : Math.round(card.declaredAmount * 0.8);
+
+            if (user) {
+                user.balance += amountToAdd;
+                await user.save();
+                console.log(`>>> [GACHTHEFAST TỰ ĐỘNG]: Đã cộng ${amountToAdd} đ cho ${user.username}!`);
+            }
+
+            card.status = 'success';
+            card.realAmount = amountToAdd;
+            card.message = data.message || "Nạp thẻ thành công!";
+            await card.save();
+
+            return res.status(200).send("OK");
+        }
+
+        // TRƯỜNG HỢP 2: THẺ SAI / THẺ LỖI / ĐÃ DÙNG (status = 2 hoặc 4)
+        if (status === 2 || status === 4) {
+            card.status = 'failed';
+            card.message = data.message || "Thẻ sai hoặc đã qua sử dụng!";
+            await card.save();
+            console.log(`>>> [GACHTHEFAST]: Thẻ của ${card.username} bị lỗi/sai.`);
+            return res.status(200).send("OK");
+        }
+
+        return res.status(200).send("Pending");
+    } catch (e) {
+        console.error("Lỗi Webhook Gachthefast:", e);
+        res.status(500).send("Internal Error");
+    }
+});
+
+// WEBHOOK SEPAY (BANK TỰ ĐỘNG TPBANK)
 app.post('/api/webhook/sepay', async (req, res) => {
     try {
         const data = req.body;
@@ -213,12 +328,10 @@ app.post('/api/webhook/sepay', async (req, res) => {
         if (match && match[1] && amount > 0) {
             const targetUsername = match[1].trim();
             const user = await User.findOne({ username: new RegExp('^' + targetUsername + '$', 'i') });
-
             if (user) {
                 user.balance += amount;
                 await user.save();
-                console.log(`>>> [TỰ ĐỘNG]: Đã cộng ${amount} đ cho ${user.username}!`);
-                return res.json({ success: true, message: "Thành công" });
+                return res.json({ success: true });
             }
         }
         res.json({ success: false });
@@ -227,14 +340,13 @@ app.post('/api/webhook/sepay', async (req, res) => {
     }
 });
 
-// BẢO MẬT ADMIN
+// ADMIN
 function checkAdminAuth(req, res, next) {
     const token = req.headers['authorization'];
     if (token === ADMIN_SECRET_KEY) return next();
     return res.status(403).json({ success: false, message: "Không có quyền Admin!" });
 }
 
-// LẤY DANH SÁCH THẺ CÀO CHỜ DUYỆT
 app.get('/api/admin/cards', checkAdminAuth, async (req, res) => {
     try {
         const cards = await Card.find().sort({ createdAt: -1 });
@@ -244,12 +356,11 @@ app.get('/api/admin/cards', checkAdminAuth, async (req, res) => {
     }
 });
 
-// ADMIN XỬ LÝ THẺ (DUYỆT HOẶC HỦY)
 app.post('/api/admin/card-action', checkAdminAuth, async (req, res) => {
     try {
         const { cardId, action } = req.body;
         const card = await Card.findById(cardId);
-        if (!card || card.status !== 'pending') return res.status(400).json({ success: false, message: "Thẻ không hợp lệ hoặc đã xử lý rồi!" });
+        if (!card || card.status !== 'pending') return res.status(400).json({ success: false, message: "Thẻ không hợp lệ hoặc đã xử lý!" });
 
         if (action === 'approve') {
             const user = await User.findOne({ username: new RegExp('^' + card.username + '$', 'i') });
@@ -259,11 +370,11 @@ app.post('/api/admin/card-action', checkAdminAuth, async (req, res) => {
             }
             card.status = 'success';
             await card.save();
-            return res.json({ success: true, message: `Đã duyệt thẻ và cộng ${card.realAmount.toLocaleString('vi-VN')}đ cho ${card.username}!` });
+            return res.json({ success: true, message: `Đã duyệt thẻ và cộng ${card.realAmount.toLocaleString('vi-VN')} đ!` });
         } else {
             card.status = 'failed';
             await card.save();
-            return res.json({ success: true, message: "Đã hủy thẻ sai!" });
+            return res.json({ success: true, message: "Đã hủy thẻ!" });
         }
     } catch (e) {
         res.status(500).json({ success: false, message: "Lỗi: " + e.message });
