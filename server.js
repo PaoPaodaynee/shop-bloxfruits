@@ -11,38 +11,12 @@ app.use(express.static(__dirname));
 const ADMIN_USER = "admin";
 const ADMIN_PASS = process.env.ADMIN_PASSWORD || "otopi123";
 const ADMIN_SECRET_KEY = "otopi_bi_mat_2026";
-
-// Chuỗi kết nối MongoDB (Ưu tiên Render, nếu thiếu sẽ dùng chuỗi dự phòng trực tiếp)
 const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://autophobia011_db_user:YoPOL0EN3zmSvT1Z@cluster0.toio2qu.mongodb.net/shop_blox?retryWrites=true&w=majority&appName=Cluster0";
-
-let isDbConnected = false;
 
 // KẾT NỐI DATABASE
 mongoose.connect(MONGO_URI)
-    .then(async () => {
-        isDbConnected = true;
-        console.log(">>> [DATABASE]: ĐÃ KẾT NỐI THÀNH CÔNG VỚI MONGODB ATLAS!");
-        try {
-            const count = await Account.countDocuments();
-            if (count === 0) {
-                await Account.create({
-                    id: 1,
-                    title: "Acc Max Level + Trái Kitsune Full Skill (Acc Mẫu)",
-                    level: "Max (2550)",
-                    fruit: "Kitsune",
-                    melee: "Godhuman",
-                    price: 50000,
-                    sold: false,
-                    robloxUser: "roblox_vip_01",
-                    robloxPass: "MatKhauVip123@"
-                });
-            }
-        } catch (err) {}
-    })
-    .catch(err => {
-        isDbConnected = false;
-        console.error(">>> [DATABASE LỖI]:", err.message);
-    });
+    .then(() => console.log(">>> [DATABASE]: KẾT NỐI THÀNH CÔNG!"))
+    .catch(err => console.error(">>> [DATABASE LỖI]:", err.message));
 
 // SCHEMAS
 const User = mongoose.model('User', new mongoose.Schema({
@@ -64,24 +38,30 @@ const Account = mongoose.model('Account', new mongoose.Schema({
     robloxPass: String
 }));
 
+// SCHEMA LỊCH SỬ ĐƠN HÀNG CỦA KHÁCH
+const Order = mongoose.model('Order', new mongoose.Schema({
+    username: String,
+    accId: Number,
+    title: String,
+    price: Number,
+    robloxUser: String,
+    robloxPass: String,
+    boughtAt: { type: Date, default: Date.now }
+}));
+
 // 1. ĐĂNG KÝ
 app.post('/api/register', async (req, res) => {
     try {
-        if (!isDbConnected && mongoose.connection.readyState !== 1) {
-            return res.status(500).json({ success: false, message: "Database đang khởi động kết nối, bạn vui lòng đợi khoảng 15 giây rồi bấm lại nhé!" });
-        }
-
         const { username, password } = req.body;
-        if (!username || !password) return res.status(400).json({ success: false, message: "Vui lòng nhập đủ tài khoản và mật khẩu!" });
+        if (!username || !password) return res.status(400).json({ success: false, message: "Vui lòng nhập đủ thông tin!" });
 
         const existUser = await User.findOne({ username: new RegExp('^' + username + '$', 'i') });
-        if (existUser) return res.status(400).json({ success: false, message: "Tên tài khoản này đã có người đăng ký!" });
+        if (existUser) return res.status(400).json({ success: false, message: "Tài khoản này đã tồn tại!" });
 
         const newUser = await User.create({ username, password, balance: 100000 });
         res.json({ success: true, message: "Đăng ký thành công! Đã tặng bạn 100.000đ trải nghiệm.", user: newUser });
     } catch (e) {
-        console.error("Lỗi đăng ký:", e);
-        res.status(500).json({ success: false, message: "Lỗi thật từ Database: " + e.message });
+        res.status(500).json({ success: false, message: "Lỗi: " + e.message });
     }
 });
 
@@ -89,12 +69,9 @@ app.post('/api/register', async (req, res) => {
 app.post('/api/login', async (req, res) => {
     try {
         const { username, password } = req.body;
-
-       // Tự động xóa dấu cách thừa và không phân biệt viết hoa/thường
         const cleanUser = (username || "").trim().toLowerCase();
         const cleanPass = (password || "").trim();
 
-        // Chấp nhận mật khẩu trên Render hoặc mật khẩu mặc định otopi123
         if (cleanUser === "admin" && (cleanPass === (ADMIN_PASS || "").trim() || cleanPass === "otopi123")) {
             return res.json({
                 success: true,
@@ -105,17 +82,12 @@ app.post('/api/login', async (req, res) => {
             });
         }
 
-        if (!isDbConnected && mongoose.connection.readyState !== 1) {
-            return res.status(500).json({ success: false, message: "Database đang kết nối, vui lòng đợi 15 giây rồi thử lại!" });
-        }
-
-        const user = await User.findOne({ username: new RegExp('^' + username + '$', 'i'), password });
+        const user = await User.findOne({ username: new RegExp('^' + cleanUser + '$', 'i'), password: cleanPass });
         if (!user) return res.status(400).json({ success: false, message: "Sai tài khoản hoặc mật khẩu!" });
 
         res.json({ success: true, isAdmin: false, message: "Đăng nhập thành công!", user });
     } catch (e) {
-        console.error("Lỗi đăng nhập:", e);
-        res.status(500).json({ success: false, message: "Lỗi thật từ Database: " + e.message });
+        res.status(500).json({ success: false, message: "Lỗi: " + e.message });
     }
 });
 
@@ -129,7 +101,7 @@ app.get('/api/accounts', async (req, res) => {
     }
 });
 
-// 4. MUA ACC
+// 4. MUA ACC & LƯU LỊCH SỬ ĐƠN HÀNG
 app.post('/api/buy', async (req, res) => {
     try {
         const { accountId, username } = req.body;
@@ -146,6 +118,16 @@ app.post('/api/buy', async (req, res) => {
         acc.sold = true;
         await acc.save();
 
+        // Lưu đơn hàng vào Tủ Đồ của khách
+        await Order.create({
+            username: user.username,
+            accId: acc.id,
+            title: acc.title,
+            price: acc.price,
+            robloxUser: acc.robloxUser,
+            robloxPass: acc.robloxPass
+        });
+
         res.json({
             success: true,
             accountInfo: { username: acc.robloxUser, password: acc.robloxPass },
@@ -153,6 +135,18 @@ app.post('/api/buy', async (req, res) => {
         });
     } catch (e) {
         res.status(500).json({ success: false, message: "Lỗi mua acc: " + e.message });
+    }
+});
+
+// 5. LẤY LỊCH SỬ MUA HÀNG CỦA RIÊNG KHÁCH ĐÓ
+app.get('/api/my-orders', async (req, res) => {
+    try {
+        const { username } = req.query;
+        if (!username) return res.json([]);
+        const orders = await Order.find({ username }).sort({ boughtAt: -1 });
+        res.json(orders);
+    } catch (e) {
+        res.status(500).json([]);
     }
 });
 
@@ -183,9 +177,9 @@ app.post('/api/admin/add', checkAdminAuth, async (req, res) => {
             sold: false,
             robloxUser, robloxPass
         });
-        res.json({ success: true, message: "Đã lưu acc vĩnh viễn vào Database!" });
+        res.json({ success: true, message: "Đã đăng acc thành công!" });
     } catch (e) {
-        res.status(500).json({ success: false, message: "Lỗi lưu acc: " + e.message });
+        res.status(500).json({ success: false, message: "Lỗi: " + e.message });
     }
 });
 
