@@ -20,7 +20,7 @@
         <div class="flex flex-wrap justify-between items-center bg-gray-800 p-5 rounded-xl border border-gray-700 mb-8 gap-4">
             <div>
                 <h1 class="text-2xl font-black text-yellow-400">⚙️ HỆ THỐNG QUẢN TRỊ TỔNG</h1>
-                <p class="text-gray-400 text-xs">Duyệt thẻ cào, quản lý số dư và kho acc</p>
+                <p class="text-gray-400 text-xs">Duyệt thẻ cào, cộng/trừ tiền số dư và quản lý kho acc</p>
             </div>
             <div class="flex gap-3">
                 <a href="/" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg font-bold text-sm">
@@ -32,7 +32,7 @@
             </div>
         </div>
 
-        <!-- 1. BẢNG DUYỆT THẺ CÀO KHÁCH GỬI (MỚI) -->
+        <!-- 1. BẢNG DUYỆT THẺ CÀO -->
         <div class="bg-gray-800 p-5 rounded-xl border border-red-500/40 mb-8 shadow-xl">
             <div class="flex justify-between items-center border-b border-gray-700 pb-2 mb-4">
                 <h2 class="text-base font-bold text-red-400 flex items-center gap-2">
@@ -59,19 +59,19 @@
             </div>
         </div>
 
-        <!-- 2. BẢNG KHÁCH HÀNG & CỘNG TIỀN -->
+        <!-- 2. BẢNG KHÁCH HÀNG & CỘNG / TRỪ TIỀN (CẢI TIẾN) -->
         <div class="bg-gray-800 p-5 rounded-xl border border-yellow-500/40 mb-8 shadow-xl">
             <h2 class="text-base font-bold text-yellow-400 border-b border-gray-700 pb-2 mb-4">
-                👥 DANH SÁCH KHÁCH HÀNG & SỐ DƯ
+                👥 DANH SÁCH KHÁCH HÀNG & QUẢN LÝ SỐ DƯ (CỘNG / TRỪ TIỀN)
             </h2>
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse text-xs">
                     <thead>
                         <tr class="border-b border-gray-700 text-gray-400 uppercase">
                             <th class="p-2">Tài Khoản</th>
-                            <th class="p-2">Số Dư</th>
-                            <th class="p-2">Nhập Tiền Muốn Cộng</th>
-                            <th class="p-2">Hành Động</th>
+                            <th class="p-2">Số Dư Hiện Tại</th>
+                            <th class="p-2">Nhập Số Tiền</th>
+                            <th class="p-2">Hành Động Xử Lý</th>
                         </tr>
                     </thead>
                     <tbody id="user-table-body"></tbody>
@@ -165,7 +165,6 @@
             }
         }
 
-        // TẢI DANH SÁCH THẺ CÀO CHỜ DUYỆT
         async function loadAllCards() {
             const res = await fetch('/api/admin/cards', { headers: { 'Authorization': adminToken } });
             const cards = await res.json();
@@ -238,6 +237,7 @@
             }
         }
 
+        // TẢI KHÁCH HÀNG & 2 NÚT CỘNG / TRỪ TIỀN
         async function loadAllUsers() {
             const res = await fetch('/api/admin/users', { headers: { 'Authorization': adminToken } });
             const users = await res.json();
@@ -248,24 +248,42 @@
                     <tr class="border-b border-gray-700/50">
                         <td class="p-2 font-bold text-white">👤 ${u.username}</td>
                         <td class="p-2 font-bold text-yellow-400">${u.balance.toLocaleString('vi-VN')} đ</td>
-                        <td class="p-2"><input type="number" id="amt-${u.username}" placeholder="Số tiền..." class="bg-gray-900 border border-gray-600 rounded px-2 py-1 text-xs text-white w-32 outline-none"></td>
-                        <td class="p-2"><button onclick="adjustBalance('${u.username}')" class="bg-yellow-500 hover:bg-yellow-600 text-black px-3 py-1 rounded text-xs font-bold">+ Nạp</button></td>
+                        <td class="p-2">
+                            <input type="number" id="amt-${u.username}" placeholder="Nhập số tiền..." class="bg-gray-900 border border-gray-600 rounded px-2 py-1 text-xs text-white w-32 outline-none">
+                        </td>
+                        <td class="p-2 flex gap-1">
+                            <button onclick="adjustBalance('${u.username}', 'add')" class="bg-green-600 hover:bg-green-700 text-white px-2.5 py-1 rounded text-xs font-bold transition">
+                                + Cộng
+                            </button>
+                            <button onclick="adjustBalance('${u.username}', 'subtract')" class="bg-red-600 hover:bg-red-700 text-white px-2.5 py-1 rounded text-xs font-bold transition">
+                                - Trừ
+                            </button>
+                        </td>
                     </tr>
                 `;
             });
         }
 
-        async function adjustBalance(username) {
-            const amount = document.getElementById('amt-' + username).value;
-            if (!amount) return alert("Vui lòng nhập số tiền!");
+        // XỬ LÝ CỘNG HOẶC TRỪ TIỀN
+        async function adjustBalance(username, type) {
+            const input = document.getElementById('amt-' + username);
+            const amount = input.value;
+            if (!amount || amount <= 0) return alert("Vui lòng nhập số tiền hợp lệ!");
+
+            const actionText = type === 'subtract' ? `TRỪ ${Number(amount).toLocaleString('vi-VN')} đ` : `CỘNG ${Number(amount).toLocaleString('vi-VN')} đ`;
+            if (!confirm(`Bạn có chắc chắn muốn ${actionText} của tài khoản ${username}?`)) return;
+
             const res = await fetch('/api/admin/adjust-balance', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': adminToken },
-                body: JSON.stringify({ username, amount })
+                body: JSON.stringify({ username, amount, type })
             });
             const data = await res.json();
             alert(data.message);
-            loadAllUsers();
+            if (data.success) {
+                input.value = '';
+                loadAllUsers();
+            }
         }
 
         async function loadAllAccounts() {
