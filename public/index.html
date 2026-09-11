@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shop Blox Fruits OTOPI - Bán Acc Tự Động Uy Tín</title>
+    <title>Shop Blox Fruits OTOPI - Bán Acc & Cày Thuê Tự Động Uy Tín</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-950 text-white min-h-screen flex flex-col justify-between font-sans">
@@ -15,7 +15,7 @@
                 <span class="text-3xl animate-bounce">⚔️</span>
                 <div>
                     <a href="/" class="text-xl md:text-2xl font-black text-red-500 tracking-wider hover:text-red-400">OTOPI-ROBLOX</a>
-                    <p class="text-[10px] text-gray-400 uppercase tracking-widest font-semibold">Shop Blox Fruits Tự Động 24/7</p>
+                    <p class="text-[10px] text-gray-400 uppercase tracking-widest font-semibold">Shop Blox Fruits & Cày Thuê 24/7</p>
                 </div>
             </div>
             <div id="auth-area" class="flex flex-wrap items-center gap-2"></div>
@@ -27,26 +27,26 @@
         <div class="relative rounded-2xl overflow-hidden border border-red-500/30 bg-gradient-to-r from-red-950 via-gray-900 to-purple-950 p-6 md:p-10 mb-8 shadow-2xl">
             <div class="max-w-xl">
                 <span class="bg-red-600/30 border border-red-500 text-red-400 text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider">
-                    🔥 Hỗ Trợ Nạp Tự Động 24/7
+                    🔥 Hỗ Trợ Mua Acc & Cày Thuê Siêu Tốc
                 </span>
                 <h2 class="text-2xl md:text-4xl font-black mt-3 leading-tight text-white">
                     SỞ HỮU ACC BLOX FRUITS <span class="text-yellow-400">VIP GIÁ RẺ</span>
                 </h2>
                 <p class="text-gray-300 text-sm mt-2 mb-5">
-                    Hệ thống bán tài khoản game Blox Fruits tự động, nhận nick sau 1 giây, bảo hành đăng nhập lần đầu 100%!
+                    Hệ thống bán acc tự động nhận nick 1 giây & Nhận cày thuê Up Level, Godhuman, Tộc V4, CDK giá học sinh!
                 </p>
                 <div class="flex gap-3">
                     <button onclick="openTopupModal()" class="bg-yellow-500 hover:bg-yellow-600 text-black px-5 py-2.5 rounded-xl font-black text-sm shadow-lg shadow-yellow-500/30 transition">
                         💳 NẠP TIỀN NGAY
                     </button>
-                    <a href="#shop-section" class="bg-gray-800 hover:bg-gray-700 border border-gray-600 px-5 py-2.5 rounded-xl font-bold text-sm">
-                        Xem Danh Sách
-                    </a>
+                    <button onclick="switchMainTab('boost')" class="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-xl font-black text-sm shadow-lg transition">
+                        ⚡ Thuê Cày Ngay
+                    </button>
                 </div>
             </div>
         </div>
 
-        <!-- BẢNG VÀNG ĐUA TOP NẠP THÁNG (ĐÃ BỎ CAM KẾT QUÀ, CHỈ ĐỂ VINH DANH) -->
+        <!-- BẢNG VÀNG ĐUA TOP NẠP THÁNG -->
         <section class="mb-10 bg-gray-900 border border-yellow-500/40 rounded-2xl p-5 md:p-6 shadow-2xl relative overflow-hidden">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-800 pb-3 mb-5 gap-2">
                 <div class="flex items-center gap-2">
@@ -60,11 +60,7 @@
                     🔄 Cập Nhật
                 </button>
             </div>
-
-            <!-- TOP 1, 2, 3 PODIUM -->
             <div id="top-podium" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6"></div>
-
-            <!-- DANH SÁCH TOP 4 - 10 -->
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse text-xs">
                     <thead>
@@ -79,33 +75,23 @@
             </div>
         </section>
 
-        <!-- THỐNG KÊ SHOP -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-10 text-center">
-            <div class="bg-gray-900 border border-gray-800 p-4 rounded-xl">
-                <p class="text-2xl md:text-3xl font-black text-yellow-400">5.420+</p>
-                <p class="text-xs text-gray-400 font-bold mt-1">Acc Đã Bán</p>
-            </div>
-            <div class="bg-gray-900 border border-gray-800 p-4 rounded-xl">
-                <p class="text-2xl md:text-3xl font-black text-green-400">12.800+</p>
-                <p class="text-xs text-gray-400 font-bold mt-1">Thành Viên</p>
-            </div>
-            <div class="bg-gray-900 border border-gray-800 p-4 rounded-xl">
-                <p class="text-2xl md:text-3xl font-black text-blue-400">Hỗ Trợ Thẻ Cào</p>
-                <p class="text-xs text-gray-400 font-bold mt-1">Viettel, Vina, Zing</p>
-            </div>
-            <div class="bg-gray-900 border border-gray-800 p-4 rounded-xl">
-                <p class="text-2xl md:text-3xl font-black text-purple-400">100%</p>
-                <p class="text-xs text-gray-400 font-bold mt-1">Bảo Hành Uy Tín</p>
-            </div>
+        <!-- NÚT CHUYỂN ĐỔI TAB: MUA ACC VS CÀY THUÊ -->
+        <div class="flex justify-center mb-8 gap-3">
+            <button id="main-tab-accs-btn" onclick="switchMainTab('accs')" class="px-6 py-3 rounded-xl font-black text-sm bg-red-600 text-white shadow-xl shadow-red-600/30 transition flex items-center gap-2">
+                ⚔️ KHO ACC BLOX FRUITS
+            </button>
+            <button id="main-tab-boost-btn" onclick="switchMainTab('boost')" class="px-6 py-3 rounded-xl font-black text-sm bg-gray-800 text-gray-400 hover:text-white border border-gray-700 transition flex items-center gap-2">
+                ⚡ DỊCH VỤ CÀY THUÊ
+            </button>
         </div>
 
-        <!-- BỘ LỌC & DANH SÁCH ACC -->
-        <section id="shop-section" class="mb-6">
+        <!-- PHẦN 1: KHO ACC BLOX FRUITS -->
+        <section id="section-accs" class="mb-6">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-800 pb-4 mb-6">
                 <div>
                     <h3 class="text-xl font-black text-white flex items-center gap-2">
                         <span class="w-2.5 h-6 bg-red-600 rounded-full inline-block"></span>
-                        DANH SÁCH ACC BLOX FRUITS
+                        DANH SÁCH ACC BLOX FRUITS TỰ ĐỘNG
                     </h3>
                     <p class="text-xs text-gray-400 mt-1">Tài khoản chuẩn trắng thông tin, có hình ảnh thật</p>
                 </div>
@@ -121,40 +107,109 @@
             </div>
             <div id="acc-list" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
         </section>
+
+        <!-- PHẦN 2: DỊCH VỤ CÀY THUÊ BLOX FRUITS -->
+        <section id="section-boost" class="mb-6 hidden">
+            <div class="border-b border-gray-800 pb-4 mb-6">
+                <h3 class="text-xl font-black text-purple-400 flex items-center gap-2">
+                    <span class="w-2.5 h-6 bg-purple-600 rounded-full inline-block"></span>
+                    BẢNG GIÁ DỊCH VỤ CÀY THUÊ BLOX FRUITS
+                </h3>
+                <p class="text-xs text-gray-400 mt-1">Cam kết cày siêu tốc, hoàn tiền 100% nếu không hoàn thành đúng hẹn</p>
+            </div>
+            <div id="boost-services-list" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+        </section>
     </main>
 
     <!-- FOOTER -->
     <footer class="bg-gray-900 border-t border-gray-800 py-8 px-4 mt-12 text-xs text-gray-400 text-center">
         <div class="max-w-4xl mx-auto space-y-2">
-            <p class="font-bold text-white text-sm">🔥 SHOP BLOX FRUITS OTOPI - BÁN ACC TỰ ĐỘNG</p>
-            <p>Bản quyền © 2026 OTOPI-ROBLOX. Vận hành bởi OtopiStudio.</p>
+            <p class="font-bold text-white text-sm">🔥 SHOP BLOX FRUITS OTOPI - BÁN ACC & CÀY THUÊ TỰ ĐỘNG</p>
+            <p>Bản quyền © 2026 OTOPI-ROBLOX. Vận hành bởi Admin TRAN VU THIEN.</p>
         </div>
     </footer>
 
-    <a href="https://zalo.me/0793962082" target="_blank" class="fixed bottom-5 right-5 bg-blue-600 hover:bg-blue-700 text-white p-3.5 rounded-full shadow-2xl flex items-center gap-2 z-50 animate-bounce">
+    <!-- NÚT ZALO THẬT -->
+    <a href="https://zalo.me/0912345678" target="_blank" class="fixed bottom-5 right-5 bg-blue-600 hover:bg-blue-700 text-white p-3.5 rounded-full shadow-2xl flex items-center gap-2 z-50 animate-bounce">
         <span class="text-xl">💬</span>
-        <span class="text-xs font-bold hidden md:inline">Hỗ Trợ Zalo</span>
+        <span class="text-xs font-bold hidden md:inline">Hỗ Trợ Admin</span>
     </a>
+
+    <!-- MODAL ĐẶT CÀY THUÊ -->
+    <div id="order-boost-modal" class="fixed inset-0 bg-black/85 flex items-center justify-center hidden z-50 p-4">
+        <div class="bg-gray-800 p-6 rounded-2xl border border-purple-500 max-w-md w-full shadow-2xl">
+            <div class="flex justify-between items-center border-b border-gray-700 pb-3 mb-4">
+                <h2 class="text-lg font-black text-purple-400">⚡ ĐẶT DỊCH VỤ CÀY THUÊ</h2>
+                <button onclick="closeModals()" class="text-gray-400 hover:text-white text-xl font-bold">&times;</button>
+            </div>
+            <div class="bg-gray-900 p-3 rounded-lg mb-4 border border-gray-700">
+                <p class="text-xs text-gray-400">Gói dịch vụ đã chọn:</p>
+                <p id="modal-boost-name" class="text-sm font-bold text-white mt-1"></p>
+                <p class="text-xs text-yellow-400 font-bold mt-1">Giá thanh toán: <span id="modal-boost-price"></span> đ</p>
+            </div>
+            <form id="boost-order-form" class="space-y-3">
+                <input type="hidden" id="modal-boost-id">
+                <div>
+                    <label class="text-xs text-gray-400 font-bold uppercase">Tài khoản Roblox của bạn:</label>
+                    <input type="text" id="bo-user" required placeholder="Nhập tên đăng nhập Roblox" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-xs text-white outline-none mt-1 focus:border-purple-500">
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400 font-bold uppercase">Mật khẩu Roblox:</label>
+                    <input type="password" id="bo-pass" required placeholder="Nhập mật khẩu Roblox" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-xs text-white outline-none mt-1 focus:border-purple-500">
+                </div>
+                <div>
+                    <label class="text-xs text-gray-400 font-bold uppercase">Mã Pin 2FA / Ghi Chú (Nếu có):</label>
+                    <textarea id="bo-note" rows="2" placeholder="Tắt 2 bước hoặc nhập mã Backup code..." class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-xs text-white outline-none mt-1"></textarea>
+                </div>
+                <p class="text-[11px] text-gray-400 italic">⚠️ Tiền trừ trực tiếp từ số dư trên web. Shop cam kết bảo mật tài khoản 100%!</p>
+                <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-2.5 rounded-lg font-black text-xs tracking-wide">
+                    XÁC NHẬN ĐẶT CÀY NGAY
+                </button>
+            </form>
+        </div>
+    </div>
 
     <!-- MODAL TỦ ĐỒ -->
     <div id="orders-modal" class="fixed inset-0 bg-black/85 flex items-center justify-center hidden z-50 p-4">
         <div class="bg-gray-800 p-6 rounded-2xl border border-blue-500 max-w-2xl w-full shadow-2xl max-h-[85vh] flex flex-col">
             <div class="flex justify-between items-center border-b border-gray-700 pb-3 mb-4">
-                <h2 class="text-lg font-black text-blue-400 flex items-center gap-2">📦 TỦ ĐỒ ACC ĐÃ MUA CỦA BẠN</h2>
+                <h2 class="text-lg font-black text-blue-400 flex items-center gap-2">📦 TỦ ĐỒ & LỊCH SỬ CỦA BẠN</h2>
                 <button onclick="closeModals()" class="text-gray-400 hover:text-white text-xl font-bold">&times;</button>
             </div>
+            
+            <div class="flex gap-2 mb-4">
+                <button id="sub-tab-acc-btn" onclick="switchOrderSubTab('acc')" class="text-xs font-bold px-3 py-1.5 rounded-lg bg-blue-600 text-white">Acc Đã Mua</button>
+                <button id="sub-tab-boost-btn" onclick="switchOrderSubTab('boost')" class="text-xs font-bold px-3 py-1.5 rounded-lg bg-gray-700 text-gray-300">Đơn Cày Thuê</button>
+            </div>
+
             <div class="overflow-y-auto flex-grow">
-                <table class="w-full text-left border-collapse text-xs">
-                    <thead>
-                        <tr class="border-b border-gray-700 text-gray-400 uppercase">
-                            <th class="p-2">Mã</th>
-                            <th class="p-2">Tên Acc</th>
-                            <th class="p-2">Tài Khoản / Pass Roblox</th>
-                            <th class="p-2">Giá</th>
-                        </tr>
-                    </thead>
-                    <tbody id="orders-table-body"></tbody>
-                </table>
+                <div id="sub-content-acc">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="border-b border-gray-700 text-gray-400 uppercase">
+                                <th class="p-2">Mã</th>
+                                <th class="p-2">Tên Acc</th>
+                                <th class="p-2">Tài Khoản / Pass Roblox</th>
+                                <th class="p-2">Giá</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-table-body"></tbody>
+                    </table>
+                </div>
+
+                <div id="sub-content-boost" class="hidden">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="border-b border-gray-700 text-gray-400 uppercase">
+                                <th class="p-2">Mã Đơn</th>
+                                <th class="p-2">Gói Cày</th>
+                                <th class="p-2">Giá</th>
+                                <th class="p-2">Trạng Thái</th>
+                            </tr>
+                        </thead>
+                        <tbody id="boost-orders-client-body"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -166,7 +221,6 @@
                 <h2 class="text-lg font-black text-yellow-400">💳 NẠP TIỀN VÀO TÀI KHOẢN</h2>
                 <button onclick="closeModals()" class="text-gray-400 hover:text-white text-xl font-bold">&times;</button>
             </div>
-
             <div class="grid grid-cols-2 gap-2 mb-4">
                 <button id="tab-bank-btn" onclick="switchTopupTab('bank')" class="py-2 rounded-lg text-xs font-bold bg-yellow-500 text-black">
                     🏦 Chuyển Khoản QR
@@ -175,7 +229,6 @@
                     🎫 Thẻ Cào (Viettel/Zing)
                 </button>
             </div>
-
             <div id="topup-bank-content">
                 <div id="topup-step-1" class="space-y-4">
                     <div class="grid grid-cols-3 gap-2">
@@ -207,7 +260,6 @@
                     <button onclick="showStep1()" class="w-full bg-gray-700 py-2 rounded-lg text-xs font-bold">Chọn Số Tiền Khác</button>
                 </div>
             </div>
-
             <div id="topup-card-content" class="hidden space-y-3">
                 <div>
                     <label class="text-xs text-gray-400 font-bold uppercase">Loại thẻ:</label>
@@ -238,7 +290,6 @@
                     <label class="text-xs text-gray-400 font-bold uppercase">Số Seri:</label>
                     <input type="text" id="card-serial" required placeholder="Nhập số Seri in trên thẻ" class="w-full bg-gray-900 border border-gray-700 rounded p-2 text-xs text-white outline-none mt-1">
                 </div>
-                <p class="text-[11px] text-gray-400 italic">⚠️ Tiền nạp thẻ cào vẫn được cộng dồn vào Bảng Đua Top bình thường!</p>
                 <button onclick="submitCard()" class="w-full bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-lg font-black text-xs tracking-wide">
                     🎫 GỬI THẺ CÀO NẠP NGAY
                 </button>
@@ -254,7 +305,7 @@
             <p class="text-xs text-gray-300 mt-2">Hệ thống đã tự động cộng tiền vào tài khoản.</p>
             <p class="text-sm font-bold text-yellow-400 mt-3">Số dư mới: <span id="topup-new-balance">0</span> VNĐ</p>
             <button onclick="document.getElementById('topup-success-modal').classList.add('hidden')" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 rounded-xl text-xs mt-5">
-                Tuyệt Vời, Mua Acc Ngay!
+                Tuyệt Vời, Mua Ngay!
             </button>
         </div>
     </div>
@@ -300,6 +351,7 @@
     <script>
         let currentUser = JSON.parse(localStorage.getItem('otopi_user')) || null;
         let allAccounts = [];
+        let allBoostServices = [];
         let pollingTimer = null;
 
         function updateHeader() {
@@ -337,82 +389,178 @@
             }
         }
 
-        // TẢI TOP NẠP (CHỈ VINH DANH DANH DỰ, KHÔNG KÈM QUÀ)
+        function switchMainTab(tab) {
+            const secAccs = document.getElementById('section-accs');
+            const secBoost = document.getElementById('section-boost');
+            const btnAccs = document.getElementById('main-tab-accs-btn');
+            const btnBoost = document.getElementById('main-tab-boost-btn');
+
+            if (tab === 'accs') {
+                secAccs.classList.remove('hidden');
+                secBoost.classList.add('hidden');
+                btnAccs.className = "px-6 py-3 rounded-xl font-black text-sm bg-red-600 text-white shadow-xl shadow-red-600/30 transition flex items-center gap-2";
+                btnBoost.className = "px-6 py-3 rounded-xl font-black text-sm bg-gray-800 text-gray-400 hover:text-white border border-gray-700 transition flex items-center gap-2";
+            } else {
+                secAccs.classList.add('hidden');
+                secBoost.classList.remove('hidden');
+                btnBoost.className = "px-6 py-3 rounded-xl font-black text-sm bg-purple-600 text-white shadow-xl shadow-purple-600/30 transition flex items-center gap-2";
+                btnAccs.className = "px-6 py-3 rounded-xl font-black text-sm bg-gray-800 text-gray-400 hover:text-white border border-gray-700 transition flex items-center gap-2";
+                loadBoostServicesClient();
+            }
+        }
+
+        async function loadBoostServicesClient() {
+            const res = await fetch('/api/boost-services');
+            allBoostServices = await res.json();
+            const list = document.getElementById('boost-services-list');
+            list.innerHTML = '';
+
+            allBoostServices.forEach(s => {
+                list.innerHTML += `
+                    <div class="bg-gray-900 border border-gray-800 hover:border-purple-500/60 rounded-2xl overflow-hidden shadow-xl flex flex-col justify-between transition duration-300 group">
+                        <div class="h-44 overflow-hidden relative bg-black">
+                            <img src="${s.image}" alt="${s.name}" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
+                            <span class="absolute top-2 left-2 bg-purple-600 text-white text-[10px] px-2 py-0.5 rounded font-black uppercase tracking-wider">CÀY SIÊU TỐC</span>
+                        </div>
+                        <div class="p-4 flex-grow flex flex-col justify-between">
+                            <div>
+                                <h4 class="font-bold text-sm text-white">${s.name}</h4>
+                                <p class="text-xs text-gray-400 mt-2 line-clamp-2">${s.description || 'Hoàn thành siêu tốc trong 24h'}</p>
+                            </div>
+                            <div class="mt-4 pt-3 border-t border-gray-800 flex justify-between items-center">
+                                <span class="text-yellow-400 font-black text-base">${s.price.toLocaleString('vi-VN')} đ</span>
+                                <button onclick="openBoostOrderModal(${s.id})" class="bg-purple-600 hover:bg-purple-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow-lg transition">
+                                    Thuê Cày
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function openBoostOrderModal(serviceId) {
+            if (!currentUser) {
+                alert("Vui lòng Đăng Nhập trước khi Đặt Cày Thuê!");
+                document.getElementById('login-modal').classList.remove('hidden');
+                return;
+            }
+
+            const service = allBoostServices.find(s => s.id === serviceId);
+            if (!service) return;
+
+            document.getElementById('modal-boost-id').value = service.id;
+            document.getElementById('modal-boost-name').innerText = service.name;
+            document.getElementById('modal-boost-price').innerText = service.price.toLocaleString('vi-VN');
+            document.getElementById('order-boost-modal').classList.remove('hidden');
+        }
+
+        document.getElementById('boost-order-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const serviceId = document.getElementById('modal-boost-id').value;
+            const robloxUser = document.getElementById('bo-user').value;
+            const robloxPass = document.getElementById('bo-pass').value;
+            const note = document.getElementById('bo-note').value;
+
+            const res = await fetch('/api/boost-order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: currentUser.username, serviceId, robloxUser, robloxPass, note })
+            });
+
+            const data = await res.json();
+            alert(data.message);
+
+            if (data.success) {
+                currentUser.balance = data.newBalance;
+                localStorage.setItem('otopi_user', JSON.stringify(currentUser));
+                updateHeader();
+                document.getElementById('boost-order-form').reset();
+                closeModals();
+            }
+        });
+
+        function switchOrderSubTab(sub) {
+            const accContent = document.getElementById('sub-content-acc');
+            const boostContent = document.getElementById('sub-content-boost');
+            const btnAcc = document.getElementById('sub-tab-acc-btn');
+            const btnBoost = document.getElementById('sub-tab-boost-btn');
+
+            if (sub === 'acc') {
+                accContent.classList.remove('hidden');
+                boostContent.classList.add('hidden');
+                btnAcc.className = "text-xs font-bold px-3 py-1.5 rounded-lg bg-blue-600 text-white";
+                btnBoost.className = "text-xs font-bold px-3 py-1.5 rounded-lg bg-gray-700 text-gray-300";
+            } else {
+                accContent.classList.add('hidden');
+                boostContent.classList.remove('hidden');
+                btnBoost.className = "text-xs font-bold px-3 py-1.5 rounded-lg bg-purple-600 text-white";
+                btnAcc.className = "text-xs font-bold px-3 py-1.5 rounded-lg bg-gray-700 text-gray-300";
+                loadMyBoostOrders();
+            }
+        }
+
+        async function loadMyBoostOrders() {
+            if (!currentUser) return;
+            const res = await fetch(`/api/my-boost-orders?username=${currentUser.username}`);
+            const orders = await res.json();
+            const tbody = document.getElementById('boost-orders-client-body');
+            tbody.innerHTML = '';
+
+            if (orders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-gray-500">Bạn chưa đặt đơn cày thuê nào!</td></tr>';
+                return;
+            }
+
+            orders.forEach(o => {
+                let badge = `<span class="bg-yellow-900 text-yellow-300 px-2 py-0.5 rounded text-[10px] font-bold">Chờ Shop Nhận</span>`;
+                if (o.status === 'processing') badge = `<span class="bg-blue-900 text-blue-300 px-2 py-0.5 rounded text-[10px] font-bold">Đang Cày...</span>`;
+                else if (o.status === 'completed') badge = `<span class="bg-green-900 text-green-300 px-2 py-0.5 rounded text-[10px] font-bold">Đã Xong 🎉</span>`;
+                else if (o.status === 'cancelled') badge = `<span class="bg-red-900 text-red-300 px-2 py-0.5 rounded text-[10px] font-bold">Đã Hủy (Đã Hoàn Tiền)</span>`;
+
+                tbody.innerHTML += `
+                    <tr class="border-b border-gray-700/50">
+                        <td class="p-2 font-bold text-gray-400">#${o.id}</td>
+                        <td class="p-2 font-semibold text-white">${o.serviceName}</td>
+                        <td class="p-2 font-bold text-green-400">${o.price.toLocaleString('vi-VN')} đ</td>
+                        <td class="p-2">${badge}</td>
+                    </tr>
+                `;
+            });
+        }
+
         async function loadTopDeposits() {
             try {
                 const res = await fetch('/api/top-deposits');
                 const tops = await res.json();
                 const podium = document.getElementById('top-podium');
                 const listBody = document.getElementById('top-list-body');
-
                 podium.innerHTML = '';
                 listBody.innerHTML = '';
 
                 if (tops.length === 0) {
-                    podium.innerHTML = `
-                        <div class="col-span-3 text-center py-6 bg-gray-950/60 rounded-xl border border-gray-800">
-                            <p class="text-sm text-yellow-400 font-bold">Chưa có ai đua top tháng này!</p>
-                            <p class="text-xs text-gray-400 mt-1">Hãy là người đầu tiên nạp tiền để vinh danh trên Top 1 🥇</p>
-                        </div>
-                    `;
+                    podium.innerHTML = `<div class="col-span-3 text-center py-6 bg-gray-950/60 rounded-xl border border-gray-800"><p class="text-sm text-yellow-400 font-bold">Chưa có ai đua top tháng này!</p></div>`;
                     return;
                 }
 
-                const top1 = tops[0];
-                const top2 = tops[1];
-                const top3 = tops[2];
-
+                const top1 = tops[0], top2 = tops[1], top3 = tops[2];
                 let podiumHtml = '';
 
                 if (top2) {
-                    podiumHtml += `
-                        <div class="bg-gradient-to-t from-gray-900 to-gray-800 border border-gray-600 rounded-xl p-4 text-center order-2 md:order-1">
-                            <span class="text-3xl">🥈</span>
-                            <span class="block text-xs text-gray-400 font-bold uppercase mt-1">HẠNG 2</span>
-                            <p class="font-black text-base text-white mt-1 truncate">${top2.username}</p>
-                            <p class="text-sm font-bold text-yellow-400 mt-1">${top2.total.toLocaleString('vi-VN')} đ</p>
-                        </div>
-                    `;
+                    podiumHtml += `<div class="bg-gradient-to-t from-gray-900 to-gray-800 border border-gray-600 rounded-xl p-4 text-center order-2 md:order-1"><span class="text-3xl">🥈</span><span class="block text-xs text-gray-400 font-bold uppercase mt-1">HẠNG 2</span><p class="font-black text-base text-white mt-1 truncate">${top2.username}</p><p class="text-sm font-bold text-yellow-400 mt-1">${top2.total.toLocaleString('vi-VN')} đ</p></div>`;
                 }
-
                 if (top1) {
-                    podiumHtml += `
-                        <div class="bg-gradient-to-t from-yellow-950/60 to-gray-800 border-2 border-yellow-500 rounded-xl p-5 text-center order-1 md:order-2 shadow-2xl relative">
-                            <span class="text-4xl animate-bounce">🥇</span>
-                            <span class="block text-xs text-yellow-400 font-black uppercase mt-1">QUÁN QUÂN TOP 1</span>
-                            <p class="font-black text-lg text-yellow-300 mt-1 truncate">${top1.username}</p>
-                            <p class="text-base font-black text-green-400 mt-1">${top1.total.toLocaleString('vi-VN')} đ</p>
-                        </div>
-                    `;
+                    podiumHtml += `<div class="bg-gradient-to-t from-yellow-950/60 to-gray-800 border-2 border-yellow-500 rounded-xl p-5 text-center order-1 md:order-2 shadow-2xl relative"><span class="text-4xl animate-bounce">🥇</span><span class="block text-xs text-yellow-400 font-black uppercase mt-1">QUÁN QUÂN TOP 1</span><p class="font-black text-lg text-yellow-300 mt-1 truncate">${top1.username}</p><p class="text-base font-black text-green-400 mt-1">${top1.total.toLocaleString('vi-VN')} đ</p></div>`;
                 }
-
                 if (top3) {
-                    podiumHtml += `
-                        <div class="bg-gradient-to-t from-gray-900 to-gray-800 border border-amber-700 rounded-xl p-4 text-center order-3">
-                            <span class="text-3xl">🥉</span>
-                            <span class="block text-xs text-amber-500 font-bold uppercase mt-1">HẠNG 3</span>
-                            <p class="font-black text-base text-white mt-1 truncate">${top3.username}</p>
-                            <p class="text-sm font-bold text-yellow-400 mt-1">${top3.total.toLocaleString('vi-VN')} đ</p>
-                        </div>
-                    `;
+                    podiumHtml += `<div class="bg-gradient-to-t from-gray-900 to-gray-800 border border-amber-700 rounded-xl p-4 text-center order-3"><span class="text-3xl">🥉</span><span class="block text-xs text-amber-500 font-bold uppercase mt-1">HẠNG 3</span><p class="font-black text-base text-white mt-1 truncate">${top3.username}</p><p class="text-sm font-bold text-yellow-400 mt-1">${top3.total.toLocaleString('vi-VN')} đ</p></div>`;
                 }
-
                 podium.innerHTML = podiumHtml;
 
                 const others = tops.slice(3);
-                if (others.length === 0) {
-                    listBody.innerHTML = '<tr><td colspan="3" class="p-3 text-center text-gray-500">Chưa có thêm thứ hạng khác.</td></tr>';
-                } else {
-                    others.forEach(o => {
-                        listBody.innerHTML += `
-                            <tr class="border-b border-gray-800/60 hover:bg-gray-800/40">
-                                <td class="p-2.5 text-center font-bold text-gray-400">#${o.rank}</td>
-                                <td class="p-2.5 font-bold text-white">${o.username}</td>
-                                <td class="p-2.5 text-right font-bold text-yellow-400">${o.total.toLocaleString('vi-VN')} đ</td>
-                            </tr>
-                        `;
-                    });
-                }
+                others.forEach(o => {
+                    listBody.innerHTML += `<tr class="border-b border-gray-800/60 hover:bg-gray-800/40"><td class="p-2.5 text-center font-bold text-gray-400">#${o.rank}</td><td class="p-2.5 font-bold text-white">${o.username}</td><td class="p-2.5 text-right font-bold text-yellow-400">${o.total.toLocaleString('vi-VN')} đ</td></tr>`;
+                });
             } catch (e) {}
         }
 
@@ -448,7 +596,6 @@
             const cardBtn = document.getElementById('tab-card-btn');
             const bankContent = document.getElementById('topup-bank-content');
             const cardContent = document.getElementById('topup-card-content');
-
             if (type === 'bank') {
                 bankContent.classList.remove('hidden');
                 cardContent.classList.add('hidden');
@@ -497,7 +644,7 @@
             const list = document.getElementById('acc-list');
             list.innerHTML = '';
             if(accs.length === 0) {
-                list.innerHTML = `<p class="col-span-3 text-center text-gray-500 py-10">Hiện chưa có acc phù hợp với tiêu chí tìm kiếm!</p>`;
+                list.innerHTML = `<p class="col-span-3 text-center text-gray-500 py-10">Hiện chưa có acc phù hợp!</p>`;
                 return;
             }
             accs.forEach(acc => {
@@ -569,6 +716,7 @@
 
         async function openOrdersModal() {
             if(!currentUser) return;
+            switchOrderSubTab('acc');
             const res = await fetch(`/api/my-orders?username=${currentUser.username}`);
             const orders = await res.json();
             const tbody = document.getElementById('orders-table-body');
@@ -682,6 +830,7 @@
             document.getElementById('register-modal').classList.add('hidden');
             document.getElementById('topup-modal').classList.add('hidden');
             document.getElementById('orders-modal').classList.add('hidden');
+            document.getElementById('order-boost-modal').classList.add('hidden');
         }
 
         updateHeader();
