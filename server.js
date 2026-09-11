@@ -7,12 +7,17 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(__dirname));
 
-// Danh sách người dùng của Shop (Mỗi người có tài khoản và số dư riêng)
-// Mặc định tạo sẵn 1 nick admin (user: admin / pass: 123456)
-let users = [
-    { username: "admin", password: "123", balance: 500000 }
-];
+// MẬT KHẨU QUẢN TRỊ ADMIN (Bạn có thể đổi mật khẩu tại đây)
+const ADMIN_CREDENTIALS = {
+    username: "admin",
+    password: "otopi123" // Đổi mật khẩu admin tùy thích ở đây
+};
+const ADMIN_SECRET_KEY = "otopi_bi_mat_2026";
 
+// Dữ liệu người dùng
+let users = [];
+
+// Dữ liệu tài khoản Roblox Blox Fruits
 let accounts = [
     {
         id: 1,
@@ -38,35 +43,25 @@ let accounts = [
     }
 ];
 
-// --- 1. API ĐĂNG KÝ ---
+// --- CÁC ĐƯỜNG DẪN KHÁCH HÀNG ---
 app.post('/api/register', (req, res) => {
     const { username, password } = req.body;
-    if (!username || !password) {
-        return res.status(400).json({ success: false, message: "Vui lòng nhập đầy đủ thông tin!" });
+    if (!username || !password) return res.status(400).json({ success: false, message: "Thiếu thông tin!" });
+    if (users.find(u => u.username.toLowerCase() === username.toLowerCase())) {
+        return res.status(400).json({ success: false, message: "Tên tài khoản này đã có người đăng ký!" });
     }
-    const existUser = users.find(u => u.username.toLowerCase() === username.toLowerCase());
-    if (existUser) {
-        return res.status(400).json({ success: false, message: "Tên tài khoản này đã có người dùng!" });
-    }
-
-    // Tạo tài khoản mới, tặng sẵn 100k vào số dư để test mua hàng
     const newUser = { username, password, balance: 100000 };
     users.push(newUser);
-
     res.json({ success: true, message: "Đăng ký thành công! Đã tặng bạn 100.000đ trải nghiệm.", user: newUser });
 });
 
-// --- 2. API ĐĂNG NHẬP ---
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
     const user = users.find(u => u.username.toLowerCase() === username.toLowerCase() && u.password === password);
-    if (!user) {
-        return res.status(400).json({ success: false, message: "Sai tên tài khoản hoặc mật khẩu!" });
-    }
+    if (!user) return res.status(400).json({ success: false, message: "Sai tài khoản hoặc mật khẩu!" });
     res.json({ success: true, message: "Đăng nhập thành công!", user });
 });
 
-// --- 3. API LẤY DANH SÁCH ACC ---
 app.get('/api/accounts', (req, res) => {
     const available = accounts.filter(a => !a.sold).map(a => ({
         id: a.id,
@@ -79,25 +74,15 @@ app.get('/api/accounts', (req, res) => {
     res.json(available);
 });
 
-// --- 4. API MUA ACC (Đã gắn với tài khoản đang đăng nhập) ---
 app.post('/api/buy', (req, res) => {
     const { accountId, username } = req.body;
     const user = users.find(u => u.username === username);
-
-    if (!user) {
-        return res.status(401).json({ success: false, message: "Bạn phải đăng nhập tài khoản trước khi mua!" });
-    }
+    if (!user) return res.status(401).json({ success: false, message: "Vui lòng đăng nhập trước khi mua!" });
 
     const acc = accounts.find(a => a.id === accountId);
-    if (!acc || acc.sold) {
-        return res.status(400).json({ success: false, message: "Acc không tồn tại hoặc đã có người mua!" });
-    }
+    if (!acc || acc.sold) return res.status(400).json({ success: false, message: "Acc không tồn tại hoặc đã bán!" });
+    if (user.balance < acc.price) return res.status(400).json({ success: false, message: "Số dư không đủ!" });
 
-    if (user.balance < acc.price) {
-        return res.status(400).json({ success: false, message: "Số dư của bạn không đủ, vui lòng nạp thêm!" });
-    }
-
-    // Trừ tiền của đúng người này
     user.balance -= acc.price;
     acc.sold = true;
 
@@ -106,6 +91,44 @@ app.post('/api/buy', (req, res) => {
         accountInfo: { username: acc.robloxUser, password: acc.robloxPass },
         newBalance: user.balance
     });
+});
+
+// --- HỆ THỐNG XÁC THỰC DÀNH RIÊNG CHO ADMIN ---
+
+// 1. Kiểm tra đăng nhập Admin
+app.post('/api/admin/login', (req, res) => {
+    const { username, password } = req.body;
+    if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
+        return res.json({ success: true, adminToken: ADMIN_SECRET_KEY });
+    }
+    return res.status(401).json({ success: false, message: "Sai tài khoản hoặc mật khẩu Admin!" });
+});
+
+// Hàm kiểm tra quyền Admin để chống người ngoài hack
+function checkAdminAuth(req, res, next) {
+    const token = req.headers['authorization'];
+    if (token === ADMIN_SECRET_KEY) {
+        return next();
+    }
+    return res.status(403).json({ success: false, message: "Bạn không có quyền truy cập khu vực này!" });
+}
+
+// 2. Lấy kho acc (Bắt buộc phải có quyền Admin mới xem được mật khẩu Roblox)
+app.get('/api/admin/accounts', checkAdminAuth, (req, res) => {
+    res.json(accounts);
+});
+
+// 3. Thêm acc mới vào kho
+app.post('/api/admin/add', checkAdminAuth, (req, res) => {
+    const { title, level, fruit, melee, price, robloxUser, robloxPass } = req.body;
+    accounts.push({
+        id: accounts.length + 1,
+        title, level, fruit, melee,
+        price: Number(price),
+        sold: false,
+        robloxUser, robloxPass
+    });
+    res.json({ success: true, message: "Đã thêm acc mới lên shop thành công!" });
 });
 
 app.listen(PORT, () => {
