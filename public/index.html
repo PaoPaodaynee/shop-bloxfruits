@@ -23,7 +23,6 @@
     </header>
 
     <main class="max-w-6xl mx-auto w-full p-4 md:p-6 flex-grow">
-        
         <!-- BANNER -->
         <div class="relative rounded-2xl overflow-hidden border border-red-500/30 bg-gradient-to-r from-red-950 via-gray-900 to-purple-950 p-6 md:p-10 mb-8 shadow-2xl">
             <div class="max-w-xl">
@@ -34,7 +33,7 @@
                     SỞ HỮU ACC BLOX FRUITS <span class="text-yellow-400">VIP GIÁ RẺ</span>
                 </h2>
                 <p class="text-gray-300 text-sm mt-2 mb-5">
-                    Acc Full Trái Kitsune, Mochi V2, Godhuman, Song Kiếm Oden. Có ảnh chụp rương đồ thật 100%!
+                    Acc Full Trái Kitsune, Mochi V2, Godhuman. Nạp tiền tự động duyệt sau 3 giây!
                 </p>
                 <div class="flex gap-3">
                     <button onclick="openTopupModal()" class="bg-yellow-500 hover:bg-yellow-600 text-black px-5 py-2.5 rounded-xl font-black text-sm shadow-lg shadow-yellow-500/30 transition">
@@ -58,8 +57,8 @@
                 <p class="text-xs text-gray-400 font-bold mt-1">Thành Viên</p>
             </div>
             <div class="bg-gray-900 border border-gray-800 p-4 rounded-xl">
-                <p class="text-2xl md:text-3xl font-black text-blue-400">1 Giây</p>
-                <p class="text-xs text-gray-400 font-bold mt-1">Giao Dịch Tự Động</p>
+                <p class="text-2xl md:text-3xl font-black text-blue-400">3 Giây</p>
+                <p class="text-xs text-gray-400 font-bold mt-1">Nạp Tự Động 100%</p>
             </div>
             <div class="bg-gray-900 border border-gray-800 p-4 rounded-xl">
                 <p class="text-2xl md:text-3xl font-black text-purple-400">100%</p>
@@ -91,7 +90,6 @@
             <!-- DANH SÁCH ACC CÓ ẢNH -->
             <div id="acc-list" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
         </section>
-
     </main>
 
     <!-- FOOTER -->
@@ -135,7 +133,7 @@
     <div id="topup-modal" class="fixed inset-0 bg-black/85 flex items-center justify-center hidden z-50 p-4">
         <div class="bg-gray-800 p-6 rounded-2xl border border-yellow-500 max-w-md w-full shadow-2xl">
             <div class="flex justify-between items-center border-b border-gray-700 pb-3 mb-4">
-                <h2 class="text-lg font-black text-yellow-400">💳 NẠP TIỀN VÀO TÀI KHOẢN</h2>
+                <h2 class="text-lg font-black text-yellow-400">💳 NẠP TIỀN TỰ ĐỘNG</h2>
                 <button onclick="closeModals()" class="text-gray-400 hover:text-white text-xl font-bold">&times;</button>
             </div>
             <div id="topup-step-1" class="space-y-4">
@@ -154,6 +152,16 @@
                 <div class="bg-white p-2 rounded-xl inline-block shadow-lg">
                     <img id="qr-img" src="" alt="Mã QR VietQR" class="w-52 h-52 mx-auto object-contain">
                 </div>
+                
+                <!-- TRẠNG THÁI ĐANG CHỜ THANH TOÁN -->
+                <div class="flex items-center justify-center gap-2 text-yellow-400 font-bold text-xs py-1">
+                    <svg class="animate-spin h-4 w-4 text-yellow-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                    </svg>
+                    <span>Hệ thống đang chờ bạn quét mã...</span>
+                </div>
+
                 <div class="bg-gray-900 p-3 rounded-lg text-left text-xs font-mono space-y-1 border border-gray-700">
                     <p>Ngân hàng: <b class="text-white">TPBank</b></p>
                     <p>Chủ TK: <b class="text-yellow-400">TRAN VU THIEN</b></p>
@@ -166,7 +174,20 @@
         </div>
     </div>
 
-    <!-- MODAL ĐĂNG NHẬP / ĐĂNG KÝ / THÀNH CÔNG -->
+    <!-- MODAL BÁO NẠP TIỀN THÀNH CÔNG RỰC RỠ -->
+    <div id="topup-success-modal" class="fixed inset-0 bg-black/90 flex items-center justify-center hidden z-50 p-4">
+        <div class="bg-gray-800 p-6 rounded-2xl border-2 border-green-500 text-center max-w-sm w-full shadow-2xl animate-bounce">
+            <span class="text-6xl">🎉</span>
+            <h2 class="text-2xl font-black text-green-400 mt-2">NẠP TIỀN THÀNH CÔNG!</h2>
+            <p class="text-xs text-gray-300 mt-2">Hệ thống đã tự động cộng tiền vào tài khoản của bạn.</p>
+            <p class="text-sm font-bold text-yellow-400 mt-3">Số dư mới: <span id="topup-new-balance">0</span> VNĐ</p>
+            <button onclick="document.getElementById('topup-success-modal').classList.add('hidden')" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 rounded-xl text-xs mt-5">
+                Tuyệt Vời, Mua Acc Ngay!
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL ĐĂNG NHẬP / ĐĂNG KÝ / MUA ACC -->
     <div id="login-modal" class="fixed inset-0 bg-black/80 flex items-center justify-center hidden z-50 p-4">
         <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 max-w-sm w-full">
             <h2 class="text-xl font-bold mb-4 text-center text-blue-400">ĐĂNG NHẬP</h2>
@@ -207,6 +228,7 @@
     <script>
         let currentUser = JSON.parse(localStorage.getItem('otopi_user')) || null;
         let allAccounts = [];
+        let pollingTimer = null; // Bộ hẹn giờ lắng nghe tiền về
 
         function updateHeader() {
             const authArea = document.getElementById('auth-area');
@@ -225,7 +247,7 @@
                         + Nạp Tiền
                     </button>
                     <div class="bg-gray-800 px-2.5 py-1.5 rounded-lg border border-yellow-500/50 text-yellow-400 text-xs font-bold">
-                        👤 ${currentUser.username} | ${currentUser.balance.toLocaleString('vi-VN')} đ
+                        👤 ${currentUser.username} | <span id="header-balance">${currentUser.balance.toLocaleString('vi-VN')}</span> đ
                     </div>
                     <button onclick="logout()" class="bg-red-600 hover:bg-red-700 px-2 py-1.5 rounded-lg text-xs font-bold">
                         Thoát
@@ -243,33 +265,67 @@
             }
         }
 
+        // TỰ ĐỘNG ĐỒNG BỘ SỐ DƯ TỪ DATABASE MỖI KHI MỞ WEB HOẶC BẤM F5
+        async function syncUserBalance() {
+            if (!currentUser) return;
+            try {
+                const res = await fetch(`/api/user-balance?username=${currentUser.username}`);
+                const data = await res.json();
+                if (data && typeof data.balance === 'number') {
+                    // Nếu số dư trên Database lớn hơn số dư hiện tại trên web -> Tiền vừa vào!
+                    if (data.balance > currentUser.balance) {
+                        currentUser.balance = data.balance;
+                        localStorage.setItem('otopi_user', JSON.stringify(currentUser));
+                        updateHeader();
+
+                        // Bật ngay thông báo nạp thành công nếu đang mở popup QR!
+                        closeModals();
+                        document.getElementById('topup-new-balance').innerText = data.balance.toLocaleString('vi-VN');
+                        document.getElementById('topup-success-modal').classList.remove('hidden');
+                        stopPolling();
+                    } else {
+                        currentUser.balance = data.balance;
+                        localStorage.setItem('otopi_user', JSON.stringify(currentUser));
+                        updateHeader();
+                    }
+                }
+            } catch (e) {}
+        }
+
+        // BẮT ĐẦU LẮNG NGHE KHI MỞ MÃ QR (CỨ 2.5 GIÂY HỎI MÁY CHỦ 1 LẦN)
+        function startPolling() {
+            stopPolling();
+            pollingTimer = setInterval(syncUserBalance, 2500);
+        }
+
+        function stopPolling() {
+            if (pollingTimer) {
+                clearInterval(pollingTimer);
+                pollingTimer = null;
+            }
+        }
+
         async function loadAccounts() {
             const res = await fetch('/api/accounts');
             allAccounts = await res.json();
             renderAccounts(allAccounts);
         }
 
-        // RENDER ACC KÈM ẢNH BÌA
         function renderAccounts(accs) {
             const list = document.getElementById('acc-list');
             list.innerHTML = '';
-
             if(accs.length === 0) {
                 list.innerHTML = `<p class="col-span-3 text-center text-gray-500 py-10">Hiện chưa có acc phù hợp với tiêu chí tìm kiếm!</p>`;
                 return;
             }
-
             accs.forEach(acc => {
                 const imgUrl = acc.image || 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80';
                 list.innerHTML += `
                     <div class="bg-gray-900 border border-gray-800 hover:border-red-500/50 rounded-2xl overflow-hidden shadow-xl flex flex-col justify-between transition duration-300 group">
-                        
-                        <!-- ẢNH BÌA ACC -->
                         <div class="h-44 overflow-hidden relative bg-black">
                             <img src="${imgUrl}" alt="${acc.title}" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
                             <span class="absolute top-2 left-2 bg-red-600/90 text-white text-[10px] px-2 py-0.5 rounded font-black uppercase tracking-wider shadow">Mã #${acc.id}</span>
                         </div>
-
                         <div class="p-4 flex-grow flex flex-col justify-between">
                             <div>
                                 <h4 class="font-bold text-sm text-white line-clamp-2">${acc.title}</h4>
@@ -294,20 +350,16 @@
         function filterAccounts() {
             const search = document.getElementById('search-input').value.toLowerCase();
             const priceRange = document.getElementById('price-filter').value;
-
             const filtered = allAccounts.filter(acc => {
                 const matchSearch = acc.title.toLowerCase().includes(search) || 
                                     acc.fruit.toLowerCase().includes(search) || 
                                     acc.melee.toLowerCase().includes(search);
-                
                 let matchPrice = true;
                 if(priceRange === 'under50') matchPrice = acc.price < 50000;
                 else if(priceRange === '50to100') matchPrice = acc.price >= 50000 && acc.price <= 100000;
                 else if(priceRange === 'over100') matchPrice = acc.price > 100000;
-
                 return matchSearch && matchPrice;
             });
-
             renderAccounts(filtered);
         }
 
@@ -317,16 +369,13 @@
                 document.getElementById('login-modal').classList.remove('hidden');
                 return;
             }
-
             if (!confirm("Xác nhận dùng số dư để mua acc này?")) return;
-
             const res = await fetch('/api/buy', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ accountId: id, username: currentUser.username })
             });
             const data = await res.json();
-
             if (data.success) {
                 currentUser.balance = data.newBalance;
                 localStorage.setItem('otopi_user', JSON.stringify(currentUser));
@@ -346,7 +395,6 @@
             const orders = await res.json();
             const tbody = document.getElementById('orders-table-body');
             tbody.innerHTML = '';
-
             if(orders.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-gray-500">Bạn chưa mua tài khoản nào!</td></tr>';
             } else {
@@ -375,6 +423,7 @@
             document.getElementById('topup-modal').classList.remove('hidden');
         }
         function showStep1() {
+            stopPolling();
             document.getElementById('topup-step-1').classList.remove('hidden');
             document.getElementById('topup-step-2').classList.add('hidden');
         }
@@ -388,6 +437,9 @@
             document.getElementById('out-memo').innerText = memo;
             document.getElementById('topup-step-1').classList.add('hidden');
             document.getElementById('topup-step-2').classList.remove('hidden');
+
+            // BẬT CHẾ ĐỘ LẮNG NGHE TIỀN VỀ TỰ ĐỘNG!
+            startPolling();
         }
 
         document.getElementById('login-form').addEventListener('submit', async (e) => {
@@ -440,6 +492,7 @@
         });
 
         function logout() {
+            stopPolling();
             localStorage.removeItem('otopi_user');
             localStorage.removeItem('otopi_admin_token');
             currentUser = null;
@@ -447,6 +500,7 @@
         }
 
         function closeModals() {
+            stopPolling();
             document.getElementById('login-modal').classList.add('hidden');
             document.getElementById('register-modal').classList.add('hidden');
             document.getElementById('topup-modal').classList.add('hidden');
@@ -454,6 +508,7 @@
         }
 
         updateHeader();
+        syncUserBalance(); // Tự động đồng bộ số dư mỗi khi vào web
         loadAccounts();
     </script>
 </body>
