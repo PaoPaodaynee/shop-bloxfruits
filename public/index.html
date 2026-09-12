@@ -157,7 +157,6 @@
             </div>
             <div id="fruit-list" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
         </section>
-
     </main>
 
     <!-- FOOTER -->
@@ -167,12 +166,6 @@
             <p>Bản quyền © 2026 OTOPI-ROBLOX. Vận hành bởi Admin TRAN VU THIEN.</p>
         </div>
     </footer>
-
-    <!-- NÚT ZALO THẬT -->
-    <a href="https://zalo.me/0912345678" target="_blank" class="fixed bottom-5 right-5 bg-blue-600 hover:bg-blue-700 text-white p-3.5 rounded-full shadow-2xl flex items-center gap-2 z-50 animate-bounce">
-        <span class="text-xl">💬</span>
-        <span class="text-xs font-bold hidden md:inline">Hỗ Trợ Admin</span>
-    </a>
 
     <!-- MODAL ĐẶT MUA GAMEPASS & TRÁI RƯƠNG -->
     <div id="order-item-modal" class="fixed inset-0 bg-black/85 flex items-center justify-center hidden z-50 p-4">
@@ -253,7 +246,6 @@
             </div>
 
             <div class="overflow-y-auto flex-grow">
-                <!-- ACC ĐÃ MUA -->
                 <div id="sub-content-acc">
                     <table class="w-full text-left border-collapse text-xs">
                         <thead>
@@ -268,7 +260,6 @@
                     </table>
                 </div>
 
-                <!-- ĐƠN CÀY THUÊ -->
                 <div id="sub-content-boost" class="hidden">
                     <table class="w-full text-left border-collapse text-xs">
                         <thead>
@@ -283,7 +274,6 @@
                     </table>
                 </div>
 
-                <!-- ĐƠN GAMEPASS & TRÁI RƯƠNG -->
                 <div id="sub-content-items" class="hidden">
                     <table class="w-full text-left border-collapse text-xs">
                         <thead>
@@ -439,11 +429,11 @@
     <script>
         let currentUser = JSON.parse(localStorage.getItem('otopi_user')) || null;
         let authToken = localStorage.getItem('otopi_token') || null;
-        // Helper: trả về headers có kèm token đăng nhập, dùng cho mọi API cần xác thực
+
         function authHeaders(extra = {}) {
             return { ...extra, 'Authorization': 'Bearer ' + (authToken || '') };
         }
-        // Chống XSS: escape dữ liệu do người dùng nhập trước khi chèn vào innerHTML
+
         function escapeHtml(str) {
             if (str === null || str === undefined) return '';
             return String(str)
@@ -453,6 +443,7 @@
                 .replace(/"/g, '&quot;')
                 .replace(/'/g, '&#39;');
         }
+
         let allAccounts = [];
         let allCategories = [];
         let allBoostServices = [];
@@ -479,7 +470,7 @@
                         + Nạp Tiền
                     </button>
                     <div class="bg-gray-800 px-2.5 py-1.5 rounded-lg border border-yellow-500/50 text-yellow-400 text-xs font-bold">
-                        👤 ${currentUser.username} | <span id="header-balance">${currentUser.balance.toLocaleString('vi-VN')}</span> đ
+                        👤 ${escapeHtml(currentUser.username)} | <span id="header-balance">${Number(currentUser.balance || 0).toLocaleString('vi-VN')}</span> đ
                     </div>
                     <button onclick="logout()" class="bg-red-600 hover:bg-red-700 px-2 py-1.5 rounded-lg text-xs font-bold">
                         Thoát
@@ -524,7 +515,7 @@
                 const container = document.getElementById(containerId);
                 container.innerHTML = '';
 
-                if (allItems.length === 0) {
+                if (!allItems || allItems.length === 0) {
                     container.innerHTML = `<p class="col-span-3 text-center text-gray-500 py-10">Hiện chưa có sản phẩm nào đang mở bán!</p>`;
                     return;
                 }
@@ -536,16 +527,16 @@
                     container.innerHTML += `
                         <div class="bg-gray-900 border border-gray-800 hover:border-yellow-500/60 rounded-2xl overflow-hidden shadow-xl flex flex-col justify-between transition duration-300 group">
                             <div class="h-44 overflow-hidden relative bg-black">
-                                <img src="${it.image}" alt="${it.name}" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
+                                <img src="${escapeHtml(it.image)}" alt="${escapeHtml(it.name)}" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
                                 <span class="absolute top-2 left-2 ${tagBg} px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider">${tagText}</span>
                             </div>
                             <div class="p-4 flex-grow flex flex-col justify-between">
                                 <div>
-                                    <h4 class="font-bold text-sm text-white">${it.name}</h4>
-                                    <p class="text-xs text-gray-400 mt-2 line-clamp-2">${it.description || 'Giao hàng siêu tốc trong game'}</p>
+                                    <h4 class="font-bold text-sm text-white">${escapeHtml(it.name)}</h4>
+                                    <p class="text-xs text-gray-400 mt-2 line-clamp-2">${escapeHtml(it.description) || 'Giao hàng siêu tốc trong game'}</p>
                                 </div>
                                 <div class="mt-4 pt-3 border-t border-gray-800 flex justify-between items-center">
-                                    <span class="text-yellow-400 font-black text-base">${it.price.toLocaleString('vi-VN')} đ</span>
+                                    <span class="text-yellow-400 font-black text-base">${Number(it.price || 0).toLocaleString('vi-VN')} đ</span>
                                     <button onclick="openItemOrderModal(${it.id})" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow-lg transition">
                                         Mua Ngay
                                     </button>
@@ -569,7 +560,7 @@
 
             document.getElementById('modal-item-id').value = item.id;
             document.getElementById('modal-item-name').innerText = item.name;
-            document.getElementById('modal-item-price').innerText = item.price.toLocaleString('vi-VN');
+            document.getElementById('modal-item-price').innerText = Number(item.price || 0).toLocaleString('vi-VN');
             document.getElementById('modal-item-header').innerText = item.type === 'gamepass' ? '🎟️ MUA GAMEPASS BLOX FRUITS' : '🍎 MUA TRÁI ÁC QUỶ RƯƠNG';
             document.getElementById('order-item-modal').classList.remove('hidden');
         }
@@ -613,8 +604,8 @@
 
                 allCategories.forEach(c => {
                     container.innerHTML += `
-                        <button onclick="selectCategory('${c.name}', '${c.name.toUpperCase()}')" id="cat-pill-${c.id}" class="cat-pill px-4 py-2 rounded-xl text-xs font-bold transition bg-gray-900 hover:bg-gray-800 text-gray-300 border border-gray-800 hover:border-gray-600">
-                            📂 ${c.name}
+                        <button onclick="selectCategory('${escapeHtml(c.name)}', '${escapeHtml(c.name).toUpperCase()}')" id="cat-pill-${c.id}" class="cat-pill px-4 py-2 rounded-xl text-xs font-bold transition bg-gray-900 hover:bg-gray-800 text-gray-300 border border-gray-800 hover:border-gray-600">
+                            📂 ${escapeHtml(c.name)}
                         </button>
                     `;
                 });
@@ -652,7 +643,7 @@
         function renderAccounts(accs) {
             const list = document.getElementById('acc-list');
             list.innerHTML = '';
-            if(accs.length === 0) {
+            if(!accs || accs.length === 0) {
                 list.innerHTML = `<p class="col-span-3 text-center text-gray-500 py-10">Hiện chưa có acc phù hợp với mục này!</p>`;
                 return;
             }
@@ -661,21 +652,21 @@
                 list.innerHTML += `
                     <div class="bg-gray-900 border border-gray-800 hover:border-red-500/50 rounded-2xl overflow-hidden shadow-xl flex flex-col justify-between transition duration-300 group">
                         <div class="h-44 overflow-hidden relative bg-black">
-                            <img src="${imgUrl}" alt="${acc.title}" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
+                            <img src="${escapeHtml(imgUrl)}" alt="${escapeHtml(acc.title)}" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
                             <span class="absolute top-2 left-2 bg-red-600/90 text-white text-[10px] px-2 py-0.5 rounded font-black uppercase tracking-wider shadow">Mã #${acc.id}</span>
-                            <span class="absolute bottom-2 left-2 bg-black/80 text-yellow-400 text-[10px] px-2 py-0.5 rounded font-bold border border-yellow-500/40">📂 ${acc.category || 'Mặc định'}</span>
+                            <span class="absolute bottom-2 left-2 bg-black/80 text-yellow-400 text-[10px] px-2 py-0.5 rounded font-bold border border-yellow-500/40">📂 ${escapeHtml(acc.category) || 'Mặc định'}</span>
                         </div>
                         <div class="p-4 flex-grow flex flex-col justify-between">
                             <div>
-                                <h4 class="font-bold text-sm text-white line-clamp-2">${acc.title}</h4>
+                                <h4 class="font-bold text-sm text-white line-clamp-2">${escapeHtml(acc.title)}</h4>
                                 <div class="mt-3 space-y-1 text-xs text-gray-400 border-t border-gray-800 pt-2">
-                                    <p>⚔️ Level: <span class="text-white font-semibold">${acc.level}</span></p>
-                                    <p>🍎 Trái: <span class="text-purple-400 font-bold">${acc.fruit}</span></p>
-                                    <p>👊 Melee: <span class="text-orange-400 font-bold">${acc.melee}</span></p>
+                                    <p>⚔️ Level: <span class="text-white font-semibold">${escapeHtml(acc.level)}</span></p>
+                                    <p>🍎 Trái: <span class="text-purple-400 font-bold">${escapeHtml(acc.fruit)}</span></p>
+                                    <p>👊 Melee: <span class="text-orange-400 font-bold">${escapeHtml(acc.melee)}</span></p>
                                 </div>
                             </div>
                             <div class="mt-4 pt-3 border-t border-gray-800 flex justify-between items-center">
-                                <span class="text-yellow-400 font-black text-base">${acc.price.toLocaleString('vi-VN')} đ</span>
+                                <span class="text-yellow-400 font-black text-base">${Number(acc.price || 0).toLocaleString('vi-VN')} đ</span>
                                 <button onclick="buyAcc(${acc.id})" class="bg-red-600 hover:bg-red-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow-lg transition">Mua Ngay</button>
                             </div>
                         </div>
@@ -690,7 +681,9 @@
 
             const filtered = allAccounts.filter(acc => {
                 const matchCategory = (selectedCategory === 'all') || (acc.category === selectedCategory);
-                const matchSearch = acc.title.toLowerCase().includes(search) || acc.fruit.toLowerCase().includes(search) || acc.melee.toLowerCase().includes(search);
+                const matchSearch = (acc.title || '').toLowerCase().includes(search) || 
+                                     (acc.fruit || '').toLowerCase().includes(search) || 
+                                     (acc.melee || '').toLowerCase().includes(search);
                 let matchPrice = true;
                 if(priceRange === 'under50') matchPrice = acc.price < 50000;
                 else if(priceRange === '50to100') matchPrice = acc.price >= 50000 && acc.price <= 100000;
@@ -737,16 +730,16 @@
                 list.innerHTML += `
                     <div class="bg-gray-900 border border-gray-800 hover:border-purple-500/60 rounded-2xl overflow-hidden shadow-xl flex flex-col justify-between transition duration-300 group">
                         <div class="h-44 overflow-hidden relative bg-black">
-                            <img src="${s.image}" alt="${s.name}" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
+                            <img src="${escapeHtml(s.image)}" alt="${escapeHtml(s.name)}" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
                             <span class="absolute top-2 left-2 bg-purple-600 text-white text-[10px] px-2 py-0.5 rounded font-black uppercase tracking-wider">CÀY SIÊU TỐC</span>
                         </div>
                         <div class="p-4 flex-grow flex flex-col justify-between">
                             <div>
-                                <h4 class="font-bold text-sm text-white">${s.name}</h4>
-                                <p class="text-xs text-gray-400 mt-2 line-clamp-2">${s.description || 'Hoàn thành siêu tốc trong 24h'}</p>
+                                <h4 class="font-bold text-sm text-white">${escapeHtml(s.name)}</h4>
+                                <p class="text-xs text-gray-400 mt-2 line-clamp-2">${escapeHtml(s.description) || 'Hoàn thành siêu tốc trong 24h'}</p>
                             </div>
                             <div class="mt-4 pt-3 border-t border-gray-800 flex justify-between items-center">
-                                <span class="text-yellow-400 font-black text-base">${s.price.toLocaleString('vi-VN')} đ</span>
+                                <span class="text-yellow-400 font-black text-base">${Number(s.price || 0).toLocaleString('vi-VN')} đ</span>
                                 <button onclick="openBoostOrderModal(${s.id})" class="bg-purple-600 hover:bg-purple-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow-lg transition">Thuê Cày</button>
                             </div>
                         </div>
@@ -766,7 +759,7 @@
 
             document.getElementById('modal-boost-id').value = service.id;
             document.getElementById('modal-boost-name').innerText = service.name;
-            document.getElementById('modal-boost-price').innerText = service.price.toLocaleString('vi-VN');
+            document.getElementById('modal-boost-price').innerText = Number(service.price || 0).toLocaleString('vi-VN');
             document.getElementById('order-boost-modal').classList.remove('hidden');
         }
 
@@ -831,7 +824,7 @@
             const tbody = document.getElementById('boost-orders-client-body');
             tbody.innerHTML = '';
 
-            if (orders.length === 0) {
+            if (!orders || orders.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-gray-500">Bạn chưa đặt đơn cày thuê nào!</td></tr>';
                 return;
             }
@@ -845,8 +838,8 @@
                 tbody.innerHTML += `
                     <tr class="border-b border-gray-700/50">
                         <td class="p-2 font-bold text-gray-400">#${o.id}</td>
-                        <td class="p-2 font-semibold text-white">${o.serviceName}</td>
-                        <td class="p-2 font-bold text-green-400">${o.price.toLocaleString('vi-VN')} đ</td>
+                        <td class="p-2 font-semibold text-white">${escapeHtml(o.serviceName)}</td>
+                        <td class="p-2 font-bold text-green-400">${Number(o.price || 0).toLocaleString('vi-VN')} đ</td>
                         <td class="p-2">${badge}</td>
                     </tr>
                 `;
@@ -860,7 +853,7 @@
             const tbody = document.getElementById('items-orders-client-body');
             tbody.innerHTML = '';
 
-            if (orders.length === 0) {
+            if (!orders || orders.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-gray-500">Bạn chưa mua Gamepass hoặc Trái Rương nào!</td></tr>';
                 return;
             }
@@ -873,8 +866,8 @@
                 tbody.innerHTML += `
                     <tr class="border-b border-gray-700/50">
                         <td class="p-2 font-bold text-gray-400">#${o.id}</td>
-                        <td class="p-2 font-semibold text-white">${o.productName}</td>
-                        <td class="p-2 font-bold text-green-400">${o.price.toLocaleString('vi-VN')} đ</td>
+                        <td class="p-2 font-semibold text-white">${escapeHtml(o.productName)}</td>
+                        <td class="p-2 font-bold text-green-400">${Number(o.price || 0).toLocaleString('vi-VN')} đ</td>
                         <td class="p-2 font-bold text-yellow-300 font-mono">${escapeHtml(o.robloxUsername)}</td>
                         <td class="p-2">${badge}</td>
                     </tr>
@@ -891,7 +884,7 @@
                 podium.innerHTML = '';
                 listBody.innerHTML = '';
 
-                if (tops.length === 0) {
+                if (!tops || tops.length === 0) {
                     podium.innerHTML = `<div class="col-span-3 text-center py-6 bg-gray-950/60 rounded-xl border border-gray-800"><p class="text-sm text-yellow-400 font-bold">Chưa có ai đua top tháng này!</p></div>`;
                     return;
                 }
@@ -900,19 +893,19 @@
                 let podiumHtml = '';
 
                 if (top2) {
-                    podiumHtml += `<div class="bg-gradient-to-t from-gray-900 to-gray-800 border border-gray-600 rounded-xl p-4 text-center order-2 md:order-1"><span class="text-3xl">🥈</span><span class="block text-xs text-gray-400 font-bold uppercase mt-1">HẠNG 2</span><p class="font-black text-base text-white mt-1 truncate">${top2.username}</p><p class="text-sm font-bold text-yellow-400 mt-1">${top2.total.toLocaleString('vi-VN')} đ</p></div>`;
+                    podiumHtml += `<div class="bg-gradient-to-t from-gray-900 to-gray-800 border border-gray-600 rounded-xl p-4 text-center order-2 md:order-1"><span class="text-3xl">🥈</span><span class="block text-xs text-gray-400 font-bold uppercase mt-1">HẠNG 2</span><p class="font-black text-base text-white mt-1 truncate">${escapeHtml(top2.username)}</p><p class="text-sm font-bold text-yellow-400 mt-1">${Number(top2.total || 0).toLocaleString('vi-VN')} đ</p></div>`;
                 }
                 if (top1) {
-                    podiumHtml += `<div class="bg-gradient-to-t from-yellow-950/60 to-gray-800 border-2 border-yellow-500 rounded-xl p-5 text-center order-1 md:order-2 shadow-2xl relative"><span class="text-4xl animate-bounce">🥇</span><span class="block text-xs text-yellow-400 font-black uppercase mt-1">QUÁN QUÂN TOP 1</span><p class="font-black text-lg text-yellow-300 mt-1 truncate">${top1.username}</p><p class="text-base font-black text-green-400 mt-1">${top1.total.toLocaleString('vi-VN')} đ</p></div>`;
+                    podiumHtml += `<div class="bg-gradient-to-t from-yellow-950/60 to-gray-800 border-2 border-yellow-500 rounded-xl p-5 text-center order-1 md:order-2 shadow-2xl relative"><span class="text-4xl animate-bounce">🥇</span><span class="block text-xs text-yellow-400 font-black uppercase mt-1">QUÁN QUÂN TOP 1</span><p class="font-black text-lg text-yellow-300 mt-1 truncate">${escapeHtml(top1.username)}</p><p class="text-base font-black text-green-400 mt-1">${Number(top1.total || 0).toLocaleString('vi-VN')} đ</p></div>`;
                 }
                 if (top3) {
-                    podiumHtml += `<div class="bg-gradient-to-t from-gray-900 to-gray-800 border border-amber-700 rounded-xl p-4 text-center order-3"><span class="text-3xl">🥉</span><span class="block text-xs text-amber-500 font-bold uppercase mt-1">HẠNG 3</span><p class="font-black text-base text-white mt-1 truncate">${top3.username}</p><p class="text-sm font-bold text-yellow-400 mt-1">${top3.total.toLocaleString('vi-VN')} đ</p></div>`;
+                    podiumHtml += `<div class="bg-gradient-to-t from-gray-900 to-gray-800 border border-amber-700 rounded-xl p-4 text-center order-3"><span class="text-3xl">🥉</span><span class="block text-xs text-amber-500 font-bold uppercase mt-1">HẠNG 3</span><p class="font-black text-base text-white mt-1 truncate">${escapeHtml(top3.username)}</p><p class="text-sm font-bold text-yellow-400 mt-1">${Number(top3.total || 0).toLocaleString('vi-VN')} đ</p></div>`;
                 }
                 podium.innerHTML = podiumHtml;
 
                 const others = tops.slice(3);
                 others.forEach(o => {
-                    listBody.innerHTML += `<tr class="border-b border-gray-800/60 hover:bg-gray-800/40"><td class="p-2.5 text-center font-bold text-gray-400">#${o.rank}</td><td class="p-2.5 font-bold text-white">${o.username}</td><td class="p-2.5 text-right font-bold text-yellow-400">${o.total.toLocaleString('vi-VN')} đ</td></tr>`;
+                    listBody.innerHTML += `<tr class="border-b border-gray-800/60 hover:bg-gray-800/40"><td class="p-2.5 text-center font-bold text-gray-400">#${o.rank}</td><td class="p-2.5 font-bold text-white">${escapeHtml(o.username)}</td><td class="p-2.5 text-right font-bold text-yellow-400">${Number(o.total || 0).toLocaleString('vi-VN')} đ</td></tr>`;
                 });
             } catch (e) {}
         }
@@ -995,16 +988,16 @@
             const orders = await res.json();
             const tbody = document.getElementById('orders-table-body');
             tbody.innerHTML = '';
-            if(orders.length === 0) {
+            if(!orders || orders.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-gray-500">Bạn chưa mua tài khoản nào!</td></tr>';
             } else {
                 orders.forEach(o => {
                     tbody.innerHTML += `
                         <tr class="border-b border-gray-700/50">
                             <td class="p-2 font-bold text-gray-400">#${o.accId}</td>
-                            <td class="p-2 font-semibold text-white">${o.title}</td>
+                            <td class="p-2 font-semibold text-white">${escapeHtml(o.title)}</td>
                             <td class="p-2 font-mono text-yellow-300">User: <b>${escapeHtml(o.robloxUser)}</b><br>Pass: <b>${escapeHtml(o.robloxPass)}</b></td>
-                            <td class="p-2 font-bold text-green-400">${o.price.toLocaleString('vi-VN')} đ</td>
+                            <td class="p-2 font-bold text-green-400">${Number(o.price || 0).toLocaleString('vi-VN')} đ</td>
                         </tr>
                     `;
                 });
@@ -1061,7 +1054,7 @@
                 }
                 if (data.isAdmin) {
                     localStorage.setItem('otopi_admin_token', data.adminToken);
-                    alert("🚀 Xin chào Sếp OTOPI! Đang bay sang trang Quản trị...");
+                    alert("🚀 Xin chào Admin! Đang chuyển hướng sang trang Quản trị...");
                     window.location.href = '/admin.html';
                     return;
                 }
