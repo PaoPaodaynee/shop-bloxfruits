@@ -12,12 +12,27 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(__dirname));
 
 const ADMIN_USER = "admin";
-const ADMIN_PASS = process.env.ADMIN_PASSWORD || "otopi123";
+const ADMIN_PASS = process.env.ADMIN_PASSWORD || "";
+if (!ADMIN_PASS) {
+    console.warn(">>> [CẢNH BÁO]: Chưa set biến môi trường ADMIN_PASSWORD trên Render! Đăng nhập admin sẽ bị VÔ HIỆU HÓA cho đến khi bạn set.");
+}
 const ADMIN_SECRET_KEY = "otopi_bi_mat_2026";
 const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://autophobia011_db_user:YoPOL0EN3zmSvT1Z@cluster0.toio2qu.mongodb.net/shop_blox?retryWrites=true&w=majority&appName=Cluster0";
 
 const GTF_PARTNER_ID = process.env.GTF_PARTNER_ID || "3314076622";
-const GTF_PARTNER_KEY = process.env.GTF_PARTNER_KEY || "";
+const GTF_PARTNER_KEY = process.env.GTF_PARTNER_KEY || "5f8a7bbd94f22b62bcaf15b811849628";
+
+// Token/API-key riêng để xác thực webhook SePay (lấy từ Dashboard SePay > Cấu hình Webhook)
+const SEPAY_WEBHOOK_TOKEN = process.env.SEPAY_WEBHOOK_TOKEN || "otopisutio";
+
+// So sánh chuỗi an toàn (chống timing attack) dùng để check token/sign webhook
+function safeCompare(a, b) {
+    if (!a || !b) return false;
+    const bufA = Buffer.from(String(a));
+    const bufB = Buffer.from(String(b));
+    if (bufA.length !== bufB.length) return false;
+    return crypto.timingSafeEqual(bufA, bufB);
+}
 
 // ==========================================
 // 1. SCHEMAS & MODELS (HỆ THỐNG ROLE MỚI)
@@ -164,8 +179,8 @@ app.post('/api/login', async (req, res) => {
         const cleanUser = (username || "").trim().toLowerCase();
         const cleanPass = (password || "").trim();
 
-        // Đăng nhập Admin
-        if (cleanUser === "admin" && (cleanPass === (ADMIN_PASS || "").trim() || cleanPass === "otopi123")) {
+        // Đăng nhập Admin (CHỈ chấp nhận mật khẩu lấy từ biến môi trường ADMIN_PASSWORD)
+        if (cleanUser === "admin" && ADMIN_PASS && cleanPass === ADMIN_PASS.trim()) {
             return res.json({
                 success: true,
                 isAdmin: true,
@@ -580,6 +595,22 @@ app.all('/api/webhook/gachthefast', async (req, res) => {
 
         if (!card || card.status === 'success') return res.status(200).send("OK");
 
+        // XÁC THỰC CHỮ KÝ: đối chiếu sign gửi kèm với sign tự tính từ code/serial đã lưu + partner key.
+        // (Nếu nhà cung cấp gachthefast dùng công thức sign khác, hãy đối chiếu lại tài liệu API của họ
+        // và sửa dòng tính expectedSign bên dưới cho khớp.)
+        if (!GTF_PARTNER_KEY) {
+            console.warn(">>> [GACHTHEFAST WEBHOOK]: Chưa cấu hình GTF_PARTNER_KEY, từ chối webhook để an toàn!");
+            return res.status(401).send("Unauthorized");
+        }
+        const expectedSign = crypto.createHash('md5')
+            .update(GTF_PARTNER_KEY + card.code + card.serial)
+            .digest('hex');
+
+        if (!data.sign || !safeCompare(data.sign, expectedSign)) {
+            console.warn(">>> [GACHTHEFAST WEBHOOK]: Chữ ký không hợp lệ, từ chối request!", requestId);
+            return res.status(401).send("Unauthorized");
+        }
+
         if (status === 1 || status === 3) {
             const user = await User.findOne({ username: new RegExp('^' + card.username + '$', 'i') });
             const amountToAdd = realAmount > 0 ? realAmount : Math.round(card.declaredAmount * 0.8);
@@ -605,6 +636,16 @@ app.all('/api/webhook/gachthefast', async (req, res) => {
 
 app.post('/api/webhook/sepay', async (req, res) => {
     try {
+        // XÁC THỰC: SePay gửi header Authorization: "Apikey <token>".
+        // Bắt buộc phải trùng với SEPAY_WEBHOOK_TOKEN đã cấu hình, nếu không có/sai -> từ chối.
+        const authHeader = req.headers['authorization'] || "";
+        const receivedToken = authHeader.replace(/^Apikey\s+/i, '').trim();
+
+        if (!SEPAY_WEBHOOK_TOKEN || !safeCompare(receivedToken, SEPAY_WEBHOOK_TOKEN)) {
+            console.warn(">>> [SEPAY WEBHOOK]: Từ chối request - token không hợp lệ hoặc chưa cấu hình SEPAY_WEBHOOK_TOKEN!");
+            return res.status(401).json({ success: false, message: "Unauthorized" });
+        }
+
         const data = req.body;
         const content = data.content || data.description || "";
         const amount = Number(data.transferAmount) || 0;
