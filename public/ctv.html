@@ -14,22 +14,19 @@
 <body class="min-h-screen flex flex-col">
 
     <!-- Header -->
-    <header class="glass-card sticky top-0 z-50 border-b border-gray-800 px-6 py-4 flex flex-wrap justify-between items-center gap-4">
+    <header class="glass-card sticky top-0 z-50 border-b border-gray-800 px-6 py-4 flex justify-between items-center">
         <div class="flex items-center space-x-3">
             <span class="text-2xl text-yellow-400"><i class="fa-solid fa-gamepad"></i></span>
             <div>
                 <h1 class="text-lg md:text-xl font-bold tracking-wider text-white uppercase">Cổng Thợ Cày Blox Fruits</h1>
-                <p class="text-[11px] text-gray-400">Khu vực nhận và xử lý đơn cày thuê của CTV (Ăn chia 80%)</p>
+                <p class="text-[11px] text-gray-400">Khu vực nhận và xử lý đơn cày thuê của CTV</p>
             </div>
         </div>
-        <div id="authBox" class="flex flex-wrap items-center gap-3">
+        <div id="authBox" class="flex items-center space-x-4">
             <a href="/" class="bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs px-3 py-1.5 rounded font-semibold transition">
                 🌐 Về Trang Chủ
             </a>
-            <div class="bg-gray-900 border border-yellow-500/40 px-3 py-1.5 rounded-lg text-xs">
-                <span id="ctvDisplay" class="text-gray-300"></span> | 
-                Số dư: <b id="ctvBalance" class="text-green-400">0 đ</b>
-            </div>
+            <span id="ctvDisplay" class="text-gray-400 font-medium text-xs md:text-sm"></span>
             <button onclick="logoutCTV()" class="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1.5 rounded font-semibold transition">
                 <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
             </button>
@@ -41,16 +38,13 @@
 
         <!-- Tabs chuyển đổi trạng thái đơn -->
         <div class="flex flex-wrap gap-2 mb-6 items-center">
-            <button onclick="switchTab('pending')" id="tab-pending" class="px-4 py-2 rounded-lg font-bold text-xs md:text-sm bg-yellow-500 text-black shadow-lg transition flex items-center gap-1.5">
+            <button onclick="switchTab('pending')" id="tab-pending" class="px-5 py-2.5 rounded-lg font-bold text-sm bg-yellow-500 text-black shadow-lg transition flex items-center gap-2">
                 <i class="fa-solid fa-inbox"></i> Đơn Chờ Nhận (<span id="count-pending">0</span>)
             </button>
-            <button onclick="switchTab('processing')" id="tab-processing" class="px-4 py-2 rounded-lg font-bold text-xs md:text-sm bg-gray-800 text-gray-300 hover:bg-gray-700 transition flex items-center gap-1.5">
-                <i class="fa-solid fa-spinner"></i> Đang Cày (<span id="count-processing">0</span>)
+            <button onclick="switchTab('processing')" id="tab-processing" class="px-5 py-2.5 rounded-lg font-bold text-sm bg-gray-800 text-gray-300 hover:bg-gray-700 transition flex items-center gap-2">
+                <i class="fa-solid fa-spinner"></i> Đơn Tôi Đang Cày (<span id="count-processing">0</span>)
             </button>
-            <button onclick="switchTab('completed')" id="tab-completed" class="px-4 py-2 rounded-lg font-bold text-xs md:text-sm bg-gray-800 text-gray-300 hover:bg-gray-700 transition flex items-center gap-1.5">
-                <i class="fa-solid fa-check-double"></i> Đã Xong (<span id="count-completed">0</span>)
-            </button>
-            <button onclick="loadOrders()" class="ml-auto px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold transition flex items-center gap-1.5">
+            <button onclick="loadOrders()" class="ml-auto px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition flex items-center gap-1.5">
                 <i class="fa-solid fa-rotate"></i> Tải lại
             </button>
         </div>
@@ -66,43 +60,63 @@
 
     <script>
         const userObj = JSON.parse(localStorage.getItem('otopi_user') || '{}');
-        let ctvUsername = userObj.username || localStorage.getItem('ctvUser');
+        const authToken = localStorage.getItem('otopi_token');
+        let ctvUsername = userObj.username;
         let currentTab = 'pending';
         let allOrders = [];
 
+        // Helper: header xác thực dùng token đã ký từ server (không thể giả mạo như trước)
+        function authHeaders(extra = {}) {
+            return { ...extra, 'Authorization': 'Bearer ' + (authToken || '') };
+        }
+
         window.onload = () => {
-            if (!ctvUsername) {
+            if (!ctvUsername || !authToken) {
                 alert("Vui lòng Đăng Nhập tài khoản trên Trang Chủ trước!");
                 window.location.href = "/";
                 return;
             }
-            document.getElementById('ctvDisplay').innerHTML = `👤 <b>${ctvUsername}</b>`;
+            document.getElementById('ctvDisplay').innerHTML = `CTV: <b class="text-yellow-400">${escapeHtml(ctvUsername)}</b>`;
             loadOrders();
         };
 
+        // Chống XSS: escape mọi dữ liệu do người dùng nhập trước khi chèn vào innerHTML
+        function escapeHtml(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
         function logoutCTV() {
             localStorage.removeItem('otopi_user');
+            localStorage.removeItem('otopi_token');
             localStorage.removeItem('ctvUser');
             window.location.href = '/';
         }
 
         function switchTab(tab) {
             currentTab = tab;
-            ['pending', 'processing', 'completed'].forEach(t => {
-                const btn = document.getElementById('tab-' + t);
-                if (t === tab) {
-                    btn.className = "px-4 py-2 rounded-lg font-bold text-xs md:text-sm bg-yellow-500 text-black shadow-lg transition flex items-center gap-1.5";
-                } else {
-                    btn.className = "px-4 py-2 rounded-lg font-bold text-xs md:text-sm bg-gray-800 text-gray-300 hover:bg-gray-700 transition flex items-center gap-1.5";
-                }
-            });
+            const btnPending = document.getElementById('tab-pending');
+            const btnProc = document.getElementById('tab-processing');
+
+            if (tab === 'pending') {
+                btnPending.className = "px-5 py-2.5 rounded-lg font-bold text-sm bg-yellow-500 text-black shadow-lg transition flex items-center gap-2";
+                btnProc.className = "px-5 py-2.5 rounded-lg font-bold text-sm bg-gray-800 text-gray-300 hover:bg-gray-700 transition flex items-center gap-2";
+            } else {
+                btnProc.className = "px-5 py-2.5 rounded-lg font-bold text-sm bg-green-500 text-black shadow-lg transition flex items-center gap-2";
+                btnPending.className = "px-5 py-2.5 rounded-lg font-bold text-sm bg-gray-800 text-gray-300 hover:bg-gray-700 transition flex items-center gap-2";
+            }
             renderOrders();
         }
 
         async function loadOrders() {
             try {
                 const res = await fetch('/api/ctv/orders', {
-                    headers: { 'x-ctv-user': ctvUsername }
+                    headers: authHeaders()
                 });
                 const data = await res.json();
 
@@ -110,10 +124,6 @@
                     alert(data.message || "Tài khoản của bạn chưa được cấp quyền CTV!");
                     window.location.href = "/";
                     return;
-                }
-
-                if (typeof data.balance === 'number') {
-                    document.getElementById('ctvBalance').innerText = data.balance.toLocaleString('vi-VN') + ' đ';
                 }
 
                 allOrders = data.orders || [];
@@ -130,16 +140,11 @@
 
             const pendingOrders = allOrders.filter(o => o.status === 'pending');
             const myProcessingOrders = allOrders.filter(o => o.status === 'processing' && o.assignedTo === ctvUsername);
-            const myCompletedOrders = allOrders.filter(o => o.status === 'completed' && o.assignedTo === ctvUsername);
 
             document.getElementById('count-pending').innerText = pendingOrders.length;
             document.getElementById('count-processing').innerText = myProcessingOrders.length;
-            document.getElementById('count-completed').innerText = myCompletedOrders.length;
 
-            let displayOrders = [];
-            if (currentTab === 'pending') displayOrders = pendingOrders;
-            else if (currentTab === 'processing') displayOrders = myProcessingOrders;
-            else if (currentTab === 'completed') displayOrders = myCompletedOrders;
+            const displayOrders = currentTab === 'pending' ? pendingOrders : myProcessingOrders;
 
             if (displayOrders.length === 0) {
                 emptyEl.classList.remove('hidden');
@@ -151,57 +156,43 @@
                 const isMyOrder = order.assignedTo === ctvUsername;
                 const card = document.createElement('div');
                 card.className = "glass-card rounded-xl p-5 flex flex-col justify-between shadow-md border-t-2 " + 
-                    (order.status === 'pending' ? "border-yellow-500" : order.status === 'processing' ? "border-blue-500" : "border-green-500");
-
-                let badgeHtml = '<span class="text-xs bg-yellow-900 text-yellow-300 px-2 py-0.5 rounded font-bold">Chờ nhận</span>';
-                if (order.status === 'processing') badgeHtml = '<span class="text-xs bg-blue-900 text-blue-300 px-2 py-0.5 rounded font-bold">Đang cày</span>';
-                if (order.status === 'completed') badgeHtml = '<span class="text-xs bg-green-900 text-green-300 px-2 py-0.5 rounded font-bold">Đã hoàn thành 🎉</span>';
-
-                // CTV nhận 80%
-                const salary = Math.round(order.price * 0.8);
+                                 (currentTab === 'pending' ? "border-yellow-500" : "border-green-500");
 
                 card.innerHTML = `
                     <div>
                         <div class="flex justify-between items-start mb-3">
-                            <span class="text-xs bg-gray-800 text-gray-300 px-2 py-1 rounded font-mono font-bold">#${order.id}</span>
-                            ${badgeHtml}
+                            <span class="text-xs bg-gray-800 text-gray-300 px-2.5 py-1 rounded font-mono font-bold">#${order.id}</span>
+                            <span class="text-xs font-semibold px-2 py-0.5 rounded ${order.status === 'pending' ? 'bg-yellow-900 text-yellow-300' : 'bg-green-900 text-green-300'}">
+                                ${order.status === 'pending' ? 'Chờ nhận cày' : 'Đang cày'}
+                            </span>
                         </div>
 
-                        <h3 class="font-bold text-base text-yellow-300 mb-1">${order.serviceName}</h3>
-                        <p class="text-xs text-gray-400 mb-3">Tiền công nhận (80%): <b class="text-green-400 text-sm">${salary.toLocaleString('vi-VN')} đ</b></p>
+                        <h3 class="font-bold text-lg text-white mb-1 text-yellow-300">${order.serviceName}</h3>
+                        <p class="text-xs text-gray-400 mb-3">Tiền công gói: <b class="text-green-400 text-sm">${order.price.toLocaleString('vi-VN')} đ</b></p>
                         
-                        <div class="bg-gray-900/90 rounded-lg p-3 border border-gray-800 text-xs mb-3 space-y-1.5 font-mono">
+                        <div class="bg-gray-900/90 rounded-lg p-3 border border-gray-800 text-xs mb-3 space-y-1.5">
                             <div><span class="text-gray-400">Khách:</span> <b class="text-gray-200">${order.username}</b></div>
                             <div>
-                                <span class="text-gray-400">Roblox User:</span> 
-                                <b class="text-white select-all bg-gray-800 px-1.5 py-0.5 rounded">${isMyOrder ? order.robloxUser : '*** (Nhận để xem)'}</b>
+                                <span class="text-gray-400">Roblox Acc:</span> 
+                                <b class="text-white font-mono select-all bg-gray-800 px-1.5 py-0.5 rounded">${isMyOrder ? order.robloxUser : '*** (Nhận đơn để xem)'}</b>
                             </div>
                             <div>
                                 <span class="text-gray-400">Roblox Pass:</span> 
-                                <b class="text-red-400 select-all bg-gray-800 px-1.5 py-0.5 rounded">${isMyOrder ? order.robloxPass : '*** (Nhận để xem)'}</b>
+                                <b class="text-red-400 font-mono select-all bg-gray-800 px-1.5 py-0.5 rounded">${isMyOrder ? order.robloxPass : '*** (Nhận đơn để xem)'}</b>
                             </div>
-                            ${order.note ? `<div class="font-sans"><span class="text-gray-400">Ghi chú:</span> <i class="text-yellow-200">${order.note}</i></div>` : ''}
+                            ${order.note ? `<div><span class="text-gray-400">Ghi chú:</span> <i class="text-yellow-200">${order.note}</i></div>` : ''}
                         </div>
                     </div>
 
                     <div class="pt-2">
                         ${order.status === 'pending' ? `
-                            <button onclick="claimOrder(${order.id})" class="w-full bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-2 rounded-lg transition text-xs flex items-center justify-center gap-1">
-                                <i class="fa-solid fa-hand-holding-hand"></i> Nhận Cày Đơn Này
+                            <button onclick="claimOrder(${order.id})" class="w-full bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-2 px-4 rounded-lg transition text-sm flex items-center justify-center space-x-1">
+                                <i class="fa-solid fa-hand-holding-hand"></i> <span>Nhận Cày Đơn Này</span>
                             </button>
-                        ` : order.status === 'processing' ? `
-                            <div class="flex gap-2">
-                                <button onclick="cancelClaim(${order.id})" class="w-1/3 bg-gray-700 hover:bg-red-700 text-white font-bold py-2 rounded-lg text-xs">
-                                    Trả Đơn
-                                </button>
-                                <button onclick="completeOrder(${order.id})" class="w-2/3 bg-green-600 hover:bg-green-500 text-white font-bold py-2 rounded-lg text-xs flex items-center justify-center gap-1">
-                                    <i class="fa-solid fa-circle-check"></i> Đã Xong (Nhận Tiền)
-                                </button>
-                            </div>
                         ` : `
-                            <div class="text-center text-xs text-green-400 font-semibold py-1">
-                                <i class="fa-solid fa-check"></i> Đã cộng tiền vào số dư
-                            </div>
+                            <button onclick="completeOrder(${order.id})" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-lg transition text-sm flex items-center justify-center space-x-1">
+                                <i class="fa-solid fa-circle-check"></i> <span>Xác Nhận Đã Cày Xong</span>
+                            </button>
                         `}
                     </div>
                 `;
@@ -210,11 +201,11 @@
         }
 
         async function claimOrder(id) {
-            if (!confirm(`Bạn chắc chắn muốn nhận đơn #${id}? Vui lòng cày ngay cho khách!`)) return;
+            if (!confirm(`Bạn chắc chắn muốn nhận đơn #${id}? Vui lòng vào cày ngay cho khách sau khi nhận!`)) return;
             try {
                 const res = await fetch('/api/ctv/claim', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'x-ctv-user': ctvUsername },
+                    headers: authHeaders({ 'Content-Type': 'application/json' }),
                     body: JSON.stringify({ orderId: id })
                 });
                 const data = await res.json();
@@ -224,45 +215,23 @@
                     switchTab('processing');
                 }
             } catch (err) {
-                alert("Lỗi kết nối!");
+                alert("Lỗi xử lý!");
             }
         }
 
         async function completeOrder(id) {
-            if (!confirm(`Xác nhận bạn đã cày xong gói này và muốn nhận tiền công?`)) return;
+            if (!confirm(`Xác nhận đã cày xong hoàn tất đơn #${id}?`)) return;
             try {
                 const res = await fetch('/api/ctv/complete', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'x-ctv-user': ctvUsername },
+                    headers: authHeaders({ 'Content-Type': 'application/json' }),
                     body: JSON.stringify({ orderId: id })
                 });
                 const data = await res.json();
                 alert(data.message);
-                if (data.success) {
-                    await loadOrders();
-                    switchTab('completed');
-                }
+                if (data.success) loadOrders();
             } catch (err) {
-                alert("Lỗi kết nối!");
-            }
-        }
-
-        async function cancelClaim(id) {
-            if (!confirm(`Bạn muốn nhả đơn #${id} ra lại danh sách chờ (do sai mật khẩu hoặc bận)?`)) return;
-            try {
-                const res = await fetch('/api/ctv/cancel-claim', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'x-ctv-user': ctvUsername },
-                    body: JSON.stringify({ orderId: id })
-                });
-                const data = await res.json();
-                alert(data.message);
-                if (data.success) {
-                    await loadOrders();
-                    switchTab('pending');
-                }
-            } catch (err) {
-                alert("Lỗi kết nối!");
+                alert("Lỗi xử lý!");
             }
         }
     </script>
