@@ -168,7 +168,7 @@
                     <span class="w-2.5 h-6 bg-yellow-500 rounded-full inline-block"></span>
                     TRÁI ÁC QUỶ RƯƠNG ( TRADE )
                 </h3>
-                <p class="text-xs text-cyan-200/60 mt-1"> Giao dịch trade tại Sea 2 hoặc Sea 3!</p>
+                <p class="text-xs text-cyan-200/60 mt-1">Giao dịch trade tại Sea 2 hoặc Sea 3!</p>
             </div>
             <div id="fruit-list" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
         </section>
@@ -474,9 +474,12 @@
 
         function updateHeader() {
             const authArea = document.getElementById('auth-area');
+            const adminTokenSaved = localStorage.getItem('otopi_admin_token');
+
             if (currentUser) {
                 let roleBtn = '';
-                if (currentUser.role === 'admin') {
+                // Kiểm tra nếu có quyền admin HOẶC còn lưu token admin thì LUÔN hiện nút Quản trị
+                if (currentUser.role === 'admin' || adminTokenSaved) {
                     roleBtn = `<a href="/admin.html" class="bg-yellow-500 hover:bg-yellow-600 text-black px-2.5 py-1.5 rounded-lg text-xs font-black">⚙️ QUẢN TRỊ</a>`;
                 } else if (currentUser.role === 'ctv') {
                     roleBtn = `<a href="/ctv.html" class="bg-cyan-600 hover:bg-cyan-500 text-black px-2.5 py-1.5 rounded-lg text-xs font-black">🛠️ CỔNG CTV</a>`;
@@ -937,7 +940,10 @@
                 const res = await fetch(`/api/user-balance`, { headers: authHeaders() });
                 const data = await res.json();
                 if (data && typeof data.balance === 'number') {
-                    if (data.role) currentUser.role = data.role;
+                    // Nếu là Admin thì luôn giữ nguyên role admin, không bị ghi đè
+                    if (data.role && !localStorage.getItem('otopi_admin_token')) {
+                        currentUser.role = data.role;
+                    }
                     if (data.balance > currentUser.balance) {
                         currentUser.balance = data.balance;
                         localStorage.setItem('otopi_user', JSON.stringify(currentUser));
