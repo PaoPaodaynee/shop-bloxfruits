@@ -20,7 +20,7 @@
         <div class="flex flex-wrap justify-between items-center bg-gray-800 p-5 rounded-xl border border-gray-700 mb-8 gap-4">
             <div>
                 <h1 class="text-2xl font-black text-yellow-400">⚙️ HỆ THỐNG QUẢN TRỊ TỔNG</h1>
-                <p class="text-gray-400 text-xs">Gamepass, Trái Rương, Cày Thuê, Kho Acc, Đơn Hàng và Khách Hàng</p>
+                <p class="text-gray-400 text-xs">Túi Mù, Gamepass, Trái Rương, Cày Thuê, Kho Acc, Đơn Hàng và Khách Hàng</p>
             </div>
             <div class="flex gap-3">
                 <a href="/ctv.html" class="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg font-bold text-sm">
@@ -32,6 +32,62 @@
                 <button onclick="adminLogout()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg font-bold text-sm">
                     🚪 Đăng Xuất
                 </button>
+            </div>
+        </div>
+
+        <!-- 🎁 KHU VỰC QUẢN LÝ TÚI MÙ (MYSTERY BOX) -->
+        <div class="bg-gray-800 p-5 rounded-xl border-2 border-pink-500/60 mb-8 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-gray-700 pb-3 mb-5">
+                <div>
+                    <h2 class="text-lg font-black text-pink-400 flex items-center gap-2">
+                        🎁 CÀI ĐẶT & NẠP ACC TÚI MÙ (MYSTERY BOX)
+                    </h2>
+                    <p class="text-xs text-gray-400">Tạo túi mù và đổ hàng loạt acc (10-100 acc) vào bể chứa để khách mở ngẫu nhiên</p>
+                </div>
+                <button onclick="loadMysteryBoxes()" class="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-xs font-bold">🔄 Làm Mới Túi Mù</button>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- CỘT 1: TẠO TÚI MÙ MỚI -->
+                <div class="lg:col-span-4 bg-gray-900 p-4 rounded-xl border border-gray-700 space-y-4">
+                    <h4 class="text-xs font-bold text-pink-400 uppercase">➕ 1. Tạo Gói Túi Mù Mới:</h4>
+                    <form id="create-box-form" class="space-y-2.5">
+                        <input type="text" id="mb-name" required placeholder="Tên túi (VD: Túi Mù Kitsune 20k)" class="w-full bg-gray-800 border border-gray-700 rounded p-2 text-xs outline-none text-white">
+                        <input type="number" id="mb-price" required placeholder="Giá mở (VNĐ) VD: 20000" class="w-full bg-gray-800 border border-gray-700 rounded p-2 text-xs outline-none text-white">
+                        <input type="url" id="mb-image" placeholder="Link ảnh bìa túi mù (hoặc để trống)" class="w-full bg-gray-800 border border-gray-700 rounded p-2 text-xs text-yellow-300 outline-none">
+                        <textarea id="mb-desc" rows="2" placeholder="Mô tả cơ hội trúng..." class="w-full bg-gray-800 border border-gray-700 rounded p-2 text-xs outline-none text-white"></textarea>
+                        <button type="submit" class="w-full bg-pink-600 hover:bg-pink-700 py-2 rounded-lg font-bold text-xs">Tạo Gói Túi Mù</button>
+                    </form>
+
+                    <!-- NẠP ACC VÀO TÚI -->
+                    <div class="border-t border-gray-700 pt-4">
+                        <h4 class="text-xs font-bold text-yellow-400 uppercase mb-2">⚡ 2. Nạp Hàng Loạt Acc Vào Bể:</h4>
+                        <form id="add-box-accs-form" class="space-y-2.5">
+                            <select id="mb-select-box" required class="w-full bg-gray-800 border border-yellow-500/60 rounded p-2 text-xs text-yellow-300 font-bold outline-none"></select>
+                            <textarea id="mb-bulk-text" rows="5" required placeholder="Dán danh sách 10-100 acc:&#10;user01|pass123&#10;user02|pass456" class="w-full bg-gray-800 border border-gray-700 rounded p-2 font-mono text-xs text-yellow-300 outline-none"></textarea>
+                            <button type="submit" class="w-full bg-yellow-500 hover:bg-yellow-600 text-black py-2 rounded-lg font-black text-xs">⚡ ĐỔ TOÀN BỘ ACC VÀO TÚI</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- CỘT 2: DANH SÁCH TÚI MÙ ĐANG BÁN -->
+                <div class="lg:col-span-8 bg-gray-900 p-4 rounded-xl border border-gray-700">
+                    <h4 class="text-xs font-bold text-blue-400 uppercase mb-3">📦 Danh Sách Túi Mù & Kho Acc Còn Lại Trong Bể:</h4>
+                    <div class="overflow-x-auto max-h-[420px] overflow-y-auto">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="border-b border-gray-800 text-gray-400 uppercase">
+                                    <th class="p-2">Ảnh</th>
+                                    <th class="p-2">Tên Túi Mù</th>
+                                    <th class="p-2">Giá Mở</th>
+                                    <th class="p-2 text-center">Acc Trong Bể (Còn / Tổng)</th>
+                                    <th class="p-2 text-center">Xóa</th>
+                                </tr>
+                            </thead>
+                            <tbody id="mystery-boxes-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -231,7 +287,7 @@
         <div class="bg-gray-800 p-5 rounded-xl border border-blue-500/40 mb-8 shadow-xl">
             <div class="flex justify-between items-center border-b border-gray-700 pb-2 mb-4">
                 <h2 class="text-base font-bold text-blue-400 flex items-center gap-2">
-                    📦 LỊCH SỬ BÁN ACC (ĐỐI SOÁT BẢO HÀNH)
+                    📦 LỊCH SỬ BÁN ACC & TÚI MÙ (ĐỐI SOÁT)
                 </h2>
                 <button onclick="loadAllOrders()" class="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-xs">🔄 Tải Lại Đơn</button>
             </div>
@@ -241,7 +297,7 @@
                         <tr class="border-b border-gray-700 text-gray-400 uppercase">
                             <th class="p-2">Thời Gian</th>
                             <th class="p-2">Người Mua</th>
-                            <th class="p-2">Tên Acc</th>
+                            <th class="p-2">Tên Sản Phẩm</th>
                             <th class="p-2">Giá Bán</th>
                             <th class="p-2">Tài Khoản / Mật Khẩu Đã Giao</th>
                         </tr>
@@ -301,7 +357,7 @@
             </div>
         </div>
 
-        <!-- 📦 KHU VỰC QUẢN LÝ KHO ACC -->
+        <!-- 📦 KHU VỰC QUẢN LÝ KHO ACC THƯỜNG -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <div class="lg:col-span-5 bg-gray-800 p-6 rounded-xl border border-gray-700 h-fit">
                 <div class="flex border-b border-gray-700 mb-5 gap-2">
@@ -383,7 +439,6 @@
     <script>
         let adminToken = localStorage.getItem('otopi_admin_token');
 
-        // Hàm chuẩn hóa Header xác thực Admin
         function adminHeaders(extra = {}) {
             return {
                 ...extra,
@@ -391,7 +446,6 @@
             };
         }
 
-        // Chống XSS triệt để
         function escapeHtml(str) {
             if (str === null || str === undefined) return '';
             return String(str)
@@ -406,6 +460,7 @@
             if (adminToken) {
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('dashboard-screen').classList.remove('hidden');
+                loadMysteryBoxes();
                 loadItemData();
                 loadAdminCategories();
                 loadBoostData();
@@ -419,6 +474,99 @@
             }
         }
 
+        // ==========================================
+        // QUẢN LÝ TÚI MÙ (MYSTERY BOX)
+        // ==========================================
+        async function loadMysteryBoxes() {
+            const res = await fetch('/api/admin/mystery-boxes', { headers: adminHeaders() });
+            const boxes = await res.json();
+            const tbody = document.getElementById('mystery-boxes-table-body');
+            const selectBox = document.getElementById('mb-select-box');
+
+            tbody.innerHTML = '';
+            selectBox.innerHTML = '<option value="">-- Chọn túi mù để đổ acc vào --</option>';
+
+            if (!boxes || boxes.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="p-3 text-center text-gray-400">Chưa tạo túi mù nào!</td></tr>';
+                return;
+            }
+
+            boxes.forEach(b => {
+                selectBox.innerHTML += `<option value="${b.id}">🎁 ${escapeHtml(b.name)} (${Number(b.price).toLocaleString('vi-VN')}đ) - Còn: ${b.remainingAcc} acc</option>`;
+
+                tbody.innerHTML += `
+                    <tr class="border-b border-gray-800 hover:bg-gray-800/40">
+                        <td class="p-2"><img src="${escapeHtml(b.image)}" class="w-9 h-9 object-cover rounded border border-gray-700"></td>
+                        <td class="p-2">
+                            <span class="font-bold text-white">${escapeHtml(b.name)}</span>
+                            <div class="text-[10px] text-gray-400 truncate max-w-[200px]">${escapeHtml(b.description) || 'Không có mô tả'}</div>
+                        </td>
+                        <td class="p-2 font-bold text-yellow-400">${Number(b.price || 0).toLocaleString('vi-VN')} đ</td>
+                        <td class="p-2 text-center">
+                            <span class="bg-pink-950 text-pink-300 border border-pink-700 px-2 py-0.5 rounded font-bold text-xs">
+                                Còn: ${b.remainingAcc} / Tổng: ${b.totalAcc}
+                            </span>
+                        </td>
+                        <td class="p-2 text-center">
+                            <button onclick="deleteMysteryBox(${b.id})" class="bg-red-800 hover:bg-red-700 text-red-200 px-2 py-0.5 rounded text-[10px] font-bold">Xóa Túi</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        document.getElementById('create-box-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = {
+                name: document.getElementById('mb-name').value,
+                price: document.getElementById('mb-price').value,
+                image: document.getElementById('mb-image').value,
+                description: document.getElementById('mb-desc').value
+            };
+            const res = await fetch('/api/admin/mystery-box/create', {
+                method: 'POST',
+                headers: adminHeaders({ 'Content-Type': 'application/json' }),
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            alert("🎉 " + data.message);
+            if (data.success) {
+                document.getElementById('create-box-form').reset();
+                loadMysteryBoxes();
+            }
+        });
+
+        document.getElementById('add-box-accs-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const boxId = document.getElementById('mb-select-box').value;
+            const bulkText = document.getElementById('mb-bulk-text').value;
+
+            if (!boxId) return alert("Vui lòng chọn 1 Túi Mù trong danh sách!");
+
+            const res = await fetch('/api/admin/mystery-box/add-accs', {
+                method: 'POST',
+                headers: adminHeaders({ 'Content-Type': 'application/json' }),
+                body: JSON.stringify({ boxId, bulkText })
+            });
+            const data = await res.json();
+            alert("🚀 " + data.message);
+            if (data.success) {
+                document.getElementById('mb-bulk-text').value = '';
+                loadMysteryBoxes();
+            }
+        });
+
+        async function deleteMysteryBox(id) {
+            if (!confirm(`Xóa vĩnh viễn túi mù #${id} và toàn bộ acc trong túi này?`)) return;
+            const res = await fetch(`/api/admin/mystery-box/${id}`, { method: 'DELETE', headers: adminHeaders() });
+            const data = await res.json();
+            alert(data.message);
+            loadMysteryBoxes();
+        }
+
+        // ==========================================
+        // GAMEPASS & VẬT PHẨM
+        // ==========================================
         async function loadItemData() {
             loadItemOrders();
             loadItemProducts();
@@ -536,6 +684,9 @@
             loadItemProducts();
         });
 
+        // ==========================================
+        // CHUYÊN MỤC KHO ACC
+        // ==========================================
         async function loadAdminCategories() {
             const res = await fetch('/api/admin/categories', { headers: adminHeaders() });
             const cats = await res.json();
@@ -594,6 +745,9 @@
             loadAdminCategories();
         });
 
+        // ==========================================
+        // CÀY THUÊ
+        // ==========================================
         async function loadBoostData() {
             loadBoostOrders();
             loadBoostServices();
@@ -713,6 +867,9 @@
             loadBoostServices();
         });
 
+        // ==========================================
+        // LỊCH SỬ ĐƠN HÀNG & THẺ CÀO
+        // ==========================================
         async function loadAllOrders() {
             const res = await fetch('/api/admin/orders', { headers: adminHeaders() });
             const orders = await res.json();
@@ -784,24 +941,9 @@
             loadAllUsers();
         }
 
-        function switchTab(tab) {
-            const singleForm = document.getElementById('single-form');
-            const bulkForm = document.getElementById('bulk-form');
-            const btnSingle = document.getElementById('tab-btn-single');
-            const btnBulk = document.getElementById('tab-btn-bulk');
-            if (tab === 'single') {
-                singleForm.classList.remove('hidden');
-                bulkForm.classList.add('hidden');
-                btnSingle.className = "pb-2 font-bold text-sm border-b-2 border-green-500 text-green-400";
-                btnBulk.className = "pb-2 font-bold text-sm text-gray-400 hover:text-white";
-            } else {
-                singleForm.classList.add('hidden');
-                bulkForm.classList.remove('hidden');
-                btnSingle.className = "pb-2 font-bold text-sm text-gray-400 hover:text-white";
-                btnBulk.className = "pb-2 font-bold text-sm border-b-2 border-yellow-500 text-yellow-400";
-            }
-        }
-
+        // ==========================================
+        // QUẢN LÝ USER & CTV
+        // ==========================================
         async function loadAllUsers() {
             const res = await fetch('/api/admin/users', { headers: adminHeaders() });
             const users = await res.json();
@@ -865,6 +1007,27 @@
             if (data.success) {
                 input.value = '';
                 loadAllUsers();
+            }
+        }
+
+        // ==========================================
+        // KHO ACC THƯỜNG
+        // ==========================================
+        function switchTab(tab) {
+            const singleForm = document.getElementById('single-form');
+            const bulkForm = document.getElementById('bulk-form');
+            const btnSingle = document.getElementById('tab-btn-single');
+            const btnBulk = document.getElementById('tab-btn-bulk');
+            if (tab === 'single') {
+                singleForm.classList.remove('hidden');
+                bulkForm.classList.add('hidden');
+                btnSingle.className = "pb-2 font-bold text-sm border-b-2 border-green-500 text-green-400";
+                btnBulk.className = "pb-2 font-bold text-sm text-gray-400 hover:text-white";
+            } else {
+                singleForm.classList.add('hidden');
+                bulkForm.classList.remove('hidden');
+                btnSingle.className = "pb-2 font-bold text-sm text-gray-400 hover:text-white";
+                btnBulk.className = "pb-2 font-bold text-sm border-b-2 border-yellow-500 text-yellow-400";
             }
         }
 
