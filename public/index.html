@@ -443,6 +443,16 @@
         function authHeaders(extra = {}) {
             return { ...extra, 'Authorization': 'Bearer ' + (authToken || '') };
         }
+        // Chống XSS: escape dữ liệu do người dùng nhập trước khi chèn vào innerHTML
+        function escapeHtml(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
         let allAccounts = [];
         let allCategories = [];
         let allBoostServices = [];
@@ -865,7 +875,7 @@
                         <td class="p-2 font-bold text-gray-400">#${o.id}</td>
                         <td class="p-2 font-semibold text-white">${o.productName}</td>
                         <td class="p-2 font-bold text-green-400">${o.price.toLocaleString('vi-VN')} đ</td>
-                        <td class="p-2 font-bold text-yellow-300 font-mono">${o.robloxUsername}</td>
+                        <td class="p-2 font-bold text-yellow-300 font-mono">${escapeHtml(o.robloxUsername)}</td>
                         <td class="p-2">${badge}</td>
                     </tr>
                 `;
@@ -993,7 +1003,7 @@
                         <tr class="border-b border-gray-700/50">
                             <td class="p-2 font-bold text-gray-400">#${o.accId}</td>
                             <td class="p-2 font-semibold text-white">${o.title}</td>
-                            <td class="p-2 font-mono text-yellow-300">User: <b>${o.robloxUser}</b><br>Pass: <b>${o.robloxPass}</b></td>
+                            <td class="p-2 font-mono text-yellow-300">User: <b>${escapeHtml(o.robloxUser)}</b><br>Pass: <b>${escapeHtml(o.robloxPass)}</b></td>
                             <td class="p-2 font-bold text-green-400">${o.price.toLocaleString('vi-VN')} đ</td>
                         </tr>
                     `;
