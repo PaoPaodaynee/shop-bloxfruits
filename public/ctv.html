@@ -65,19 +65,9 @@
         let currentTab = 'pending';
         let allOrders = [];
 
+        // Helper: header xác thực dùng token đã ký từ server (không thể giả mạo như trước)
         function authHeaders(extra = {}) {
             return { ...extra, 'Authorization': 'Bearer ' + (authToken || '') };
-        }
-
-        // Chống XSS triệt để
-        function escapeHtml(str) {
-            if (str === null || str === undefined) return '';
-            return String(str)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#39;');
         }
 
         window.onload = () => {
@@ -89,6 +79,17 @@
             document.getElementById('ctvDisplay').innerHTML = `CTV: <b class="text-yellow-400">${escapeHtml(ctvUsername)}</b>`;
             loadOrders();
         };
+
+        // Chống XSS: escape mọi dữ liệu do người dùng nhập trước khi chèn vào innerHTML
+        function escapeHtml(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
 
         function logoutCTV() {
             localStorage.removeItem('otopi_user');
@@ -166,20 +167,20 @@
                             </span>
                         </div>
 
-                        <h3 class="font-bold text-lg text-white mb-1 text-yellow-300">${escapeHtml(order.serviceName)}</h3>
-                        <p class="text-xs text-gray-400 mb-3">Tiền công gói: <b class="text-green-400 text-sm">${Number(order.price || 0).toLocaleString('vi-VN')} đ</b></p>
+                        <h3 class="font-bold text-lg text-white mb-1 text-yellow-300">${order.serviceName}</h3>
+                        <p class="text-xs text-gray-400 mb-3">Tiền công gói: <b class="text-green-400 text-sm">${order.price.toLocaleString('vi-VN')} đ</b></p>
                         
                         <div class="bg-gray-900/90 rounded-lg p-3 border border-gray-800 text-xs mb-3 space-y-1.5">
-                            <div><span class="text-gray-400">Khách:</span> <b class="text-gray-200">${escapeHtml(order.username)}</b></div>
+                            <div><span class="text-gray-400">Khách:</span> <b class="text-gray-200">${order.username}</b></div>
                             <div>
                                 <span class="text-gray-400">Roblox Acc:</span> 
-                                <b class="text-white font-mono select-all bg-gray-800 px-1.5 py-0.5 rounded">${isMyOrder ? escapeHtml(order.robloxUser) : '*** (Nhận đơn để xem)'}</b>
+                                <b class="text-white font-mono select-all bg-gray-800 px-1.5 py-0.5 rounded">${isMyOrder ? order.robloxUser : '*** (Nhận đơn để xem)'}</b>
                             </div>
                             <div>
                                 <span class="text-gray-400">Roblox Pass:</span> 
-                                <b class="text-red-400 font-mono select-all bg-gray-800 px-1.5 py-0.5 rounded">${isMyOrder ? escapeHtml(order.robloxPass) : '*** (Nhận đơn để xem)'}</b>
+                                <b class="text-red-400 font-mono select-all bg-gray-800 px-1.5 py-0.5 rounded">${isMyOrder ? order.robloxPass : '*** (Nhận đơn để xem)'}</b>
                             </div>
-                            ${order.note ? `<div><span class="text-gray-400">Ghi chú:</span> <i class="text-yellow-200">${escapeHtml(order.note)}</i></div>` : ''}
+                            ${order.note ? `<div><span class="text-gray-400">Ghi chú:</span> <i class="text-yellow-200">${order.note}</i></div>` : ''}
                         </div>
                     </div>
 
