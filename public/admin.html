@@ -383,7 +383,15 @@
     <script>
         let adminToken = localStorage.getItem('otopi_admin_token');
 
-        // Chống XSS: escape mọi dữ liệu do người dùng (khách/CTV) nhập trước khi chèn vào innerHTML
+        // Hàm chuẩn hóa Header xác thực Admin
+        function adminHeaders(extra = {}) {
+            return {
+                ...extra,
+                'Authorization': 'Bearer ' + (adminToken || '')
+            };
+        }
+
+        // Chống XSS triệt để
         function escapeHtml(str) {
             if (str === null || str === undefined) return '';
             return String(str)
@@ -417,12 +425,12 @@
         }
 
         async function loadItemOrders() {
-            const res = await fetch('/api/admin/item-orders', { headers: { 'Authorization': adminToken } });
+            const res = await fetch('/api/admin/item-orders', { headers: adminHeaders() });
             const orders = await res.json();
             const tbody = document.getElementById('item-orders-body');
             tbody.innerHTML = '';
 
-            if (orders.length === 0) {
+            if (!orders || orders.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="9" class="p-3 text-center text-gray-400">Chưa có đơn mua Gamepass hoặc Trái Rương nào.</td></tr>';
                 return;
             }
@@ -452,7 +460,7 @@
                         <td class="p-2 font-bold text-white">👤 ${escapeHtml(o.username)}</td>
                         <td class="p-2">${typeBadge}</td>
                         <td class="p-2 font-semibold text-white">${escapeHtml(o.productName)}</td>
-                        <td class="p-2 font-bold text-green-400">${o.price.toLocaleString('vi-VN')} đ</td>
+                        <td class="p-2 font-bold text-green-400">${Number(o.price || 0).toLocaleString('vi-VN')} đ</td>
                         <td class="p-2 font-mono font-bold text-yellow-300 select-all">${escapeHtml(o.robloxUsername)}</td>
                         <td class="p-2 text-gray-400 italic max-w-[120px] truncate">${escapeHtml(o.note) || '-'}</td>
                         <td class="p-2">${badge}</td>
@@ -469,7 +477,7 @@
 
             const res = await fetch('/api/admin/item-order/status', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': adminToken },
+                headers: adminHeaders({ 'Content-Type': 'application/json' }),
                 body: JSON.stringify({ orderId, status })
             });
             const data = await res.json();
@@ -479,7 +487,7 @@
         }
 
         async function loadItemProducts() {
-            const res = await fetch('/api/admin/items', { headers: { 'Authorization': adminToken } });
+            const res = await fetch('/api/admin/items', { headers: adminHeaders() });
             const items = await res.json();
             const tbody = document.getElementById('items-table-body');
             tbody.innerHTML = '';
@@ -488,10 +496,10 @@
                 const typeLabel = it.type === 'gamepass' ? '🎟️ Gamepass' : '🍎 Trái Rương';
                 tbody.innerHTML += `
                     <tr class="border-b border-gray-800 hover:bg-gray-800/40">
-                        <td class="p-2"><img src="${it.image}" class="w-8 h-8 object-cover rounded border border-gray-700"></td>
+                        <td class="p-2"><img src="${escapeHtml(it.image)}" class="w-8 h-8 object-cover rounded border border-gray-700"></td>
                         <td class="p-2 text-gray-400 font-bold">${typeLabel}</td>
-                        <td class="p-2 font-bold text-white">${it.name}</td>
-                        <td class="p-2 font-bold text-yellow-400">${it.price.toLocaleString('vi-VN')} đ</td>
+                        <td class="p-2 font-bold text-white">${escapeHtml(it.name)}</td>
+                        <td class="p-2 font-bold text-yellow-400">${Number(it.price || 0).toLocaleString('vi-VN')} đ</td>
                         <td class="p-2 text-center">
                             <button onclick="deleteItemProduct(${it.id})" class="bg-red-800 hover:bg-red-700 text-red-200 px-2 py-0.5 rounded text-[10px] font-bold">Xóa</button>
                         </td>
@@ -502,7 +510,7 @@
 
         async function deleteItemProduct(id) {
             if (!confirm(`Xóa sản phẩm #${id}?`)) return;
-            const res = await fetch(`/api/admin/item/${id}`, { method: 'DELETE', headers: { 'Authorization': adminToken } });
+            const res = await fetch(`/api/admin/item/${id}`, { method: 'DELETE', headers: adminHeaders() });
             const data = await res.json();
             alert(data.message);
             loadItemProducts();
@@ -519,7 +527,7 @@
             };
             const res = await fetch('/api/admin/item/add', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': adminToken },
+                headers: adminHeaders({ 'Content-Type': 'application/json' }),
                 body: JSON.stringify(newItem)
             });
             const data = await res.json();
@@ -529,7 +537,7 @@
         });
 
         async function loadAdminCategories() {
-            const res = await fetch('/api/admin/categories', { headers: { 'Authorization': adminToken } });
+            const res = await fetch('/api/admin/categories', { headers: adminHeaders() });
             const cats = await res.json();
             const tbody = document.getElementById('categories-table-body');
             const sSelect = document.getElementById('s-category');
@@ -539,29 +547,30 @@
             sSelect.innerHTML = '';
             bSelect.innerHTML = '';
 
-            if (cats.length === 0) {
+            if (!cats || cats.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="4" class="p-3 text-center text-gray-400">Chưa có mục nào được tạo.</td></tr>';
+                return;
             }
 
             cats.forEach(c => {
                 tbody.innerHTML += `
                     <tr class="border-b border-gray-800 hover:bg-gray-800/40">
-                        <td class="p-2"><img src="${c.image}" class="w-8 h-8 object-cover rounded border border-gray-700"></td>
-                        <td class="p-2 font-bold text-white">${c.name}</td>
-                        <td class="p-2 text-gray-400 max-w-[150px] truncate">${c.description || '-'}</td>
+                        <td class="p-2"><img src="${escapeHtml(c.image)}" class="w-8 h-8 object-cover rounded border border-gray-700"></td>
+                        <td class="p-2 font-bold text-white">${escapeHtml(c.name)}</td>
+                        <td class="p-2 text-gray-400 max-w-[150px] truncate">${escapeHtml(c.description) || '-'}</td>
                         <td class="p-2 text-center">
                             <button onclick="deleteCategory(${c.id})" class="bg-red-800 hover:bg-red-700 text-red-200 px-2 py-0.5 rounded text-[10px] font-bold">Xóa</button>
                         </td>
                     </tr>
                 `;
-                sSelect.innerHTML += `<option value="${c.name}">${c.name}</option>`;
-                bSelect.innerHTML += `<option value="${c.name}">${c.name}</option>`;
+                sSelect.innerHTML += `<option value="${escapeHtml(c.name)}">${escapeHtml(c.name)}</option>`;
+                bSelect.innerHTML += `<option value="${escapeHtml(c.name)}">${escapeHtml(c.name)}</option>`;
             });
         }
 
         async function deleteCategory(id) {
             if (!confirm(`Xóa mục #${id}? Các acc thuộc mục này vẫn giữ nguyên.`)) return;
-            const res = await fetch(`/api/admin/category/${id}`, { method: 'DELETE', headers: { 'Authorization': adminToken } });
+            const res = await fetch(`/api/admin/category/${id}`, { method: 'DELETE', headers: adminHeaders() });
             const data = await res.json();
             alert(data.message);
             loadAdminCategories();
@@ -576,7 +585,7 @@
             };
             const res = await fetch('/api/admin/category/add', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': adminToken },
+                headers: adminHeaders({ 'Content-Type': 'application/json' }),
                 body: JSON.stringify(newCat)
             });
             const data = await res.json();
@@ -591,12 +600,12 @@
         }
 
         async function loadBoostOrders() {
-            const res = await fetch('/api/admin/boost-orders', { headers: { 'Authorization': adminToken } });
+            const res = await fetch('/api/admin/boost-orders', { headers: adminHeaders() });
             const orders = await res.json();
             const tbody = document.getElementById('boost-orders-body');
             tbody.innerHTML = '';
 
-            if (orders.length === 0) {
+            if (!orders || orders.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="8" class="p-3 text-center text-gray-400">Chưa có đơn cày thuê nào được đặt.</td></tr>';
                 return;
             }
@@ -628,7 +637,7 @@
                         <td class="p-2 font-bold text-gray-400">#${o.id}</td>
                         <td class="p-2 font-bold text-yellow-400">👤 ${escapeHtml(o.username)}</td>
                         <td class="p-2 font-semibold text-white">${escapeHtml(o.serviceName)}</td>
-                        <td class="p-2 font-bold text-green-400">${o.price.toLocaleString('vi-VN')} đ</td>
+                        <td class="p-2 font-bold text-green-400">${Number(o.price || 0).toLocaleString('vi-VN')} đ</td>
                         <td class="p-2 font-mono text-xs text-yellow-300 select-all">
                             User: <b class="text-white">${escapeHtml(o.robloxUser)}</b><br>
                             Pass: <b class="text-white">${escapeHtml(o.robloxPass)}</b>
@@ -648,7 +657,7 @@
 
             const res = await fetch('/api/admin/boost-order/status', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': adminToken },
+                headers: adminHeaders({ 'Content-Type': 'application/json' }),
                 body: JSON.stringify({ orderId, status })
             });
             const data = await res.json();
@@ -658,7 +667,7 @@
         }
 
         async function loadBoostServices() {
-            const res = await fetch('/api/admin/boost-services', { headers: { 'Authorization': adminToken } });
+            const res = await fetch('/api/admin/boost-services', { headers: adminHeaders() });
             const services = await res.json();
             const tbody = document.getElementById('boost-services-body');
             tbody.innerHTML = '';
@@ -666,9 +675,9 @@
             services.forEach(s => {
                 tbody.innerHTML += `
                     <tr class="border-b border-gray-800 hover:bg-gray-800/40">
-                        <td class="p-2"><img src="${s.image}" class="w-8 h-8 object-cover rounded border border-gray-700"></td>
-                        <td class="p-2 font-bold text-white">${s.name}</td>
-                        <td class="p-2 font-bold text-yellow-400">${s.price.toLocaleString('vi-VN')} đ</td>
+                        <td class="p-2"><img src="${escapeHtml(s.image)}" class="w-8 h-8 object-cover rounded border border-gray-700"></td>
+                        <td class="p-2 font-bold text-white">${escapeHtml(s.name)}</td>
+                        <td class="p-2 font-bold text-yellow-400">${Number(s.price || 0).toLocaleString('vi-VN')} đ</td>
                         <td class="p-2 text-center">
                             <button onclick="deleteBoostService(${s.id})" class="bg-red-800 hover:bg-red-700 text-red-200 px-2 py-0.5 rounded text-[10px] font-bold">Xóa</button>
                         </td>
@@ -679,7 +688,7 @@
 
         async function deleteBoostService(id) {
             if (!confirm(`Xóa gói cày thuê #${id}?`)) return;
-            const res = await fetch(`/api/admin/boost-service/${id}`, { method: 'DELETE', headers: { 'Authorization': adminToken } });
+            const res = await fetch(`/api/admin/boost-service/${id}`, { method: 'DELETE', headers: adminHeaders() });
             const data = await res.json();
             alert(data.message);
             loadBoostServices();
@@ -695,7 +704,7 @@
             };
             const res = await fetch('/api/admin/boost-service/add', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': adminToken },
+                headers: adminHeaders({ 'Content-Type': 'application/json' }),
                 body: JSON.stringify(newService)
             });
             const data = await res.json();
@@ -705,11 +714,11 @@
         });
 
         async function loadAllOrders() {
-            const res = await fetch('/api/admin/orders', { headers: { 'Authorization': adminToken } });
+            const res = await fetch('/api/admin/orders', { headers: adminHeaders() });
             const orders = await res.json();
             const tbody = document.getElementById('order-table-body');
             tbody.innerHTML = '';
-            if (orders.length === 0) {
+            if (!orders || orders.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="5" class="p-3 text-center text-gray-400">Chưa có đơn hàng nào được bán ra.</td></tr>';
                 return;
             }
@@ -719,7 +728,7 @@
                         <td class="p-2 text-gray-400">${new Date(o.boughtAt).toLocaleString('vi-VN')}</td>
                         <td class="p-2 font-bold text-yellow-400">👤 ${escapeHtml(o.username)}</td>
                         <td class="p-2 font-semibold text-white truncate max-w-[150px]">${escapeHtml(o.title)} (#${o.accId})</td>
-                        <td class="p-2 font-bold text-green-400">${o.price.toLocaleString('vi-VN')} đ</td>
+                        <td class="p-2 font-bold text-green-400">${Number(o.price || 0).toLocaleString('vi-VN')} đ</td>
                         <td class="p-2 font-mono text-xs text-yellow-300">U: <b class="text-white">${escapeHtml(o.robloxUser)}</b> | P: <b class="text-white">${escapeHtml(o.robloxPass)}</b></td>
                     </tr>
                 `;
@@ -727,18 +736,18 @@
         }
 
         async function loadAllCards() {
-            const res = await fetch('/api/admin/cards', { headers: { 'Authorization': adminToken } });
+            const res = await fetch('/api/admin/cards', { headers: adminHeaders() });
             const cards = await res.json();
             const tbody = document.getElementById('card-table-body');
             tbody.innerHTML = '';
-            if(cards.length === 0) {
+            if(!cards || cards.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="8" class="p-3 text-center text-gray-400">Chưa có thẻ cào nào gửi lên.</td></tr>';
                 return;
             }
             cards.forEach(c => {
                 let statusBadge = `<span class="bg-yellow-900 text-yellow-300 px-2 py-0.5 rounded text-[10px] font-bold">Chờ Duyệt</span>`;
                 let actionBtns = `
-                    <button onclick="handleCard('${c._id}', 'approve')" class="bg-green-600 hover:bg-green-700 text-white px-2 py-0.5 rounded text-[10px] font-bold mr-1">Duyệt (+${c.realAmount.toLocaleString('vi-VN')}đ)</button>
+                    <button onclick="handleCard('${c._id}', 'approve')" class="bg-green-600 hover:bg-green-700 text-white px-2 py-0.5 rounded text-[10px] font-bold mr-1">Duyệt (+${Number(c.realAmount || 0).toLocaleString('vi-VN')}đ)</button>
                     <button onclick="handleCard('${c._id}', 'reject')" class="bg-red-600 hover:bg-red-700 text-white px-2 py-0.5 rounded text-[10px] font-bold">Hủy</button>
                 `;
                 if (c.status === 'success') {
@@ -752,8 +761,8 @@
                     <tr class="border-b border-gray-700/50">
                         <td class="p-2 font-bold text-white">${escapeHtml(c.username)}</td>
                         <td class="p-2 font-bold text-blue-400 uppercase">${escapeHtml(c.telco)}</td>
-                        <td class="p-2 font-bold text-yellow-400">${c.declaredAmount.toLocaleString('vi-VN')}đ</td>
-                        <td class="p-2 font-bold text-green-400">${c.realAmount.toLocaleString('vi-VN')}đ</td>
+                        <td class="p-2 font-bold text-yellow-400">${Number(c.declaredAmount || 0).toLocaleString('vi-VN')}đ</td>
+                        <td class="p-2 font-bold text-green-400">${Number(c.realAmount || 0).toLocaleString('vi-VN')}đ</td>
                         <td class="p-2 font-mono text-white select-all">${escapeHtml(c.code)}</td>
                         <td class="p-2 font-mono text-gray-300 select-all">${escapeHtml(c.serial)}</td>
                         <td class="p-2">${statusBadge}</td>
@@ -766,7 +775,7 @@
         async function handleCard(cardId, action) {
             const res = await fetch('/api/admin/card-action', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': adminToken },
+                headers: adminHeaders({ 'Content-Type': 'application/json' }),
                 body: JSON.stringify({ cardId, action })
             });
             const data = await res.json();
@@ -793,9 +802,8 @@
             }
         }
 
-        // BẢNG KHÁCH HÀNG & PHÂN QUYỀN CTV
         async function loadAllUsers() {
-            const res = await fetch('/api/admin/users', { headers: { 'Authorization': adminToken } });
+            const res = await fetch('/api/admin/users', { headers: adminHeaders() });
             const users = await res.json();
             const tbody = document.getElementById('user-table-body');
             tbody.innerHTML = '';
@@ -805,19 +813,19 @@
                     : `<span class="bg-gray-700 text-gray-300 px-2 py-0.5 rounded text-[10px]">Thành viên</span>`;
 
                 const roleBtn = u.role === 'ctv'
-                    ? `<button onclick="setRole('${u.username}', 'user')" class="bg-gray-700 hover:bg-gray-600 text-gray-200 px-2 py-1 rounded text-xs font-bold">Hạ xuống User</button>`
-                    : `<button onclick="setRole('${u.username}', 'ctv')" class="bg-purple-600 hover:bg-purple-700 text-white px-2 py-1 rounded text-xs font-bold">👑 Phong CTV</button>`;
+                    ? `<button onclick="setRole('${escapeHtml(u.username)}', 'user')" class="bg-gray-700 hover:bg-gray-600 text-gray-200 px-2 py-1 rounded text-xs font-bold">Hạ xuống User</button>`
+                    : `<button onclick="setRole('${escapeHtml(u.username)}', 'ctv')" class="bg-purple-600 hover:bg-purple-700 text-white px-2 py-1 rounded text-xs font-bold">👑 Phong CTV</button>`;
 
                 tbody.innerHTML += `
                     <tr class="border-b border-gray-700/50">
-                        <td class="p-2 font-bold text-white">👤 ${u.username} <div class="mt-0.5">${roleBadge}</div></td>
-                        <td class="p-2 font-bold text-yellow-400">${u.balance.toLocaleString('vi-VN')} đ</td>
+                        <td class="p-2 font-bold text-white">👤 ${escapeHtml(u.username)} <div class="mt-0.5">${roleBadge}</div></td>
+                        <td class="p-2 font-bold text-yellow-400">${Number(u.balance || 0).toLocaleString('vi-VN')} đ</td>
                         <td class="p-2">
-                            <input type="number" id="amt-${u.username}" placeholder="Số tiền..." class="bg-gray-900 border border-gray-600 rounded px-2 py-1 text-xs text-white w-28 outline-none">
+                            <input type="number" id="amt-${escapeHtml(u.username)}" placeholder="Số tiền..." class="bg-gray-900 border border-gray-600 rounded px-2 py-1 text-xs text-white w-28 outline-none">
                         </td>
                         <td class="p-2 flex flex-wrap gap-1 items-center">
-                            <button onclick="adjustBalance('${u.username}', 'add')" class="bg-green-600 hover:bg-green-700 text-white px-2.5 py-1 rounded text-xs font-bold">+ Cộng</button>
-                            <button onclick="adjustBalance('${u.username}', 'subtract')" class="bg-red-600 hover:bg-red-700 text-white px-2.5 py-1 rounded text-xs font-bold">- Trừ</button>
+                            <button onclick="adjustBalance('${escapeHtml(u.username)}', 'add')" class="bg-green-600 hover:bg-green-700 text-white px-2.5 py-1 rounded text-xs font-bold">+ Cộng</button>
+                            <button onclick="adjustBalance('${escapeHtml(u.username)}', 'subtract')" class="bg-red-600 hover:bg-red-700 text-white px-2.5 py-1 rounded text-xs font-bold">- Trừ</button>
                             ${roleBtn}
                         </td>
                     </tr>
@@ -831,7 +839,7 @@
 
             const res = await fetch('/api/admin/set-role', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': adminToken },
+                headers: adminHeaders({ 'Content-Type': 'application/json' }),
                 body: JSON.stringify({ username, role })
             });
             const data = await res.json();
@@ -849,7 +857,7 @@
 
             const res = await fetch('/api/admin/adjust-balance', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': adminToken },
+                headers: adminHeaders({ 'Content-Type': 'application/json' }),
                 body: JSON.stringify({ username, amount, type })
             });
             const data = await res.json();
@@ -861,7 +869,7 @@
         }
 
         async function loadAllAccounts() {
-            const res = await fetch('/api/admin/accounts', { headers: { 'Authorization': adminToken } });
+            const res = await fetch('/api/admin/accounts', { headers: adminHeaders() });
             const data = await res.json();
             document.getElementById('total-accs').innerText = `Tổng: ${data.length} acc`;
             const tbody = document.getElementById('admin-table-body');
@@ -873,11 +881,11 @@
 
                 tbody.innerHTML += `
                     <tr class="border-b border-gray-700/50 hover:bg-gray-750">
-                        <td class="p-2"><img src="${acc.image || 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80'}" class="w-10 h-10 object-cover rounded border border-gray-700"></td>
-                        <td class="p-2"><span class="bg-gray-700 text-yellow-400 px-2 py-0.5 rounded text-[10px] font-bold">${acc.category || 'Mặc định'}</span></td>
-                        <td class="p-2 font-semibold text-white max-w-[120px] truncate">${acc.title}</td>
-                        <td class="p-2 text-yellow-400 font-bold">${acc.price.toLocaleString('vi-VN')} đ</td>
-                        <td class="p-2 font-mono text-[11px] text-gray-300">U: <b>${acc.robloxUser}</b><br>P: <b>${acc.robloxPass}</b></td>
+                        <td class="p-2"><img src="${escapeHtml(acc.image) || 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80'}" class="w-10 h-10 object-cover rounded border border-gray-700"></td>
+                        <td class="p-2"><span class="bg-gray-700 text-yellow-400 px-2 py-0.5 rounded text-[10px] font-bold">${escapeHtml(acc.category) || 'Mặc định'}</span></td>
+                        <td class="p-2 font-semibold text-white max-w-[120px] truncate">${escapeHtml(acc.title)}</td>
+                        <td class="p-2 text-yellow-400 font-bold">${Number(acc.price || 0).toLocaleString('vi-VN')} đ</td>
+                        <td class="p-2 font-mono text-[11px] text-gray-300">U: <b>${escapeHtml(acc.robloxUser)}</b><br>P: <b>${escapeHtml(acc.robloxPass)}</b></td>
                         <td class="p-2">${badge}</td>
                         <td class="p-2 text-center"><button onclick="deleteAccount(${acc.id})" class="bg-red-800 hover:bg-red-700 text-red-200 px-2 py-1 rounded text-[10px] font-bold">Xóa</button></td>
                     </tr>
@@ -887,7 +895,7 @@
 
         async function deleteAccount(id) {
             if (!confirm(`Xóa vĩnh viễn acc #${id}?`)) return;
-            const res = await fetch(`/api/admin/account/${id}`, { method: 'DELETE', headers: { 'Authorization': adminToken } });
+            const res = await fetch(`/api/admin/account/${id}`, { method: 'DELETE', headers: adminHeaders() });
             const data = await res.json();
             alert(data.message);
             loadAllAccounts();
@@ -908,7 +916,7 @@
             };
             const res = await fetch('/api/admin/add', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': adminToken },
+                headers: adminHeaders({ 'Content-Type': 'application/json' }),
                 body: JSON.stringify(newAcc)
             });
             const data = await res.json();
@@ -932,7 +940,7 @@
             };
             const res = await fetch('/api/admin/add-bulk', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': adminToken },
+                headers: adminHeaders({ 'Content-Type': 'application/json' }),
                 body: JSON.stringify(bulkData)
             });
             const data = await res.json();
