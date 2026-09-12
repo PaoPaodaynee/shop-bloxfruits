@@ -383,6 +383,17 @@
     <script>
         let adminToken = localStorage.getItem('otopi_admin_token');
 
+        // Chống XSS: escape mọi dữ liệu do người dùng (khách/CTV) nhập trước khi chèn vào innerHTML
+        function escapeHtml(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
         function checkState() {
             if (adminToken) {
                 document.getElementById('login-screen').classList.add('hidden');
@@ -438,12 +449,12 @@
                 tbody.innerHTML += `
                     <tr class="border-b border-gray-700/50 hover:bg-gray-750">
                         <td class="p-2 font-bold text-gray-400">#${o.id}</td>
-                        <td class="p-2 font-bold text-white">👤 ${o.username}</td>
+                        <td class="p-2 font-bold text-white">👤 ${escapeHtml(o.username)}</td>
                         <td class="p-2">${typeBadge}</td>
-                        <td class="p-2 font-semibold text-white">${o.productName}</td>
+                        <td class="p-2 font-semibold text-white">${escapeHtml(o.productName)}</td>
                         <td class="p-2 font-bold text-green-400">${o.price.toLocaleString('vi-VN')} đ</td>
-                        <td class="p-2 font-mono font-bold text-yellow-300 select-all">${o.robloxUsername}</td>
-                        <td class="p-2 text-gray-400 italic max-w-[120px] truncate">${o.note || '-'}</td>
+                        <td class="p-2 font-mono font-bold text-yellow-300 select-all">${escapeHtml(o.robloxUsername)}</td>
+                        <td class="p-2 text-gray-400 italic max-w-[120px] truncate">${escapeHtml(o.note) || '-'}</td>
                         <td class="p-2">${badge}</td>
                         <td class="p-2 text-center whitespace-nowrap">${btns}</td>
                     </tr>
@@ -599,7 +610,7 @@
                 `;
 
                 if (o.status === 'processing') {
-                    badge = `<span class="bg-blue-900 text-blue-300 px-2 py-0.5 rounded text-[10px] font-bold">Đang Cày (${o.assignedTo || 'Shop'})</span>`;
+                    badge = `<span class="bg-blue-900 text-blue-300 px-2 py-0.5 rounded text-[10px] font-bold">Đang Cày (${escapeHtml(o.assignedTo) || 'Shop'})</span>`;
                     btns = `
                         <button onclick="updateBoostStatus(${o.id}, 'completed')" class="bg-green-600 hover:bg-green-700 text-white px-2 py-0.5 rounded text-[10px] font-bold mr-1">Hoàn Thành</button>
                         <button onclick="updateBoostStatus(${o.id}, 'cancelled')" class="bg-red-600 hover:bg-red-700 text-white px-2 py-0.5 rounded text-[10px] font-bold">Hủy & Hoàn Tiền</button>
@@ -615,14 +626,14 @@
                 tbody.innerHTML += `
                     <tr class="border-b border-gray-700/50 hover:bg-gray-750">
                         <td class="p-2 font-bold text-gray-400">#${o.id}</td>
-                        <td class="p-2 font-bold text-yellow-400">👤 ${o.username}</td>
-                        <td class="p-2 font-semibold text-white">${o.serviceName}</td>
+                        <td class="p-2 font-bold text-yellow-400">👤 ${escapeHtml(o.username)}</td>
+                        <td class="p-2 font-semibold text-white">${escapeHtml(o.serviceName)}</td>
                         <td class="p-2 font-bold text-green-400">${o.price.toLocaleString('vi-VN')} đ</td>
                         <td class="p-2 font-mono text-xs text-yellow-300 select-all">
-                            User: <b class="text-white">${o.robloxUser}</b><br>
-                            Pass: <b class="text-white">${o.robloxPass}</b>
+                            User: <b class="text-white">${escapeHtml(o.robloxUser)}</b><br>
+                            Pass: <b class="text-white">${escapeHtml(o.robloxPass)}</b>
                         </td>
-                        <td class="p-2 text-gray-300 italic max-w-[150px] truncate">${o.note || 'Không có'}</td>
+                        <td class="p-2 text-gray-300 italic max-w-[150px] truncate">${escapeHtml(o.note) || 'Không có'}</td>
                         <td class="p-2">${badge}</td>
                         <td class="p-2 text-center whitespace-nowrap">${btns}</td>
                     </tr>
@@ -706,10 +717,10 @@
                 tbody.innerHTML += `
                     <tr class="border-b border-gray-700/50 hover:bg-gray-750">
                         <td class="p-2 text-gray-400">${new Date(o.boughtAt).toLocaleString('vi-VN')}</td>
-                        <td class="p-2 font-bold text-yellow-400">👤 ${o.username}</td>
-                        <td class="p-2 font-semibold text-white truncate max-w-[150px]">${o.title} (#${o.accId})</td>
+                        <td class="p-2 font-bold text-yellow-400">👤 ${escapeHtml(o.username)}</td>
+                        <td class="p-2 font-semibold text-white truncate max-w-[150px]">${escapeHtml(o.title)} (#${o.accId})</td>
                         <td class="p-2 font-bold text-green-400">${o.price.toLocaleString('vi-VN')} đ</td>
-                        <td class="p-2 font-mono text-xs text-yellow-300">U: <b class="text-white">${o.robloxUser}</b> | P: <b class="text-white">${o.robloxPass}</b></td>
+                        <td class="p-2 font-mono text-xs text-yellow-300">U: <b class="text-white">${escapeHtml(o.robloxUser)}</b> | P: <b class="text-white">${escapeHtml(o.robloxPass)}</b></td>
                     </tr>
                 `;
             });
@@ -739,12 +750,12 @@
                 }
                 tbody.innerHTML += `
                     <tr class="border-b border-gray-700/50">
-                        <td class="p-2 font-bold text-white">${c.username}</td>
-                        <td class="p-2 font-bold text-blue-400 uppercase">${c.telco}</td>
+                        <td class="p-2 font-bold text-white">${escapeHtml(c.username)}</td>
+                        <td class="p-2 font-bold text-blue-400 uppercase">${escapeHtml(c.telco)}</td>
                         <td class="p-2 font-bold text-yellow-400">${c.declaredAmount.toLocaleString('vi-VN')}đ</td>
                         <td class="p-2 font-bold text-green-400">${c.realAmount.toLocaleString('vi-VN')}đ</td>
-                        <td class="p-2 font-mono text-white select-all">${c.code}</td>
-                        <td class="p-2 font-mono text-gray-300 select-all">${c.serial}</td>
+                        <td class="p-2 font-mono text-white select-all">${escapeHtml(c.code)}</td>
+                        <td class="p-2 font-mono text-gray-300 select-all">${escapeHtml(c.serial)}</td>
                         <td class="p-2">${statusBadge}</td>
                         <td class="p-2 text-center">${actionBtns}</td>
                     </tr>
