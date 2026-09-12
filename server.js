@@ -20,10 +20,64 @@ const ADMIN_SECRET_KEY = "otopi_bi_mat_2026";
 const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://autophobia011_db_user:YoPOL0EN3zmSvT1Z@cluster0.toio2qu.mongodb.net/shop_blox?retryWrites=true&w=majority&appName=Cluster0";
 
 const GTF_PARTNER_ID = process.env.GTF_PARTNER_ID || "3314076622";
-const GTF_PARTNER_KEY = process.env.GTF_PARTNER_KEY || "5f8a7bbd94f22b62bcaf15b811849628";
+const GTF_PARTNER_KEY = process.env.GTF_PARTNER_KEY || "";
 
 // Token/API-key riêng để xác thực webhook SePay (lấy từ Dashboard SePay > Cấu hình Webhook)
-const SEPAY_WEBHOOK_TOKEN = process.env.SEPAY_WEBHOOK_TOKEN || "otopisutio";
+const SEPAY_WEBHOOK_TOKEN = process.env.SEPAY_WEBHOOK_TOKEN || "";
+
+// Secret dùng để ký token đăng nhập (JWT tự chế bằng HMAC-SHA256, không cần cài thêm thư viện)
+const SESSION_SECRET = process.env.SESSION_SECRET || "";
+if (!SESSION_SECRET) {
+    console.warn(">>> [CẢNH BÁO]: Chưa set biến môi trường SESSION_SECRET trên Render! Đăng nhập user/CTV sẽ bị VÔ HIỆU HÓA cho đến khi bạn set (chuỗi bí mật dài, tự đặt bất kỳ).");
+}
+const TOKEN_TTL_SECONDS = 7 * 24 * 60 * 60; // token hết hạn sau 7 ngày
+
+function base64url(input) {
+    return Buffer.from(input).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+function base64urlDecode(input) {
+    input = input.replace(/-/g, '+').replace(/_/g, '/');
+    while (input.length % 4) input += '=';
+    return Buffer.from(input, 'base64').toString('utf8');
+}
+
+// Tạo token đăng nhập cho user (chứa username + role, có hạn sử dụng, có chữ ký -> client KHÔNG thể tự sửa/giả mạo)
+function signToken(payload) {
+    const body = { ...payload, exp: Math.floor(Date.now() / 1000) + TOKEN_TTL_SECONDS };
+    const payloadB64 = base64url(JSON.stringify(body));
+    const sig = crypto.createHmac('sha256', SESSION_SECRET).update(payloadB64).digest('hex');
+    return `${payloadB64}.${sig}`;
+}
+
+// Xác minh token: kiểm tra chữ ký hợp lệ + chưa hết hạn -> trả về payload, ngược lại trả về null
+function verifyToken(token) {
+    try {
+        if (!token || !SESSION_SECRET) return null;
+        const [payloadB64, sig] = token.split('.');
+        if (!payloadB64 || !sig) return null;
+        const expectedSig = crypto.createHmac('sha256', SESSION_SECRET).update(payloadB64).digest('hex');
+        if (!safeCompare(sig, expectedSig)) return null;
+        const payload = JSON.parse(base64urlDecode(payloadB64));
+        if (!payload.exp || payload.exp < Math.floor(Date.now() / 1000)) return null;
+        return payload;
+    } catch (e) {
+        return null;
+    }
+}
+
+// Middleware: bắt buộc phải có token hợp lệ trong header Authorization: Bearer <token>
+// Sau khi qua middleware này, req.authUser = { username, role } LẤY TỪ TOKEN ĐÃ KÝ,
+// KHÔNG lấy từ username do client tự gửi trong body/query nữa.
+function requireAuth(req, res, next) {
+    const authHeader = req.headers['authorization'] || "";
+    const token = authHeader.replace(/^Bearer\s+/i, '').trim();
+    const payload = verifyToken(token);
+    if (!payload || !payload.username) {
+        return res.status(401).json({ success: false, message: "Phiên đăng nhập hết hạn hoặc không hợp lệ, vui lòng đăng nhập lại!" });
+    }
+    req.authUser = payload;
+    next();
+}
 
 // So sánh chuỗi an toàn (chống timing attack) dùng để check token/sign webhook
 function safeCompare(a, b) {
@@ -167,7 +221,8 @@ app.post('/api/register', async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, salt);
 
         const newUser = await User.create({ username, password: hashedPassword, balance: 0, role: "user" });
-        res.json({ success: true, message: "Đăng ký thành công!", user: { username: newUser.username, balance: newUser.balance, role: newUser.role } });
+        const token = signToken({ username: newUser.username, role: newUser.role });
+        res.json({ success: true, message: "Đăng ký thành công!", token, user: { username: newUser.username, balance: newUser.balance, role: newUser.role } });
     } catch (e) {
         res.status(500).json({ success: false, message: "Lỗi: " + e.message });
     }
@@ -202,10 +257,12 @@ app.post('/api/login', async (req, res) => {
 
         if (!isMatch) return res.status(400).json({ success: false, message: "Sai tài khoản hoặc mật khẩu!" });
 
+        const token = signToken({ username: user.username, role: user.role });
         res.json({
             success: true,
             isAdmin: false,
             message: "Đăng nhập thành công!",
+            token,
             user: { username: user.username, balance: user.balance, role: user.role }
         });
     } catch (e) {
@@ -213,11 +270,9 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-app.get('/api/user-balance', async (req, res) => {
+app.get('/api/user-balance', requireAuth, async (req, res) => {
     try {
-        const { username } = req.query;
-        if (!username) return res.json({ balance: 0, role: "user" });
-        const user = await User.findOne({ username: new RegExp('^' + username + '$', 'i') });
+        const user = await User.findOne({ username: new RegExp('^' + req.authUser.username + '$', 'i') });
         res.json({ balance: user ? user.balance : 0, role: user ? user.role : "user" });
     } catch (e) {
         res.json({ balance: 0, role: "user" });
@@ -272,10 +327,10 @@ app.get('/api/accounts', async (req, res) => {
     }
 });
 
-app.post('/api/buy', async (req, res) => {
+app.post('/api/buy', requireAuth, async (req, res) => {
     try {
-        const { accountId, username } = req.body;
-        const user = await User.findOne({ username });
+        const { accountId } = req.body;
+        const user = await User.findOne({ username: req.authUser.username });
         if (!user) return res.status(401).json({ success: false, message: "Vui lòng đăng nhập trước khi mua!" });
 
         const acc = await Account.findOne({ id: accountId });
@@ -307,11 +362,9 @@ app.post('/api/buy', async (req, res) => {
     }
 });
 
-app.get('/api/my-orders', async (req, res) => {
+app.get('/api/my-orders', requireAuth, async (req, res) => {
     try {
-        const { username } = req.query;
-        if (!username) return res.json([]);
-        const orders = await Order.find({ username }).sort({ boughtAt: -1 });
+        const orders = await Order.find({ username: req.authUser.username }).sort({ boughtAt: -1 });
         res.json(orders);
     } catch (e) {
         res.status(500).json([]);
@@ -330,10 +383,10 @@ app.get('/api/boost-services', async (req, res) => {
     }
 });
 
-app.post('/api/boost-order', async (req, res) => {
+app.post('/api/boost-order', requireAuth, async (req, res) => {
     try {
-        const { username, serviceId, robloxUser, robloxPass, note } = req.body;
-        const user = await User.findOne({ username });
+        const { serviceId, robloxUser, robloxPass, note } = req.body;
+        const user = await User.findOne({ username: req.authUser.username });
         if (!user) return res.status(401).json({ success: false, message: "Vui lòng đăng nhập trước khi đặt cày!" });
 
         const service = await BoostService.findOne({ id: Number(serviceId), active: true });
@@ -373,11 +426,9 @@ app.post('/api/boost-order', async (req, res) => {
     }
 });
 
-app.get('/api/my-boost-orders', async (req, res) => {
+app.get('/api/my-boost-orders', requireAuth, async (req, res) => {
     try {
-        const { username } = req.query;
-        if (!username) return res.json([]);
-        const orders = await BoostOrder.find({ username }).sort({ createdAt: -1 });
+        const orders = await BoostOrder.find({ username: req.authUser.username }).sort({ createdAt: -1 });
         res.json(orders);
     } catch (e) {
         res.status(500).json([]);
@@ -388,22 +439,20 @@ app.get('/api/my-boost-orders', async (req, res) => {
 // ⚡ 6. CỔNG API DÀNH RIÊNG CHO CTV THỢ CÀY (MỚI)
 // ==========================================
 
-// Kiểm tra quyền CTV
-async function checkCtvAuth(req, res, next) {
-    try {
-        const username = req.headers['x-ctv-user'] || req.query.ctvUser || req.body.ctvUser;
-        if (!username) return res.status(401).json({ success: false, message: "Chưa đăng nhập tài khoản CTV!" });
-
-        const user = await User.findOne({ username: new RegExp('^' + username + '$', 'i') });
-        if (!user || (user.role !== 'ctv' && user.role !== 'admin')) {
-            return res.status(403).json({ success: false, message: "Tài khoản của bạn chưa được cấp quyền CTV Thợ Cày!" });
+// Kiểm tra quyền CTV (dùng chung cơ chế token đã ký ở requireAuth, KHÔNG còn tin header x-ctv-user client tự khai nữa)
+function checkCtvAuth(req, res, next) {
+    requireAuth(req, res, async () => {
+        try {
+            const user = await User.findOne({ username: new RegExp('^' + req.authUser.username + '$', 'i') });
+            if (!user || (user.role !== 'ctv' && user.role !== 'admin')) {
+                return res.status(403).json({ success: false, message: "Tài khoản của bạn chưa được cấp quyền CTV Thợ Cày!" });
+            }
+            req.ctvUser = user;
+            next();
+        } catch (e) {
+            res.status(500).json({ success: false, message: "Lỗi xác thực CTV!" });
         }
-
-        req.ctvUser = user;
-        next();
-    } catch (e) {
-        res.status(500).json({ success: false, message: "Lỗi xác thực CTV!" });
-    }
+    });
 }
 
 // CTV xem danh sách đơn cày (chờ cày & đơn của mình nhận)
@@ -479,10 +528,10 @@ app.get('/api/items', async (req, res) => {
     }
 });
 
-app.post('/api/item-order', async (req, res) => {
+app.post('/api/item-order', requireAuth, async (req, res) => {
     try {
-        const { username, itemId, robloxUsername, note } = req.body;
-        const user = await User.findOne({ username });
+        const { itemId, robloxUsername, note } = req.body;
+        const user = await User.findOne({ username: req.authUser.username });
         if (!user) return res.status(401).json({ success: false, message: "Vui lòng đăng nhập trước khi mua!" });
 
         const item = await ItemProduct.findOne({ id: Number(itemId), active: true });
@@ -518,11 +567,9 @@ app.post('/api/item-order', async (req, res) => {
     }
 });
 
-app.get('/api/my-item-orders', async (req, res) => {
+app.get('/api/my-item-orders', requireAuth, async (req, res) => {
     try {
-        const { username } = req.query;
-        if (!username) return res.json([]);
-        const orders = await ItemOrder.find({ username }).sort({ createdAt: -1 });
+        const orders = await ItemOrder.find({ username: req.authUser.username }).sort({ createdAt: -1 });
         res.json(orders);
     } catch (e) {
         res.status(500).json([]);
@@ -532,9 +579,10 @@ app.get('/api/my-item-orders', async (req, res) => {
 // ==========================================
 // 8. NẠP THẺ & WEBHOOKS
 // ==========================================
-app.post('/api/topup-card', async (req, res) => {
+app.post('/api/topup-card', requireAuth, async (req, res) => {
     try {
-        const { username, telco, amount, code, serial } = req.body;
+        const username = req.authUser.username;
+        const { telco, amount, code, serial } = req.body;
         if (!username || !telco || !amount || !code || !serial) {
             return res.status(400).json({ success: false, message: "Vui lòng nhập đủ thông tin!" });
         }
