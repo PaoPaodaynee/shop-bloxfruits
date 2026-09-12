@@ -6,6 +6,11 @@ const bcrypt = require('bcryptjs');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Render (và hầu hết nền tảng hosting) chạy server sau 1 lớp proxy/load balancer.
+// Bật dòng này để req.ip lấy đúng IP thật của client thay vì IP của proxy nội bộ
+// -> rate-limit theo IP mới hoạt động chính xác.
+app.set('trust proxy', 1);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -95,6 +100,41 @@ function safeCompare(a, b) {
     if (bufA.length !== bufB.length) return false;
     return crypto.timingSafeEqual(bufA, bufB);
 }
+
+// ==========================================
+// CHỐNG BRUTE-FORCE: giới hạn số lần gọi 1 API theo IP trong 1 khoảng thời gian
+// ==========================================
+const rateLimitStore = new Map();
+
+function rateLimit({ windowMs, max, message }) {
+    return (req, res, next) => {
+        const key = req.ip + '|' + req.path;
+        const now = Date.now();
+        let entry = rateLimitStore.get(key);
+        if (!entry || now > entry.resetAt) {
+            entry = { count: 0, resetAt: now + windowMs };
+        }
+        entry.count++;
+        rateLimitStore.set(key, entry);
+
+        if (entry.count > max) {
+            const waitMin = Math.ceil((entry.resetAt - now) / 60000);
+            return res.status(429).json({
+                success: false,
+                message: message || `Bạn thao tác quá nhanh! Vui lòng thử lại sau khoảng ${waitMin} phút.`
+            });
+        }
+        next();
+    };
+}
+
+// Dọn dẹp định kỳ để Map không phình to mãi theo thời gian
+setInterval(() => {
+    const now = Date.now();
+    for (const [key, entry] of rateLimitStore.entries()) {
+        if (now > entry.resetAt) rateLimitStore.delete(key);
+    }
+}, 10 * 60 * 1000);
 
 // ==========================================
 // 1. SCHEMAS & MODELS (HỆ THỐNG ROLE MỚI)
@@ -213,7 +253,11 @@ mongoose.connect(MONGO_URI)
 // ==========================================
 // 3. API ĐĂNG KÝ / ĐĂNG NHẬP / ROLE
 // ==========================================
-app.post('/api/register', async (req, res) => {
+app.post('/api/register', rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 phút
+    max: 8,
+    message: "Bạn đăng ký quá nhiều lần! Vui lòng thử lại sau ít phút."
+}), async (req, res) => {
     try {
         const { username, password } = req.body;
         if (!username || !password) return res.status(400).json({ success: false, message: "Vui lòng nhập đủ thông tin!" });
@@ -236,7 +280,11 @@ app.post('/api/register', async (req, res) => {
     }
 });
 
-app.post('/api/login', async (req, res) => {
+app.post('/api/login', rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 phút
+    max: 10,
+    message: "Bạn đăng nhập sai quá nhiều lần! Vui lòng thử lại sau ít phút để bảo vệ tài khoản."
+}), async (req, res) => {
     try {
         const { username, password } = req.body;
         const cleanUser = (username || "").trim().toLowerCase();
