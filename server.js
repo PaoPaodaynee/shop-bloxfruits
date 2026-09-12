@@ -276,7 +276,8 @@ app.post('/api/register', rateLimit({
         const token = signToken({ username: newUser.username, role: newUser.role });
         res.json({ success: true, message: "Đăng ký thành công!", token, user: { username: newUser.username, balance: newUser.balance, role: newUser.role } });
     } catch (e) {
-        res.status(500).json({ success: false, message: "Lỗi: " + e.message });
+        console.error(">>> [LỖI SERVER]:", e);
+        res.status(500).json({ success: false, message: "Đã có lỗi xảy ra, vui lòng thử lại sau!" });
     }
 });
 
@@ -323,7 +324,8 @@ app.post('/api/login', rateLimit({
             user: { username: user.username, balance: user.balance, role: user.role }
         });
     } catch (e) {
-        res.status(500).json({ success: false, message: "Lỗi: " + e.message });
+        console.error(">>> [LỖI SERVER]:", e);
+        res.status(500).json({ success: false, message: "Đã có lỗi xảy ra, vui lòng thử lại sau!" });
     }
 });
 
@@ -415,7 +417,8 @@ app.post('/api/buy', requireAuth, async (req, res) => {
             newBalance: user.balance
         });
     } catch (e) {
-        res.status(500).json({ success: false, message: "Lỗi mua acc: " + e.message });
+        console.error(">>> [LỖI SERVER]:", e);
+        res.status(500).json({ success: false, message: "Đã có lỗi xảy ra, vui lòng thử lại sau!" });
     }
 });
 
@@ -479,7 +482,8 @@ app.post('/api/boost-order', requireAuth, async (req, res) => {
             order: newOrder
         });
     } catch (e) {
-        res.status(500).json({ success: false, message: "Lỗi đặt cày: " + e.message });
+        console.error(">>> [LỖI SERVER]:", e);
+        res.status(500).json({ success: false, message: "Đã có lỗi xảy ra, vui lòng thử lại sau!" });
     }
 });
 
@@ -620,7 +624,8 @@ app.post('/api/item-order', requireAuth, async (req, res) => {
             order: newOrder
         });
     } catch (e) {
-        res.status(500).json({ success: false, message: "Lỗi mua hàng: " + e.message });
+        console.error(">>> [LỖI SERVER]:", e);
+        res.status(500).json({ success: false, message: "Đã có lỗi xảy ra, vui lòng thử lại sau!" });
     }
 });
 
@@ -684,7 +689,8 @@ app.post('/api/topup-card', requireAuth, async (req, res) => {
 
         res.json({ success: true, message: "Thẻ đã gửi lên hệ thống! Đang tự động xử lý." });
     } catch (e) {
-        res.status(500).json({ success: false, message: "Lỗi gửi thẻ: " + e.message });
+        console.error(">>> [LỖI SERVER]:", e);
+        res.status(500).json({ success: false, message: "Đã có lỗi xảy ra, vui lòng thử lại sau!" });
     }
 });
 
@@ -825,7 +831,8 @@ app.post('/api/admin/category/add', checkAdminAuth, async (req, res) => {
         });
         res.json({ success: true, message: "Đã tạo mục mới thành công!" });
     } catch (e) {
-        res.status(500).json({ success: false, message: "Lỗi: " + e.message });
+        console.error(">>> [LỖI SERVER]:", e);
+        res.status(500).json({ success: false, message: "Đã có lỗi xảy ra, vui lòng thử lại sau!" });
     }
 });
 
@@ -863,7 +870,8 @@ app.post('/api/admin/item/add', checkAdminAuth, async (req, res) => {
         });
         res.json({ success: true, message: "Đã thêm sản phẩm thành công!" });
     } catch (e) {
-        res.status(500).json({ success: false, message: "Lỗi: " + e.message });
+        console.error(">>> [LỖI SERVER]:", e);
+        res.status(500).json({ success: false, message: "Đã có lỗi xảy ra, vui lòng thử lại sau!" });
     }
 });
 
@@ -903,7 +911,8 @@ app.post('/api/admin/item-order/status', checkAdminAuth, async (req, res) => {
         await order.save();
         res.json({ success: true, message: `Đã cập nhật đơn #${orderId}!` });
     } catch (e) {
-        res.status(500).json({ success: false, message: "Lỗi: " + e.message });
+        console.error(">>> [LỖI SERVER]:", e);
+        res.status(500).json({ success: false, message: "Đã có lỗi xảy ra, vui lòng thử lại sau!" });
     }
 });
 
@@ -931,7 +940,8 @@ app.post('/api/admin/add', checkAdminAuth, async (req, res) => {
         });
         res.json({ success: true, message: "Đã đăng acc thành công!" });
     } catch (e) {
-        res.status(500).json({ success: false, message: "Lỗi: " + e.message });
+        console.error(">>> [LỖI SERVER]:", e);
+        res.status(500).json({ success: false, message: "Đã có lỗi xảy ra, vui lòng thử lại sau!" });
     }
 });
 
@@ -968,7 +978,8 @@ app.post('/api/admin/add-bulk', checkAdminAuth, async (req, res) => {
         await Account.insertMany(newAccounts);
         res.json({ success: true, message: `Thành công! Đã thêm ${newAccounts.length} acc vào shop!` });
     } catch (e) {
-        res.status(500).json({ success: false, message: "Lỗi: " + e.message });
+        console.error(">>> [LỖI SERVER]:", e);
+        res.status(500).json({ success: false, message: "Đã có lỗi xảy ra, vui lòng thử lại sau!" });
     }
 });
 
@@ -1088,7 +1099,8 @@ app.post('/api/admin/card-action', checkAdminAuth, async (req, res) => {
             return res.json({ success: true, message: "Đã hủy thẻ!" });
         }
     } catch (e) {
-        res.status(500).json({ success: false, message: "Lỗi: " + e.message });
+        console.error(">>> [LỖI SERVER]:", e);
+        res.status(500).json({ success: false, message: "Đã có lỗi xảy ra, vui lòng thử lại sau!" });
     }
 });
 
@@ -1125,7 +1137,8 @@ app.post('/api/admin/adjust-balance', checkAdminAuth, async (req, res) => {
             return res.json({ success: true, message: `Đã CỘNG ${numAmount.toLocaleString('vi-VN')} đ cho ${username}!` });
         }
     } catch (e) {
-        res.status(500).json({ success: false, message: "Lỗi: " + e.message });
+        console.error(">>> [LỖI SERVER]:", e);
+        res.status(500).json({ success: false, message: "Đã có lỗi xảy ra, vui lòng thử lại sau!" });
     }
 });
 
