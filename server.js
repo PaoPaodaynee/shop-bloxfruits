@@ -9,7 +9,13 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.static(__dirname));
+
+// CHỈ serve rõ ràng từng trang HTML cần thiết, KHÔNG serve nguyên thư mục gốc nữa
+// (trước đây app.use(express.static(__dirname)) khiến server.js, package.json...
+// có thể bị tải trực tiếp qua URL, ví dụ yourdomain.com/server.js)
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
+app.get('/admin.html', (req, res) => res.sendFile(path.join(__dirname, 'admin.html')));
+app.get('/ctv.html', (req, res) => res.sendFile(path.join(__dirname, 'ctv.html')));
 
 const ADMIN_USER = "admin";
 const ADMIN_PASS = process.env.ADMIN_PASSWORD || "";
