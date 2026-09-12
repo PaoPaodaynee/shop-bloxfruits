@@ -117,7 +117,7 @@ setInterval(() => {
 }, 10 * 60 * 1000);
 
 // ==========================================
-// MODELS (ĐÃ SỬA CHỐNG LẶP TIỀN & AUTO ID)
+// SCHEMAS & MODELS
 // ==========================================
 const User = mongoose.model('User', new mongoose.Schema({
     username: { type: String, required: true, unique: true },
@@ -223,6 +223,26 @@ const ItemOrder = mongoose.model('ItemOrder', new mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
 }));
 
+// TÚI MÙ (MYSTERY BOX)
+const MysteryBox = mongoose.model('MysteryBox', new mongoose.Schema({
+    id: { type: Number, required: true, unique: true },
+    name: { type: String, required: true },
+    price: { type: Number, required: true },
+    description: String,
+    image: { type: String, default: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80" },
+    active: { type: Boolean, default: true },
+    createdAt: { type: Date, default: Date.now }
+}));
+
+const MysteryAccount = mongoose.model('MysteryAccount', new mongoose.Schema({
+    boxId: { type: Number, required: true, index: true },
+    robloxUser: { type: String, required: true },
+    robloxPass: { type: String, required: true },
+    sold: { type: Boolean, default: false, index: true },
+    soldTo: String,
+    soldAt: Date
+}));
+
 mongoose.connect(MONGO_URI)
     .then(() => console.log(">>> [DATABASE]: KẾT NỐI DATABASE THÀNH CÔNG!"))
     .catch(err => console.error(">>> [DATABASE LỖI]:", err.message));
@@ -289,7 +309,10 @@ app.post('/api/login', rateLimit({ windowMs: 15 * 60 * 1000, max: 10 }), async (
 
 app.get('/api/user-balance', requireAuth, async (req, res) => {
     try {
-        const user = await User.findOne({ username: req.authUser.username });
+        if (req.authUser.role === 'admin') {
+            return res.json({ balance: 999999999, role: "admin" });
+        }
+        const user = await User.findOne({ username: new RegExp('^' + req.authUser.username + '$', 'i') });
         res.json({ balance: user ? user.balance : 0, role: user ? user.role : "user" });
     } catch (e) {
         res.json({ balance: 0, role: "user" });
@@ -330,21 +353,16 @@ app.get('/api/accounts', async (req, res) => {
     }
 });
 
-// ==========================================
-// MUA ACC: KHẮC PHỤC TRIỆT ĐỂ RACE CONDITION
-// ==========================================
 app.post('/api/buy', requireAuth, async (req, res) => {
     try {
         const { accountId } = req.body;
         const targetAccId = Number(accountId);
 
-        // 1. Kiểm tra xem acc còn bán không
         const acc = await Account.findOne({ id: targetAccId, sold: false });
         if (!acc) {
             return res.status(400).json({ success: false, message: "Acc không tồn tại hoặc đã có người mua!" });
         }
 
-        // 2. Trừ tiền nguyên tử: Chỉ trừ nếu balance >= acc.price
         const updatedUser = await User.findOneAndUpdate(
             { username: req.authUser.username, balance: { $gte: acc.price } },
             { $inc: { balance: -acc.price } },
@@ -355,7 +373,6 @@ app.post('/api/buy', requireAuth, async (req, res) => {
             return res.status(400).json({ success: false, message: "Số dư tài khoản không đủ!" });
         }
 
-        // 3. Khóa acc nguyên tử: Chỉ chốt nếu sold vẫn là false
         const lockedAcc = await Account.findOneAndUpdate(
             { id: targetAccId, sold: false },
             { $set: { sold: true } },
@@ -363,12 +380,10 @@ app.post('/api/buy', requireAuth, async (req, res) => {
         );
 
         if (!lockedAcc) {
-            // Hoàn lại tiền nếu acc bị tranh mua ngay tích tắc trước đó
             await User.updateOne({ username: req.authUser.username }, { $inc: { balance: acc.price } });
             return res.status(400).json({ success: false, message: "Tài khoản vừa bị người khác mua mất! Tiền đã được hoàn lại ví." });
         }
 
-        // 4. Tạo hóa đơn
         await Order.create({
             username: req.authUser.username,
             accId: lockedAcc.id,
@@ -398,7 +413,7 @@ app.get('/api/my-orders', requireAuth, async (req, res) => {
 });
 
 // ==========================================
-// CÀY THUÊ (NGUYÊN TỬ HÓA TRỪ TIỀN)
+// CÀY THUÊ
 // ==========================================
 app.get('/api/boost-services', async (req, res) => {
     try {
@@ -418,7 +433,6 @@ app.post('/api/boost-order', requireAuth, async (req, res) => {
         const service = await BoostService.findOne({ id: Number(serviceId), active: true });
         if (!service) return res.status(400).json({ success: false, message: "Gói cày không tồn tại!" });
 
-        // Trừ tiền nguyên tử
         const updatedUser = await User.findOneAndUpdate(
             { username: req.authUser.username, balance: { $gte: service.price } },
             { $inc: { balance: -service.price } },
@@ -572,7 +586,90 @@ app.get('/api/my-item-orders', requireAuth, async (req, res) => {
 });
 
 // ==========================================
-// WEBHOOK NẠP TIỀN (CHỐNG LẶP TIỀN & XÁC MINH CHỮ KÝ)
+// 🎁 TÚI MÙ (MYSTERY BOX) - CLIENT API
+// ==========================================
+app.get('/api/mystery-boxes', async (req, res) => {
+    try {
+        const boxes = await MysteryBox.find({ active: true }).sort({ price: 1 });
+        const result = await Promise.all(boxes.map(async (b) => {
+            const stock = await MysteryAccount.countDocuments({ boxId: b.id, sold: false });
+            return {
+                id: b.id,
+                name: b.name,
+                price: b.price,
+                description: b.description,
+                image: b.image,
+                stock: stock
+            };
+        }));
+        res.json(result);
+    } catch (e) {
+        res.status(500).json([]);
+    }
+});
+
+app.post('/api/mystery-box/buy', requireAuth, async (req, res) => {
+    try {
+        const { boxId } = req.body;
+        const targetBoxId = Number(boxId);
+
+        const box = await MysteryBox.findOne({ id: targetBoxId, active: true });
+        if (!box) return res.status(400).json({ success: false, message: "Túi mù không tồn tại!" });
+
+        const sampleAcc = await MysteryAccount.aggregate([
+            { $match: { boxId: targetBoxId, sold: false } },
+            { $sample: { size: 1 } }
+        ]);
+
+        if (!sampleAcc || sampleAcc.length === 0) {
+            return res.status(400).json({ success: false, message: "Túi mù này đã hết acc trong kho! Vui lòng chờ shop nạp thêm." });
+        }
+
+        const updatedUser = await User.findOneAndUpdate(
+            { username: req.authUser.username, balance: { $gte: box.price } },
+            { $inc: { balance: -box.price } },
+            { new: true }
+        );
+
+        if (!updatedUser) {
+            return res.status(400).json({ success: false, message: "Số dư không đủ để mở túi mù này!" });
+        }
+
+        const pickedId = sampleAcc[0]._id;
+        const lockedAcc = await MysteryAccount.findOneAndUpdate(
+            { _id: pickedId, sold: false },
+            { $set: { sold: true, soldTo: req.authUser.username, soldAt: new Date() } },
+            { new: true }
+        );
+
+        if (!lockedAcc) {
+            await User.updateOne({ username: req.authUser.username }, { $inc: { balance: box.price } });
+            return res.status(400).json({ success: false, message: "Có tranh chấp mở túi mù, vui lòng thử lại!" });
+        }
+
+        await Order.create({
+            username: req.authUser.username,
+            accId: box.id,
+            title: `[Túi Mù] ${box.name}`,
+            price: box.price,
+            robloxUser: lockedAcc.robloxUser,
+            robloxPass: lockedAcc.robloxPass
+        });
+
+        res.json({
+            success: true,
+            message: `🎉 Chúc mừng bạn đã mở được acc từ túi mù "${box.name}"!`,
+            accountInfo: { username: lockedAcc.robloxUser, password: lockedAcc.robloxPass },
+            newBalance: updatedUser.balance
+        });
+    } catch (e) {
+        console.error(">>> [MYSTERY BOX BUY ERROR]:", e);
+        res.status(500).json({ success: false, message: "Lỗi mở túi mù!" });
+    }
+});
+
+// ==========================================
+// NẠP THẺ & WEBHOOK
 // ==========================================
 app.post('/api/topup-card', requireAuth, async (req, res) => {
     try {
@@ -653,7 +750,6 @@ app.all('/api/webhook/gachthefast', async (req, res) => {
     }
 });
 
-// WEBHOOK SEPAY: BẢO VỆ CHỐNG TRÙNG LẶP TRANSACTION
 app.post('/api/webhook/sepay', async (req, res) => {
     try {
         const authHeader = req.headers['authorization'] || "";
@@ -670,7 +766,6 @@ app.post('/api/webhook/sepay', async (req, res) => {
 
         if (!transactionId) return res.status(400).json({ success: false, message: "Missing transaction ID" });
 
-        // Chống lặp tiền: Nếu ID giao dịch này đã ghi nhận trong Deposit thì bỏ qua
         const existed = await Deposit.findOne({ transactionId });
         if (existed) {
             return res.status(200).json({ success: true, message: "Transaction already processed" });
@@ -925,6 +1020,95 @@ app.post('/api/admin/boost-order/status', checkAdminAuth, async (req, res) => {
         res.json({ success: true, message: "Cập nhật đơn cày thành công!" });
     } catch (e) {
         res.status(500).json({ success: false, message: "Lỗi cập nhật!" });
+    }
+});
+
+// ==========================================
+// 🎁 TÚI MÙ (MYSTERY BOX) - ADMIN API
+// ==========================================
+app.get('/api/admin/mystery-boxes', checkAdminAuth, async (req, res) => {
+    try {
+        const boxes = await MysteryBox.find().sort({ id: -1 });
+        const result = await Promise.all(boxes.map(async (b) => {
+            const total = await MysteryAccount.countDocuments({ boxId: b.id });
+            const remaining = await MysteryAccount.countDocuments({ boxId: b.id, sold: false });
+            return {
+                id: b.id,
+                name: b.name,
+                price: b.price,
+                description: b.description,
+                image: b.image,
+                totalAcc: total,
+                remainingAcc: remaining
+            };
+        }));
+        res.json(result);
+    } catch (e) {
+        res.status(500).json([]);
+    }
+});
+
+app.post('/api/admin/mystery-box/create', checkAdminAuth, async (req, res) => {
+    try {
+        const { name, price, description, image } = req.body;
+        if (!name || !price) return res.status(400).json({ success: false, message: "Thiếu tên hoặc giá túi mù!" });
+
+        await MysteryBox.create({
+            id: Date.now(),
+            name: name.trim(),
+            price: Number(price),
+            description: description ? description.trim() : "",
+            image: image || "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80",
+            active: true
+        });
+
+        res.json({ success: true, message: "Tạo Túi Mù mới thành công!" });
+    } catch (e) {
+        res.status(500).json({ success: false, message: "Lỗi tạo túi mù!" });
+    }
+});
+
+app.post('/api/admin/mystery-box/add-accs', checkAdminAuth, async (req, res) => {
+    try {
+        const { boxId, bulkText } = req.body;
+        if (!boxId || !bulkText) return res.status(400).json({ success: false, message: "Vui lòng chọn Túi Mù và nhập danh sách acc!" });
+
+        const lines = bulkText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+        const newAccs = [];
+
+        for (let line of lines) {
+            const parts = line.includes('|') ? line.split('|') : line.split(':');
+            const u = parts[0]?.trim();
+            const p = parts[1]?.trim();
+            if (u && p) {
+                newAccs.push({
+                    boxId: Number(boxId),
+                    robloxUser: u,
+                    robloxPass: p,
+                    sold: false
+                });
+            }
+        }
+
+        if (newAccs.length === 0) {
+            return res.status(400).json({ success: false, message: "Không tìm thấy acc hợp lệ (định dạng user|pass)!" });
+        }
+
+        await MysteryAccount.insertMany(newAccs);
+        res.json({ success: true, message: `Thành công! Đã nạp thêm ${newAccs.length} acc vào Túi Mù!` });
+    } catch (e) {
+        res.status(500).json({ success: false, message: "Lỗi nạp acc vào túi mù!" });
+    }
+});
+
+app.delete('/api/admin/mystery-box/:id', checkAdminAuth, async (req, res) => {
+    try {
+        const id = Number(req.params.id);
+        await MysteryBox.findOneAndDelete({ id });
+        await MysteryAccount.deleteMany({ boxId: id });
+        res.json({ success: true, message: "Đã xóa Túi Mù và toàn bộ acc trong túi!" });
+    } catch (e) {
+        res.status(500).json({ success: false, message: "Lỗi xóa túi mù!" });
     }
 });
 
