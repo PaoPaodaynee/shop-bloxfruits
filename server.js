@@ -16,8 +16,10 @@ const ADMIN_PASS = process.env.ADMIN_PASSWORD || "";
 if (!ADMIN_PASS) {
     console.warn(">>> [CẢNH BÁO]: Chưa set biến môi trường ADMIN_PASSWORD trên Render! Đăng nhập admin sẽ bị VÔ HIỆU HÓA cho đến khi bạn set.");
 }
-const ADMIN_SECRET_KEY = "otopi_bi_mat_2026";
-const MONGO_URI = process.env.MONGO_URI || "mongodb+srv://autophobia011_db_user:YoPOL0EN3zmSvT1Z@cluster0.toio2qu.mongodb.net/shop_blox?retryWrites=true&w=majority&appName=Cluster0";
+const MONGO_URI = process.env.MONGO_URI || "";
+if (!MONGO_URI) {
+    console.error(">>> [LỖI NGHIÊM TRỌNG]: Chưa set biến môi trường MONGO_URI trên Render! Server sẽ không kết nối được database.");
+}
 
 const GTF_PARTNER_ID = process.env.GTF_PARTNER_ID || "3314076622";
 const GTF_PARTNER_KEY = process.env.GTF_PARTNER_KEY || "";
@@ -236,11 +238,12 @@ app.post('/api/login', async (req, res) => {
 
         // Đăng nhập Admin (CHỈ chấp nhận mật khẩu lấy từ biến môi trường ADMIN_PASSWORD)
         if (cleanUser === "admin" && ADMIN_PASS && cleanPass === ADMIN_PASS.trim()) {
+            const adminToken = signToken({ username: "ADMIN", role: "admin" });
             return res.json({
                 success: true,
                 isAdmin: true,
                 message: "Xin chào Sếp OTOPI! Đang bay sang trang Quản trị...",
-                adminToken: ADMIN_SECRET_KEY,
+                adminToken,
                 user: { username: "ADMIN", role: "admin", balance: 999999999 }
             });
         }
@@ -719,9 +722,13 @@ app.post('/api/webhook/sepay', async (req, res) => {
 // 9. ADMIN ROUTES
 // ==========================================
 function checkAdminAuth(req, res, next) {
-    const token = req.headers['authorization'];
-    if (token === ADMIN_SECRET_KEY) return next();
-    return res.status(403).json({ success: false, message: "Không có quyền Admin!" });
+    const authHeader = req.headers['authorization'] || "";
+    const token = authHeader.replace(/^Bearer\s+/i, '').trim();
+    const payload = verifyToken(token);
+    if (!payload || payload.role !== 'admin') {
+        return res.status(403).json({ success: false, message: "Không có quyền Admin!" });
+    }
+    next();
 }
 
 // ADMIN PHONG CHỨC ROLE (USER <-> CTV)
