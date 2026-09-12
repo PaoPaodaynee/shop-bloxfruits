@@ -438,6 +438,11 @@
 
     <script>
         let currentUser = JSON.parse(localStorage.getItem('otopi_user')) || null;
+        let authToken = localStorage.getItem('otopi_token') || null;
+        // Helper: trả về headers có kèm token đăng nhập, dùng cho mọi API cần xác thực
+        function authHeaders(extra = {}) {
+            return { ...extra, 'Authorization': 'Bearer ' + (authToken || '') };
+        }
         let allAccounts = [];
         let allCategories = [];
         let allBoostServices = [];
@@ -567,8 +572,8 @@
 
             const res = await fetch('/api/item-order', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username: currentUser.username, itemId, robloxUsername, note })
+                headers: authHeaders({ 'Content-Type': 'application/json' }),
+                body: JSON.stringify({ itemId, robloxUsername, note })
             });
 
             const data = await res.json();
@@ -695,8 +700,8 @@
             if (!confirm("Xác nhận dùng số dư để mua acc này?")) return;
             const res = await fetch('/api/buy', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ accountId: id, username: currentUser.username })
+                headers: authHeaders({'Content-Type': 'application/json'}),
+                body: JSON.stringify({ accountId: id })
             });
             const data = await res.json();
             if (data.success) {
@@ -764,8 +769,8 @@
 
             const res = await fetch('/api/boost-order', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username: currentUser.username, serviceId, robloxUser, robloxPass, note })
+                headers: authHeaders({ 'Content-Type': 'application/json' }),
+                body: JSON.stringify({ serviceId, robloxUser, robloxPass, note })
             });
 
             const data = await res.json();
@@ -811,7 +816,7 @@
 
         async function loadMyBoostOrders() {
             if (!currentUser) return;
-            const res = await fetch(`/api/my-boost-orders?username=${currentUser.username}`);
+            const res = await fetch(`/api/my-boost-orders`, { headers: authHeaders() });
             const orders = await res.json();
             const tbody = document.getElementById('boost-orders-client-body');
             tbody.innerHTML = '';
@@ -840,7 +845,7 @@
 
         async function loadMyItemOrders() {
             if (!currentUser) return;
-            const res = await fetch(`/api/my-item-orders?username=${currentUser.username}`);
+            const res = await fetch(`/api/my-item-orders`, { headers: authHeaders() });
             const orders = await res.json();
             const tbody = document.getElementById('items-orders-client-body');
             tbody.innerHTML = '';
@@ -905,7 +910,7 @@
         async function syncUserBalance() {
             if (!currentUser) return;
             try {
-                const res = await fetch(`/api/user-balance?username=${currentUser.username}`);
+                const res = await fetch(`/api/user-balance`, { headers: authHeaders() });
                 const data = await res.json();
                 if (data && typeof data.balance === 'number') {
                     if (data.role) currentUser.role = data.role;
@@ -960,8 +965,8 @@
 
             const res = await fetch('/api/topup-card', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username: currentUser.username, telco, amount, code, serial })
+                headers: authHeaders({ 'Content-Type': 'application/json' }),
+                body: JSON.stringify({ telco, amount, code, serial })
             });
 
             const data = await res.json();
@@ -976,7 +981,7 @@
         async function openOrdersModal() {
             if(!currentUser) return;
             switchOrderSubTab('acc');
-            const res = await fetch(`/api/my-orders?username=${currentUser.username}`);
+            const res = await fetch(`/api/my-orders`, { headers: authHeaders() });
             const orders = await res.json();
             const tbody = document.getElementById('orders-table-body');
             tbody.innerHTML = '';
@@ -1040,6 +1045,10 @@
             if (data.success) {
                 currentUser = data.user;
                 localStorage.setItem('otopi_user', JSON.stringify(currentUser));
+                if (data.token) {
+                    authToken = data.token;
+                    localStorage.setItem('otopi_token', authToken);
+                }
                 if (data.isAdmin) {
                     localStorage.setItem('otopi_admin_token', data.adminToken);
                     alert("🚀 Xin chào Sếp OTOPI! Đang bay sang trang Quản trị...");
@@ -1068,6 +1077,10 @@
                 alert(data.message);
                 currentUser = data.user;
                 localStorage.setItem('otopi_user', JSON.stringify(currentUser));
+                if (data.token) {
+                    authToken = data.token;
+                    localStorage.setItem('otopi_token', authToken);
+                }
                 closeModals();
                 updateHeader();
             } else {
@@ -1079,6 +1092,8 @@
             stopPolling();
             localStorage.removeItem('otopi_user');
             localStorage.removeItem('otopi_admin_token');
+            localStorage.removeItem('otopi_token');
+            authToken = null;
             currentUser = null;
             updateHeader();
         }
